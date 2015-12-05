@@ -1,9 +1,8 @@
 
 import os
 import shutil
-import logging
+# import logging
 import subprocess
-
 
 
 # TODO: integrate this insteand of using output[] and results[]
@@ -62,7 +61,8 @@ def checkTimestamps(incPaths, src, timestamp):
           filepath = os.path.join(dir, filename)
           if os.path.exists(filepath):
             checkTimestamps(incPaths, filepath, timestamp)
-        
+     
+     
 def sourceNeedsBuilding(incPaths, src, objTimestamp):
   '''
     determines whether a source file needs to be built or not
@@ -92,6 +92,7 @@ def srcNewer(srcPath, dstPath):
     return True
   return False
 
+
 def getCmdLineArgs(args):
   '''
     returns a dictionary of options (flags) and arguments where each cmd line option starts with a '-'
@@ -119,6 +120,7 @@ def getCmdLineArgs(args):
     
   return result
 
+
 def makePathAbsolute(absPath, path):
   '''
     make a relative file path absolute 
@@ -127,6 +129,7 @@ def makePathAbsolute(absPath, path):
     return path
   return os.path.normpath(os.path.join(absPath, './' + path))
     
+
 def makePathsAbsolute(absPath, paths):
   
   i = 0

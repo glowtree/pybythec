@@ -1,13 +1,4 @@
 
-import os
-import logging
-import json
-from jsmin import jsmin
-
-logging.basicConfig(level = logging.DEBUG, format = '%(message)s') # DEBUG INFO
-log = logging.getLogger('pybythec')
-
-
 '''
   recursivley parses args and appends it to argsList if it has any of the keys
   args can be a dict, str (space-deliminated), list, or tuple (of strings)
@@ -36,7 +27,7 @@ class BuildElements:
     self.buildType = ''     # debug, release etc
     self.locked = False
     
-  def goodToBuild(self):
+  def goodToBuild():
     if not len(self.target):
       log.error('no target specified')
       return False
@@ -58,7 +49,7 @@ class BuildElements:
     return True
 
 ''' load a json config file '''
-def loadJsonFile(jsonPath):
+def loadJsonFile(jsonPath);
   if not os.path.exists(jsonPath):
     return
   if os.path.splitext(jsonPath)[1] != '.json':

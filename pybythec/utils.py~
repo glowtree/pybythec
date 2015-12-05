@@ -1,10 +1,91 @@
 
 import os
-import time
 import shutil
-import tarfile
+import logging
 import subprocess
-import gnupg
+
+
+
+# TODO: integrate this insteand of using output[] and results[]
+class BuildStatus:
+  '''
+    contains the build status integer:
+    0 - failed
+    1 - built successfully
+    2 - up-to-date or locked
+    
+    and a description of the build
+  '''
+  def __init__(self, result = 0, description = ''):
+    self.result = result
+    self.description = description
+
+def writeBS(buildPath, status):
+  '''
+    write a tmp file that contains the build status information
+    0 - failed
+    1 - built successfully
+    2 - up-to-date or locked
+  '''
+  bsPath = buildPath + '/buildStatus.txt'
+  # log.debug('writing {}'.format(bsPath))
+  tmpFile = open(bsPath, 'w')
+  tmpFile.write(status)
+  tmpFile.close()
+
+
+def checkTimestamps(incPaths, src, timestamp):
+  '''
+    finds the newest timestamp of everything upstream of the src file, including the src file
+  '''
+  if not os.path.exists(src):
+    s = 'does NOT exist: ' + src
+    return
+
+  srcTimeStamp = float(os.stat(src).st_mtime)
+  if srcTimeStamp > timestamp[0]:
+    timestamp[0] = srcTimeStamp
+
+  fileCopy = str()
+  srcFile = open(src, 'r')
+  for line in srcFile:
+    fileCopy += line
+  srcFile.close()
+  
+  for line in fileCopy.split('\n'):
+    if line.startswith('#include'):       
+      filename = line.lstrip('#include')
+      filename = filename.strip()
+      if(filename[0] == '"'):
+        filename = filename.strip('"')
+        for dir in incPaths:
+          filepath = os.path.join(dir, filename)
+          if os.path.exists(filepath):
+            checkTimestamps(incPaths, filepath, timestamp)
+        
+def sourceNeedsBuilding(incPaths, src, objTimestamp):
+  '''
+    determines whether a source file needs to be built or not
+  '''
+  timestamp = [0] # [] so it's passed as a reference
+  checkTimestamps(incPaths, src, timestamp)
+  
+  if timestamp[0] > objTimestamp:
+    return True
+    
+  return False
+  
+
+def getLibPath(libName, libPath, compiler, libExt):
+  '''
+      get the lib path with the os / compiler specific prefix and file extension
+  '''
+  libPath += '/'
+  if compiler.startswith('gcc'):# or compiler.startswith('g++'):
+    libPath += 'lib'
+  libPath += libName + libExt
+  return libPath
+
 
 def srcNewer(srcPath, dstPath):
   if int(os.stat(srcPath).st_mtime) > int(os.stat(dstPath).st_mtime):
@@ -39,14 +120,15 @@ def getCmdLineArgs(args):
   return result
 
 def makePathAbsolute(absPath, path):
+  '''
+    make a relative file path absolute 
+  '''
   if os.path.isabs(path):
     return path
   return os.path.normpath(os.path.join(absPath, './' + path))
     
 def makePathsAbsolute(absPath, paths):
-  '''
-    make a list of relative file paths absolute 
-  '''
+  
   i = 0
   for path in paths:
     paths[i] = makePathAbsolute(absPath, path)
@@ -66,46 +148,10 @@ def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
       return
     libProcess.wait()
 
-def cleanup(srcDir):
-  '''
-    iterates through the src tree, removing unnessecary files
-  '''
-  for dirpath, dirnames, filenames in os.walk(srcDir):
-    for filename in filenames:
-      fullpath = os.path.join(dirpath, filename)
-      if os.path.exists(fullpath):
-        if filename.endswith('~') or filename.endswith('.pyc') or filename == '.DS_Store':
-          os.remove(fullpath)
 
-def getFilesWithExts(dir, exts, subdirs = True):
-  '''
-    returns a string of all files (full paths) from a given directory with the requested extensions
-    exts must NOT begin with the '.'
-  '''
-  
-  if not os.path.exists(dir):
-    return ''
-  
-  if not len(exts):
-    return ''
-  
-  files = str()
-  
-  if subdirs:
-    for dirpath, dirnames, filenames in os.walk(dir):
-        for filename in filenames:
-            for ext in exts.split():
-                if os.path.splitext(filename)[1] == '.{0}'.format(ext):
-                    files += os.path.join(dirpath, filename) + ' '
-                    
-  else:                                                         
-    for filename in os.listdir(dir):
-        for ext in exts.split():
-            if os.path.splitext(filename)[1] == '.{0}'.format(ext):
-                files += os.path.join(dir, filename) + ' '
-  
-  return files
-
+# 
+# TODO: doesn't os.mkdirs do this???
+#
 def createDirs(path):
   '''
    recursively goes up the path heiarchy creating the necessary directories along the way
@@ -130,220 +176,32 @@ def createDirs(path):
 
   os.mkdir(path)
 
-def copyfile(srcPath, dstDir, rootSrcDir = '', onlyNewerFile = True, move = False):
-  """
-      copies srcPath to dstPath, creating the directory structure if necessary for the destination
-         
-      srcPath:       absolute file path
-      dstDir:        absolute directory path
-      rootSrcDir:    if not empty, the relative path from rootSrcDir to scrFile is created in the dst dir
-      onlyNewerFile: if true, the file will only be copied over if the srcFile timestamp is newer
-      move:          delete the src if it's copied
-  """
+
+def copyfile(srcPath, dstDir):
+  '''
+    copies srcPath to dstPath, creating the directory structure if necessary for the destination
+    srcPath: absolute file path
+    dstDir:  absolute directory path
+  '''
   
   if not os.path.exists(srcPath):
     return False
 
-  if len(rootSrcDir):
-    relSrcPath = os.path.relpath(os.path.dirname(srcPath), rootSrcDir)
-    if relSrcPath != '.':
-      dstDir = os.path.join(dstDir, relSrcPath)
-        
   dstPath = os.path.join(dstDir, os.path.basename(srcPath))
 
-  transferType = ''
   if os.path.exists(dstPath):
-    if onlyNewerFile and not srcNewer(srcPath, dstPath):
+    if not srcNewer(srcPath, dstPath):
       return
-    transferType = 'r'
 
   # in case the path doesn't already exist
-  createDirs(dstDir)    
+  # TODO: use os.mkdirs
+  # createDirs(dstDir)
+  os.makedirs(dstDir)
     
   shutil.copy2(srcPath, dstDir)
-  
-  if move:
-    os.remove(srcPath)
-    transferType += 'm'
-  else: 
-    transferType += 'c'
 
-  print('{0} {1} {2}'.format(srcPath, transferType, dstPath))
+  # print('{0} copied to {1}'.format(srcPath, dstPath))
       
   return True 
-
-def movefile(src, dst):
-  copyfile(src, dst, True, True)  
-
-def copyfiles(srcDir, dstDir, exts = '', preserveRelPaths = True, onlyNewerFiles = True, subdirs = True):
-    """
-        like copy file except copies multiple files
-        
-        exts:            string of extensions to filter out other file types
-        preserveRelPath: preserves the relative paths of the src files in the dstDir, creating directories if needed
-        onlyNewerFiles:  if true, files will only be copied over if the src file timestamps are newer
-    """
-    
-    if len(exts):
-        for srcFile in getFilesWithExts(srcDir, exts, subdirs).split():
-            if preserveRelPaths:
-                copyfile(srcFile, dstDir, srcDir, onlyNewerFiles)
-            else:
-                copyfile(srcDir, dstDir, '', onlyNewerFiles)
-    else:
-        if subdirs:        
-            for dirpath, dirnames, filenames in os.walk(srcDir):
-                for filename in filenames:
-                    fullpath = os.path.join(dirpath, filename)
-                    if preserveRelPaths:
-                        copyfile(fullpath, dstDir, srcDir, onlyNewerFiles)
-                    else:
-                        copyfile(fullpath, dstDir, '', onlyNewerFiles)
-        else:
-            for filename in os.listdir(srcDir):
-                fullpath = os.path.join(srcDir, filename)
-                if not os.path.isfile(fullpath):
-                    continue
-                if preserveRelPaths:
-                    copyfile(fullpath, dstDir, srcDir, onlyNewerFiles)
-                else:
-                    copyfile(fullpath, dstDir, '', onlyNewerFiles)
-             
-def removefiles(path = '', exts = ''):
-    """
-    """
-    if os.path.isdir(path) and len(exts):
-        for file in getFilesWithExts(path, exts, True).split():
-            print('removing: ' + file)
-            os.remove(file)        
-    else:
-        os.remove(path)
-
-def replaceTree(srcPath, dstPath):
-    """
-    """
-    
-    if os.path.exists(dstPath):
-        shutil.rmtree(dstPath)
-    
-    cleanup(srcPath)
-    
-    shutil.copytree(srcPath, dstPath)
-
-def encryptTree(srcPath, pkgPath, password):
-    """
-    """
-    if not os.path.exists(srcPath):
-        return False
-    
-    tarPath = srcPath + '.bz2'
-    
-    tardir(srcPath, tarPath)
-
-    gpg = gnupg.GPG()
-    tarFile = open(tarPath, 'rb')
-    gpg.encrypt_file(tarFile, None, symmetric = True, passphrase = password, output = pkgPath)
-    tarFile.close()
-    
-    time.sleep(0.1)
-    
-    if os.path.exists(srcPath):
-        try:
-            shutil.rmtree(srcPath)
-        except OSError as e:
-            print('warning: could not delete {0}'.format(srcPath))
-    
-    if os.path.exists(tarPath):
-        os.remove(tarPath)
-    
-    return True
-
-def decryptTree(pkgPath, password):
-    """
-    """
-    if not os.path.exists(pkgPath):
-        return False
-        
-    rootSrcDir = os.path.dirname(pkgPath)
-    srcPath = os.path.splitext(pkgPath)[0]
-    tarPath = srcPath + '.bz2'
-    
-    if os.path.exists(srcPath):
-        os.remove(srcPath)
-    
-    if os.path.exists(tarPath):
-        os.remove(tarPath)
-    
-    gpg = gnupg.GPG()
-    decryptFile = open(pkgPath, 'rb')
-    gpg.decrypt_file(decryptFile, passphrase = password, output = tarPath)
-    decryptFile.close()
-
-    if not os.path.exists(tarPath):
-        print('no tar file found')
-        return False
-        
-    tarFile = tarfile.open(tarPath, 'r|bz2')
-    tarFile.extractall(rootSrcDir)
-    tarFile.close()
-
-    if os.path.exists(tarPath):
-        os.remove(tarPath)
-    
-    if os.path.exists(pkgPath):
-        os.remove(pkgPath)
-    
-    return True
-
-def emailFile(filepath, subject = 'file', sender = 'ballinbackup@gmail.com', password = "higlypig", receiver = 'ballinbackup@gmail.com'):
-    """
-        email's the file from the sender to the receiver
-        note: also have ballinbackup1 and ballinbackup2
-    """
-    
-    # for python2.x...
-    # from email.MIMEMultipart import MIMEMultipart
-    # from email.MIMEBase import MIMEBase
-    # from email.MIMEText import MIMEText
-    # from email.Utils import formatdate
-    
-    from email.mime.multipart import MIMEMultipart
-    from email.mime.base import MIMEBase
-    from email.mime.text import MIMEText
-    from email.utils import formatdate
-    from email import encoders
-    import smtplib
-
-    msg = MIMEMultipart()
-    msg['From'] = sender
-    msg['To'] = receiver
-    msg['Date'] = formatdate(localtime = True)
-    msg['Subject'] = subject
-
-    part = MIMEBase('application', "octet-stream")
-    part.set_payload(open(filepath,"rb").read())
-    encoders.encode_base64(part)
-    part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(filepath))
-    msg.attach(part)
-    
-    server = smtplib.SMTP(host = 'smtp.gmail.com', port = 587, timeout = 30) #port = 465
-    server.ehlo()
-    server.starttls()
-    server.ehlo()
-    server.login(sender, password)
-    
-    try:
-        server.sendmail(sender, receiver, msg.as_string())
-    except:
-        print('email failed to send')
-        return False
-        
-    print('email sent')
-    
-    try:
-        server.quit()
-    except:
-        print('failed to quit the server')
-        
-    return True
+  
 
