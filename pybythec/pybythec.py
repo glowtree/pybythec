@@ -1,7 +1,7 @@
 
 
 #
-# py by the ca
+# py by the c
 #
 # a cross platform build system for making c / c++ applications
 #
@@ -229,11 +229,11 @@ def build(argv):
   be = config.BuildElements()
     
   if globalCf != None:
-    config.getConfig1(globalCf, be)
+    be.getBuildElements(globalCf)
   if projectCf != None:
-    config.getConfig1(projectCf, be)
+    be.getBuildElements(projectCf)
   if localCf != None:
-    config.getConfig1(localCf, be)
+    be.getBuildElements(localCf)
   
   if not be.goodToBuild():
     log.error('not enough information to build')
@@ -244,8 +244,7 @@ def build(argv):
   
   writeBuildStatus = False
   
-  pathSeparator = ':'
-
+  # command line overrides
   if 'c' in args:
     be.compiler = args['c']
   
@@ -261,13 +260,15 @@ def build(argv):
   if 'ws' in args:
     writeBuildStatus = bool(int(args['ws']))
         
-  compilerCategory = ''.join([i for i in be.compiler if i.isalpha()])
+  # compilerCategory = ''.join([i for i in be.compiler if i.isalpha()])
 
-  keys = ['all', be.compiler, be.osType, be.binaryType, be.buildType, be.binaryFormat]
-  if be.compiler != compilerCategory:
-    keys.append(compilerCategory)
+  # keys = ['all', be.compiler, be.osType, be.binaryType, be.buildType, be.binaryFormat]
+  # if be.compiler != compilerCategory:
+  #   keys.append(compilerCategory)
 
-  defines.append('_' + be.binaryFormat.upper())
+  # defines.append('_' + be.binaryFormat.upper())
+
+  be.setKeys()
 
   #
   # configuration files
@@ -275,18 +276,19 @@ def build(argv):
   # global config
   if 'PYBYTHEC_ROOT' in os.environ:
     rootPath = os.path.join(os.environ['PYBYTHEC_ROOT'], '.pybythecGlobals.json')
-    loadConfigFile(rootPath, keys, defines, flags, linkFlags, incPaths, libPaths, pathSeparator)  
+    be.getBuildElements2(rootPath, keys, defines, flags, linkFlags, incPaths, libPaths, pathSeparator)  
 
   # project config
   if 'p' in args:
-    loadConfigFile(args['p'] + '/.pybythecProject.json', keys, defines, flags, linkFlags, incPaths, libPaths, pathSeparator)
+    be.getBuildElements2(args['p'] + '/.pybythecProject.json', keys, defines, flags, linkFlags, incPaths, libPaths, pathSeparator)
   elif os.path.exists('.pybythecProject.json'):
-    loadConfigFile('.pybythecProject.json', keys, defines, flags, linkFlags, incPaths, libPaths, pathSeparator)
+    be.getBuildElements2('.pybythecProject.json', keys, defines, flags, linkFlags, incPaths, libPaths, pathSeparator)
 
   # local config
   if os.path.exists('.pybythec.json'):
-    loadConfigFile('.pybythec.json', keys, defines, flags, linkFlags, incPaths, libPaths, pathSeparator)
-  
+    be.getBuildElements2('.pybythec.json', keys, defines, flags, linkFlags, incPaths, libPaths, pathSeparator)
+ 
+ 
   # supported compilers
   isGcc   = be.compiler.startswith('gcc')
   isClang = be.compiler.startswith('clang')
@@ -299,7 +301,7 @@ def build(argv):
       
     compilerCmd = be.compiler
       
-    if useCPlusPlus:
+    if be.isCPlusPlus:
       if isGcc:
         compilerCmd = compilerCmd.replace('gcc', 'g++')
       else:
@@ -357,8 +359,7 @@ def build(argv):
     objExt      = '.obj'
     objPathFlag = '/Fo'
     flags.append('/nologo /errorReport:prompt')
-    pathSeparator = ';'
-        
+
     if useDefaultFlags:
       # flags.append('/EHsc /Gy')
         
