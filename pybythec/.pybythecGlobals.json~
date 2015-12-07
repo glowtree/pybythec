@@ -8,26 +8,20 @@
   },
   
   // TODO: MSVC whole program optimization is turned off because it takes forever to compile and link
-  // turn it on though if you ever actually release any software /GL for the compiler and /LTCG for the linker
+  // turn it on though if you ever actually release any software -GL for the compiler and -LTCG for the linker
   "flags":
   {
     "gcc":
     {
-      "all": "-Wall", 
-      "debug": "-g", 
-      "release": "-O3"
+      "all": "-Wall", "debug": "-g", "release": "-O3"
     },
     "clang": 
     {
-      "all": "-Wall", 
-      "debug": "-g", 
-      "release": "-O3"
+      "all": "-Wall", "debug": "-g", "release": "-O3"
     },
     "msvc":
     {
-      "all": "/EHsc /Gy",
-      "debug": "/W1 /RTC1 /Z7",
-      "release": "/DNDEBUG /O2" 
+      "all": "/EHsc /Gy"
     },
     "linux": 
     {
@@ -56,12 +50,6 @@
     "osx":
     {
       "dynamic": "-dynamiclib", "dynamicMaya": "-bundle", "bundle": "-bundle"
-    }
-    "msvc":
-    {
-      "all": "/NODEFAULTLIB:LIBCMT", //:libc.lib -DYNAMICBASE -NXCOMPAT
-      "debug": "/DEBUG",
-      "release": "/INCREMENTAL:NO /OPT:REF /OPT:ICF" // /LTCG
     }
   },
   

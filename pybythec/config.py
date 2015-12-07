@@ -5,6 +5,8 @@ import json
 from jsmin import jsmin
 import platform
 
+import utils
+
 logging.basicConfig(level = logging.DEBUG, format = '%(message)s') # DEBUG INFO
 log = logging.getLogger('pybythec')
 
@@ -29,37 +31,89 @@ class BuildElements:
     self.target = ''
     self.binaryType = ''    # executable, static, dynamic, dynamicLib, dynamicMaya
     self.compiler = ''      # gcc-4.4 gcc clang msvc110 etc
-    self.osType = ''        # linux, osx, windows
-    self.binaryFormat = ''  # 32bit, 64bit etc
-    self.buildType = ''     # debug, release etc
-    self.usePlusPlus = True 
+    self.osType = ''             # linux, osx, windows
+    self.binaryFormat = '64bit'  # 32bit, 64bit etc
+    self.buildType = 'debug'     # debug, release etc
+    self.installPath = '.'
+    self.plusplus = True 
+    self.multithread = True
+    
     self.locked = False
-    self.defines = ''
-    self.flags = ''    # executable, static, dynamic, dynamicLib, dynamicMaya
-    self.linkFlags = ''      # gcc-4.4 gcc clang msvc110 etc
-    self.incPaths = ''        # linux, osx, windows
-    self.libPaths = ''  # 32bit, 64bit etc
-    self.pathSeparator = ''     # debug, release etc
+    
+    self.sources = []
+    self.libs    = []
+    self.defines = []
+    self.flags = []
+    self.linkFlags = []
+    
+    self.incPaths = []       
+    self.libPaths = []
+    self.libSrcPaths = []
     self.keys = []
     
   def getBuildElements(self, configObj):
     if 'target' in configObj:
-      buildElements.target = configObj['target']
+      self.target = configObj['target']
     if 'binaryType' in configObj:
-      buildElements.binaryType = configObj['binaryType']
+      self.binaryType = configObj['binaryType']
     if 'compiler' in configObj:
-      buildElements.compiler = configObj['compiler']
+      self.compiler = configObj['compiler']
     if 'osType' in configObj:
-      buildElements.osType = configObj['osType']
+      self.osType = configObj['osType']
     if 'buildType' in configObj:
-      buildElements.buildType = configObj['buildType']
+      self.buildType = configObj['buildType']
     if 'binaryFormat' in configObj:
-      buildElements.binaryFormat = configObj['binaryFormat']
+      self.binaryFormat = configObj['binaryFormat']
+    if 'installPath' in configObj:
+      self.installPath = configObj['installPath']  
+    if 'plusplus' in configObj:
+      self.plusplus = configObj['plusplus']
+    if 'multithread' in configObj:
+      self.multithread = configObj['multithread']
     if 'locked' in configObj:
-      buildElements.locked = configObj['locked']
-    if 'usePlusPlus' in configObj:
-      buildElements.usePlusPlus = configObj['usePlusPlus']
+      self.locked = configObj['locked']      
+      
+  def setKeys(self):
+    self.keys = ['all', self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
+    # self.defines.append('_' + self.binaryFormat.upper()) # TODO: is this crossplatform???
   
+  def getBuildElements2(self, configObj):
+  
+    separartor = ':'
+    if platform.system() == 'Windows':
+      separartor = ';'
+    
+    if 'bins' in configObj: 
+      bins = []
+      self._getArgsList(bins, configObj['bins'], keys)
+      for bin in bins: 
+        os.environ['PATH'] = bin + separartor + os.environ['PATH']
+    
+    if 'sources' in configObj:
+      self._getArgsList(self.sources, configObj['sources'])
+    
+    if 'libs' in configObj:
+      self._getArgsList(self.libs, configObj['libs'])
+    
+    if 'defines' in configObj:
+      self._getArgsList(self.defines, configObj['defines'])
+      
+    if 'flags' in configObj: 
+      self._getArgsList(self.flags, configObj['flags'])
+      
+    if 'linkFlags' in configObj: 
+      self._getArgsList(self.linkFlags, configObj['linkFlags'])
+      
+    if 'incPaths' in configObj:   
+      self._getArgsList(self.incPaths, configObj['incPaths'])
+      
+    if 'libPaths' in configObj: 
+      self._getArgsList(self.libPaths, configObj['libPaths'])
+
+    if 'libSrcPaths' in configObj: 
+      self._getArgsList(self.libSrcPaths, configObj['libSrcPaths'])
+
+
   def goodToBuild(self):
     if not len(self.target):
       log.error('no target specified')
@@ -79,41 +133,19 @@ class BuildElements:
     elif not len(self.buildType):
       log.error('no buildType specified')
       return False
+    elif not len(self.sources):
+      log.error('no source files specified')
+      return False
     return True
-  
-  def setKeys(self):
-    self.keys = ['all', self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
-    self.defines.append('_' + be.binaryFormat.upper())
-  
-  
-  # TODO: include multithreaded
-  def getBuildElements2(self, configObj):
-  
-    separartor = ':'
-    elif platform.system() == 'Windows':
-      separartor = ';'
-    
-    if 'bins' in configObj: 
-      bins = []
-      _getArgsList(bins, configObj['bins'], keys)
-      for bin in bins: 
-        os.environ['PATH'] = bin + pathSeparator + os.environ['PATH']
-    
-    if 'defines' in configObj:
-      _getArgsList(be.defines, configObj['defines'])
-      
-    if 'flags' in configObj: 
-      _getArgsList(be.flags, configObj['flags'])
-      
-    if 'linkFlags' in configObj: 
-      _getArgsList(be.linkFlags, configObj['linkFlags'])
-      
-    if 'includes' in configObj:   
-      _getArgsList(be.incPaths, configObj['includes'])
-      
-    if 'libs' in configObj: 
-      _getArgsList(be.libPaths, configObj['libs'])
 
+  # TODO: also resolve paths with env vars in them ie $SHARED
+  def makePathsAbsolute(self, cwDir):
+    self.installPath = utils.makePathAbsolute(cwDir, self.installPath)
+    utils.makePathsAbsolute(cwDir, self.sources)
+    utils.makePathsAbsolute(cwDir, self.incPaths)
+    utils.makePathsAbsolute(cwDir, self.libPaths)
+    utils.makePathsAbsolute(cwDir, self.libSrcPaths)
+    
 
   '''
     recursivley parses args and appends it to argsList if it has any of the keys
@@ -123,7 +155,7 @@ class BuildElements:
     if type(args).__name__ == 'dict':
       for key in self.keys:
         if key in args:
-          _getArgsList(argsList, args[key])
+          self._getArgsList(argsList, args[key])
     else:
       if type(args).__name__ == 'unicode':
         args = args.encode('ascii', 'ignore')
