@@ -1,6 +1,6 @@
 
 {
-  "defines" : 
+  "defines": 
   {
     "debug": "GT_DEBUG GT_DEBUG_RC",
     "msvc": "NOMINMAX VC_EXTRALEAN WIN32_LEAN_AND_MEAN", // _WINSOCKAPI_ 
@@ -11,14 +11,12 @@
   // turn it on though if you ever actually release any software /GL for the compiler and /LTCG for the linker
   "flags":
   {
-    "gcc":
-    {
+    "gcc": {
       "all": "-Wall", 
       "debug": "-g", 
       "release": "-O3"
     },
-    "clang": 
-    {
+    "clang": {
       "all": "-Wall", 
       "debug": "-g", 
       "release": "-O3"
@@ -51,15 +49,15 @@
     }, 
     "linux":
     {
-      "dynamic": "-shared", "dynamicMaya": "-shared"
+      "dynamic": "-shared"
     },                  
     "osx":
     {
-      "dynamic": "-dynamiclib", "dynamicMaya": "-bundle", "bundle": "-bundle"
+      "dynamicLib": "-dynamiclib", "dynamic": "-bundle"
     }
     "msvc":
     {
-      "all": "/NODEFAULTLIB:LIBCMT", //:libc.lib -DYNAMICBASE -NXCOMPAT
+      "all": "/NODEFAULTLIB:LIBCMT /NOLOGO /ERRORREPORT:PROMPT", //:libc.lib -DYNAMICBASE -NXCOMPAT
       "debug": "/DEBUG",
       "release": "/INCREMENTAL:NO /OPT:REF /OPT:ICF" // /LTCG
     }

@@ -4,12 +4,9 @@ import logging
 import json
 from jsmin import jsmin
 import platform
-
 import utils
 
-logging.basicConfig(level = logging.DEBUG, format = '%(message)s') # DEBUG INFO
 log = logging.getLogger('pybythec')
-
 
 ''' load a json config file '''
 def loadJsonFile(jsonPath):
@@ -113,7 +110,6 @@ class BuildElements:
     if 'libSrcPaths' in configObj: 
       self._getArgsList(self.libSrcPaths, configObj['libSrcPaths'])
 
-
   def goodToBuild(self):
     if not len(self.target):
       log.error('no target specified')
@@ -136,16 +132,23 @@ class BuildElements:
     elif not len(self.sources):
       log.error('no source files specified')
       return False
+    elif not os.path.exists(self.installPath):
+      log.error('install path {0} doesn\'t exist'.format(self.installPath))
+      return False
     return True
 
-  # TODO: also resolve paths with env vars in them ie $SHARED
-  def makePathsAbsolute(self, cwDir):
-    self.installPath = utils.makePathAbsolute(cwDir, self.installPath)
-    utils.makePathsAbsolute(cwDir, self.sources)
-    utils.makePathsAbsolute(cwDir, self.incPaths)
-    utils.makePathsAbsolute(cwDir, self.libPaths)
-    utils.makePathsAbsolute(cwDir, self.libSrcPaths)
-    
+  def resolvePaths(self, absPath):
+    self.installPath = utils.makePathAbsolute(absPath, os.path.expandvars(self.installPath))
+    self._resolvePaths(absPath, self.sources)
+    self._resolvePaths(absPath, self.incPaths)
+    self._resolvePaths(absPath, self.libPaths)
+    self._resolvePaths(absPath, self.libSrcPaths)
+
+  def _resolvePaths(self, absPath, paths):
+    i = 0
+    for path in paths:
+      paths[i] = utils.makePathAbsolute(absPath, os.path.expandvars(path))
+      i += 1
 
   '''
     recursivley parses args and appends it to argsList if it has any of the keys

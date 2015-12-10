@@ -1,9 +1,10 @@
 
 import os
 import shutil
-# import logging
+import logging
 import subprocess
 
+log = logging.getLogger('pybythec')
 
 # TODO: integrate this insteand of using output[] and results[]
 class BuildStatus:
@@ -129,14 +130,6 @@ def makePathAbsolute(absPath, path):
     return path
   return os.path.normpath(os.path.join(absPath, './' + path))
     
-
-def makePathsAbsolute(absPath, paths):
-  
-  i = 0
-  for path in paths:
-    paths[i] = makePathAbsolute(absPath, path)
-    i += 1
-
 def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
   '''
     does a build clean on the specified directory
@@ -152,7 +145,7 @@ def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
     libProcess.wait()
 
 
-# 
+#
 # TODO: doesn't os.mkdirs do this???
 #
 def createDirs(path):
@@ -161,7 +154,7 @@ def createDirs(path):
   '''
   
   if path == None or not len(path):
-    print('createDirs: empty path')
+    log.warning('createDirs: empty path')
     return
   
   # in case path ends with a '/'
@@ -170,7 +163,8 @@ def createDirs(path):
   if os.path.exists(path):
     return
   
-  print('creating dir {0}'.format(path))
+  log.info('createDirs: creating ' + path)
+  # print('creating dir {0}'.format(path))
 
   # if the path above the current one doesn't exist, create it
   abovePath = os.path.dirname(path)
@@ -178,7 +172,6 @@ def createDirs(path):
     createDirs(abovePath)
 
   os.mkdir(path)
-
 
 def copyfile(srcPath, dstDir):
   '''
@@ -197,9 +190,12 @@ def copyfile(srcPath, dstDir):
       return
 
   # in case the path doesn't already exist
-  # TODO: use os.mkdirs
-  # createDirs(dstDir)
-  os.makedirs(dstDir)
+  # NOTE:  os.mkdirs throws the same exception whether it couldn't create the directory or it was already there
+  # therefor not ideal
+  createDirs(dstDir)
+  # try:
+  #   os.makedirs(dstDir)
+  # except:
     
   shutil.copy2(srcPath, dstDir)
 

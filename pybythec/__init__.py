@@ -4,4 +4,9 @@ __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
 __version__ = '0.1.0'
 
-print('in init')
+import logging
+logging.basicConfig(level = logging.DEBUG, format = '%(message)s') # DEBUG INFO
+
+log = logging.getLogger('pybythec')
+
+log.info('pybythec init')

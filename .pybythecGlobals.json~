@@ -59,7 +59,7 @@
     }
     "msvc":
     {
-      "all": "/NODEFAULTLIB:LIBCMT", //:libc.lib -DYNAMICBASE -NXCOMPAT
+      "all": "/NODEFAULTLIB:LIBCMT /NOLOGO /ERRORREPORT:PROMPT", //:libc.lib -DYNAMICBASE -NXCOMPAT
       "debug": "/DEBUG",
       "release": "/INCREMENTAL:NO /OPT:REF /OPT:ICF" // /LTCG
     }
