@@ -7,11 +7,32 @@ import subprocess
 
 log = logging.getLogger('pybythec')
 
+# TODO: integrate this insteand of using output[] and results[]
+class BuildStatus:
+  '''
+    contains the build status integer:
+    0 - failed
+    1 - built successfully
+    2 - up-to-date or locked
+    
+    and a description of the build
+  '''
+  def __init__(self, result = 0, description = ''):
+    self.result = result
+    self.description = description
 
-def srcNewer(srcPath, dstPath):
-  if int(os.stat(srcPath).st_mtime) > int(os.stat(dstPath).st_mtime):
-    return True
-  return False
+def writeBS(buildPath, status):
+  '''
+    write a tmp file that contains the build status information
+    0 - failed
+    1 - built successfully
+    2 - up-to-date or locked
+  '''
+  bsPath = buildPath + '/buildStatus.txt'
+  # log.debug('writing {}'.format(bsPath))
+  tmpFile = open(bsPath, 'w')
+  tmpFile.write(status)
+  tmpFile.close()
 
 
 def checkTimestamps(incPaths, src, timestamp):
@@ -62,10 +83,16 @@ def getLibPath(libName, libPath, compiler, libExt):
       get the lib path with the os / compiler specific prefix and file extension
   '''
   libPath += '/'
-  if compiler.startswith('gcc') or compiler.startswith('clang'):
+  if compiler.startswith('gcc'):# or compiler.startswith('g++'):
     libPath += 'lib'
   libPath += libName + libExt
   return libPath
+
+
+def srcNewer(srcPath, dstPath):
+  if int(os.stat(srcPath).st_mtime) > int(os.stat(dstPath).st_mtime):
+    return True
+  return False
 
 
 def getCmdLineArgs(args):

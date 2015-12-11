@@ -24,18 +24,14 @@
 
 #
 # binaryType can be one of:
-# staticLib  
+# staticLib  (for linux and osx this means prepending 'lib')
 # dynamicLib (for linux and osx this means prepending 'lib')
 # dynamic
 # executable
 #
 
-# for staticLib and dynamicLib on linux and osx this means prepending 'lib'
-# on osx dynamic refers to a bundle
-
-
 import utils
-from buildObjects import *
+import config
 
 import os
 import sys
@@ -48,8 +44,7 @@ from threading import Thread
 
 log = logging.getLogger('pybythec')
 
-# def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objPaths, output, results, i):
-
+def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objPaths, output, results, i):
   '''
     return code:
     0 - failed
@@ -121,16 +116,10 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
       break
   
   # check / build the lib
-  # pyExecPath = os.path.join(libSrcDir, '.build.py')
-  # if not os.path.exists(pyExecPath):
-  #   results[i] = 0
-  #   log.warning(libSrcDir + ' does not have a .build.py file')
-  #   return
-  
-  jsonPath = os.path.join(libSrcDir, '.pybythec.json')
-  if not os.path.exists(jsonPath):
+  pyExecPath = os.path.join(libSrcDir, '.build.py')
+  if not os.path.exists(pyExecPath):
     results[i] = 0
-    log.warning(libSrcDir + ' does not have a .pybythec.json file')
+    log.warning(libSrcDir + ' does not have a .build.py file')
     return
   
   # TODO: don't need to pipe output anymore, could write output to the buildStatus.txt file instead
@@ -138,8 +127,7 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   # build
   libProcess = 0
   try:
-    # buildCmd = 'python {0} -c {1} -o {2} -d {3} -b {4} -bf {5} -ws 1 -p {6}'.format(pyExecPath, compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
-    buildCmd = 'pybythc -c {0} -o {1} -d {2} -b {3} -bf {4} -ws 1 -p {5}'.format(compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
+    buildCmd = 'python {0} -c {1} -o {2} -d {3} -b {4} -bf {5} -ws 1 -p {6}'.format(pyExecPath, compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
     log.debug(buildCmd)
     libProcess = subprocess.Popen(buildCmd, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)  # TODO: remove shell
   except OSError as e:
@@ -168,15 +156,15 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   # output[i] = int(bsFile.readline()) # TODO: use this if piping the output is no longer used 
   bsFile.close()
 
-# '''
-#   copy's the build target to the install target if the install target doesn't exist or is different than the build target
-# '''
-# def install(targetBuildPath, installBuildPath):
-#   if not len(installBuildPath):
-#     return
+'''
+  copy's the build target to the install target if the install target doesn't exist or is different than the build target
+'''
+def install(targetBuildPath, installBuildPath):
+  if not len(installBuildPath):
+    return
   
-#   if not os.path.exists(installBuildPath) or (float(os.stat(installBuildPath).st_mtime) != float(os.stat(targetBuildPath).st_mtime)):
-#     utils.copyfile(targetBuildPath, installBuildPath)
+  if not os.path.exists(installBuildPath) or (float(os.stat(installBuildPath).st_mtime) != float(os.stat(targetBuildPath).st_mtime)):
+    utils.copyfile(targetBuildPath, installBuildPath)
 
 
 '''
@@ -189,7 +177,8 @@ def build(argv):
   #
   # compiler specific initialization
   #
-  compilerCmd = ''      # the compiler command ie if msvc090 is the compiler, but cl is the compilerCmd
+  compilerCmd = ''      # the compiler command ie if msvc090 is the compiler, but cl is the compilerCmd (with PATH pointing to the proper version of cl)
+  compilerCategory = '' # be.compiler without the version ie if msvc090 is the be.compiler, compilerCategory is msvc
   linker      = str()
   targetFlag  = str()
   libFlag     = str()
@@ -226,7 +215,7 @@ def build(argv):
   if os.path.exists('.pybythec.json'):
     localCf = utils.loadJsonFile('.pybythec.json')
     
-  be = BuildElements()
+  be = config.BuildElements()
     
   if globalCf != None:
     be.getBuildElements(globalCf)
@@ -295,7 +284,6 @@ def build(argv):
     
     objExt      = '.o'
     objPathFlag = '-o '
-    be.defines.append('_' + be.binaryFormat.upper()) # TODO you sure?
       
     # link
     linker        = compilerCmd
@@ -325,12 +313,12 @@ def build(argv):
       return False
     
     if be.multithread and be.binaryType != 'staticLib':
-      be.libs.append('pthread')    
+      be.libs.append('pthread')        
 
   #
   # msvc / msvc
   #
-  elif isMsvc:
+  elif isMsvc: # be.compiler.startswith('msvc'):
       
     # compile
     compilerCmd = 'cl'
@@ -377,7 +365,7 @@ def build(argv):
   
   buildPath = utils.makePathAbsolute(cwDir, './.build' + binaryRelPath)
   
-  if be.libInstallPathAppend and (be.binaryType == 'staticLib' or be.binaryType == 'dynamicLib'):
+  if be.binaryType == 'staticLib' or be.binaryType == 'dynamicLib':
     be.installPath += binaryRelPath
 
   for i in range(len(be.libPaths)):
@@ -391,8 +379,6 @@ def build(argv):
 
   targetBuildPath   = os.path.join(buildPath,   be.target)
   targetInstallPath = os.path.join(be.installPath, be.target)
-  
-  # log.debug('be.installPath {0}'.format(targetInstallPath))
   
   #
   # clean
@@ -571,7 +557,7 @@ def build(argv):
   # link objs or libraries
   #    
   if allUpToDate and os.path.exists(targetBuildPath):
-    # install(targetBuildPath, be.installPath)
+    install(targetBuildPath, be.installPath)
     log.info('{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
     if writeBuildStatus:   
       writeBS(buildPath, '2')
@@ -581,20 +567,19 @@ def build(argv):
   tmpLinkCmdFp = buildPath + '/tmpLinkCmd'
   if be.compiler.startswith('msvc'):
     msvcTmpFile = open(tmpLinkCmdFp, 'w')
-    # msvcTmpFile.write('{0}"{1}" {2} {3}'.format(targetFlag, targetBuildPath, objPaths, libCmds))
-    msvcTmpFile.write('{0}"{1}" {2} {3}'.format(targetFlag, targetInstallPath, objPaths, libCmds))
+    msvcTmpFile.write('{0}"{1}" {2} {3}'.format(targetFlag, targetBuildPath, objPaths, libCmds))
     msvcTmpFile.close()
     linkCmd = '{0} @{1} '.format(linker, tmpLinkCmdFp)
   else:                               
-    # linkCmd = '{0} {1} "{2}" {3} {4}'.format(linker, targetFlag, targetBuildPath, objPaths, libCmds)
-    linkCmd = '{0} {1} "{2}" {3} {4}'.format(linker, targetFlag, targetInstallPath, objPaths, libCmds)
+    linkCmd = '{0} {1} "{2}" {3} {4}'.format(linker, targetFlag, targetBuildPath, objPaths, libCmds)
 
-  if be.binaryType != 'staticLib': # and be.binaryType != 'dynamicLib':
-    linkCmd += ' '.join(be.linkFlags)
-    if be.binaryType != 'dynamicLib':
-      for libPath in libPaths:
-        linkCmd += libPathFlag + '"' + os.path.normpath(libPath) + '" '
+  if be.binaryType != 'staticLib' and be.binaryType != 'dynamicLib':
+    for libPath in libPaths:
+      linkCmd += libPathFlag + '"' + os.path.normpath(libPath) + '" '
   
+  # if be.binaryType != 'static':
+      linkCmd += ' '.join(linkFlags)
+      
   log.debug(linkCmd + '\n')
   # print(linkCmd + '\n')
   
@@ -632,6 +617,7 @@ def build(argv):
     return False
       
   if be.compiler.startswith('msvc') and multiThreaded and (be.binaryType == 'dynamic' or be.binaryType == 'executable'):
+  #be.binaryType != 'staticLib' and be.binaryType != 'dynamicLib':
       
     # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
     mtCmd = 'mt -nologo -manifest ' + targetBuildPath + '.manifest -outputresource:' + targetBuildPath + ';#2'
@@ -646,7 +632,7 @@ def build(argv):
     log.info(processOutput.decode('utf-8'))
   
   # install
-  # install(targetBuildPath, be.installPath)
+  install(targetBuildPath, be.installPath)
   
   log.info('{0} ({1} {2} {3}) build completed in {4} seconds'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
   if be.binaryType == 'executable':
