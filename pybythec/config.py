@@ -1,27 +1,13 @@
 
 import os
 import logging
-import json
-from jsmin import jsmin
+# import json
+# import jsmin
+# from jsmin import jsmin
 import platform
 import utils
 
 log = logging.getLogger('pybythec')
-
-''' load a json config file '''
-def loadJsonFile(jsonPath):
-  if not os.path.exists(jsonPath):
-    return
-  if os.path.splitext(jsonPath)[1] != '.json':
-    log.warning('{0} is not json'.format(jsonPath))
-    return
-
-  with open(jsonPath) as f:
-    minifiedJsonStr = jsmin(f.read())
-    if len(minifiedJsonStr):
-      cf = json.loads(minifiedJsonStr)
-      return cf
-  return None
 
 class BuildElements:
   def __init__(self):
@@ -82,7 +68,7 @@ class BuildElements:
     
     if 'bins' in configObj: 
       bins = []
-      self._getArgsList(bins, configObj['bins'], keys)
+      self._getArgsList(bins, configObj['bins'])
       for bin in bins: 
         os.environ['PATH'] = bin + separartor + os.environ['PATH']
     

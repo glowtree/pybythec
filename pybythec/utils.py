@@ -1,5 +1,6 @@
 
 import os
+import json
 import shutil
 import logging
 import subprocess
@@ -145,9 +146,7 @@ def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
     libProcess.wait()
 
 
-#
-# TODO: doesn't os.mkdirs do this???
-#
+
 def createDirs(path):
   '''
    recursively goes up the path heiarchy creating the necessary directories along the way
@@ -203,4 +202,37 @@ def copyfile(srcPath, dstDir):
       
   return True 
   
+def removeComments(f):
+  '''
+    removes // style comments from a file, num of lines stays the same
+  '''
+  sansComments = ''
+  # with open(path) as f:
+  inQuotes = False
+  for l in f:
+    i = 0
+    for c in l:
+      if c == '"':
+        inQuotes = not inQuotes
+      elif c == '/' and l[i + 1] == '/' and not inQuotes:
+        sansComments += '\n'
+        break
+      i += 1
+      sansComments += c
+  return sansComments
 
+''' load a json config file '''
+def loadJsonFile(jsonPath):
+  if not os.path.exists(jsonPath):
+    return
+  if os.path.splitext(jsonPath)[1] != '.json':
+    log.warning('{0} is not json'.format(jsonPath))
+    return
+
+  with open(jsonPath) as f:
+    # minifiedJsonStr = jsmin(f.read())
+    # if len(minifiedJsonStr):
+    #   cf = json.loads(minifiedJsonStr)
+    # return cf
+    return json.loads(removeComments(f))
+  return None

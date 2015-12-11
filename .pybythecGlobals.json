@@ -54,7 +54,7 @@
     "osx":
     {
       "dynamicLib": "-dynamiclib", "dynamic": "-bundle"
-    }
+    },
     "msvc":
     {
       "all": "/NODEFAULTLIB:LIBCMT /NOLOGO /ERRORREPORT:PROMPT", //:libc.lib -DYNAMICBASE -NXCOMPAT

@@ -5,7 +5,7 @@
 #
 # a cross platform build system for making c / c++ applications
 #
-# written by Tom Sirdevan @ glowtree
+# written by Tom Sirdevan @glowtree
 # 
 # contact: pybythc@glowtree.com
 #
@@ -23,16 +23,12 @@
 #
 
 #
-# be.binaryType can be one of:
-# static
-# dynamic
+# binaryType can be one of:
+# staticLib  (for linux and osx this means prepending 'lib')
 # dynamicLib (for linux and osx this means prepending 'lib')
-# dynamicMaya (for Windows this means the extension is '.mll' instead of '.dll)
+# dynamic
 # executable
 #
-
-# TODO: MSVC whole program optimization is turned off because it takes forever to compile and link, turn it on though if you ever actually release any software 
-# -GL for the be.compiler and -LTCG for the linker
 
 import utils
 import config
@@ -70,7 +66,7 @@ def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objP
   objExisted = os.path.exists(objPath)
   if objExisted:
     objTimestamp = float(os.stat(objPath).st_mtime)
-    if not sourceNeedsBuilding(incPaths, source, objTimestamp):
+    if not utils.sourceNeedsBuilding(incPaths, source, objTimestamp):
       results[i] = 2
       return
 
@@ -103,7 +99,7 @@ def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objP
   return code:
   0 - failed
   1 - built
-  2 - up to date / be.locked, no build happened
+  2 - up to date / locked, no build happened
 '''
 def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType, binaryFormat, projectDir, output, results, i):
   
@@ -113,7 +109,7 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
 
   # find the previously built lib in the lib install directories if it exists
   for libDir in libPaths:
-    libPath = getLibPath(lib, libDir, be.compiler, fileExt)
+    libPath = utils.getLibPath(lib, libDir, compiler, fileExt)
     libExisted = os.path.exists(libPath)
     if libExisted:
       libTimestamp = float(os.stat(libPath).st_mtime)
@@ -131,12 +127,12 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   # build
   libProcess = 0
   try:
-    buildCmd = 'python {0} -c {1} -o {2} -d {3} -b {4} -bf {5} -ws 1 -p {6}'.format(pyExecPath, be.compiler, be.osType, libSrcDir, be.buildType, be.binaryFormat, projectDir)
+    buildCmd = 'python {0} -c {1} -o {2} -d {3} -b {4} -bf {5} -ws 1 -p {6}'.format(pyExecPath, compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
     log.debug(buildCmd)
     libProcess = subprocess.Popen(buildCmd, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)  # TODO: remove shell
   except OSError as e:
     results[i] = 0
-    log.error('libProcess failed because ' + str(e))
+    log.error('libProcess failed ause ' + str(e))
     return
   time.sleep(0.01)
   processOutput = libProcess.communicate()
@@ -150,7 +146,7 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
     output[i] = processOutput[1].decode('utf-8') # locale.getdefaultlocale()[1])
   
   # read the build status
-  bsPath = '{0}/.build/{1}/{2}/{3}/buildStatus.txt'.format(libSrcDir, be.buildType, be.binaryFormat, be.compiler) #Category)
+  bsPath = '{0}/.build/{1}/{2}/{3}/buildStatus.txt'.format(libSrcDir, buildType, binaryFormat, compiler) #Category)
   if not os.path.exists(bsPath):
     log.debug('error:{} doesn\'t exist'.format(bsPath))
     results[i] = 0
@@ -161,7 +157,7 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   bsFile.close()
 
 '''
-  copy's the build be.target to the install be.target if the install be.target doesn't exist or is different than the build be.target
+  copy's the build target to the install target if the install target doesn't exist or is different than the build target
 '''
 def install(targetBuildPath, installBuildPath):
   if not len(installBuildPath):
@@ -179,9 +175,9 @@ def build(argv):
   startTime = time.time()
     
   #
-  # be.compiler specific initialization
+  # compiler specific initialization
   #
-  compilerCmd = ''      # the be.compiler command ie if msvc090 is the be.compiler, but cl is the compilerCmd (with PATH pointing to the proper version of cl)
+  compilerCmd = ''      # the compiler command ie if msvc090 is the compiler, but cl is the compilerCmd (with PATH pointing to the proper version of cl)
   compilerCategory = '' # be.compiler without the version ie if msvc090 is the be.compiler, compilerCategory is msvc
   linker      = str()
   targetFlag  = str()
@@ -189,16 +185,6 @@ def build(argv):
   libPathFlag = str()
   objExt      = str()
   objPathFlag = str()
-  
-  sources   = []
-  libs      = []
-  defines   = []
-  flags     = []
-  linkFlags = []
-  
-  incPaths    = []
-  libPaths    = []
-  libSrcPaths = []
   
   gtClasses = []
   
@@ -209,24 +195,25 @@ def build(argv):
   projectCf = None
   localCf   = None
 
-  if 'PYBYTHEC_GLOBAL' in os.environ:
-    globalCf = config.loadJsonFile(os.environ['PYBYTHEC_GLOBAL'])
+  # global config
+  if 'PYBYTHEC_GLOBALS' in os.environ:
+    globalCf = utils.loadJsonFile(os.environ['PYBYTHEC_GLOBALS'])
   elif 'g' in args:
-    globalCf = config.loadJsonFile(args['g'])
+    globalCf = utils.loadJsonFile(args['g'])
   else:
-    globalCf = config.loadJsonFile('.pybythecGlobal.json')
+    globalCf = utils.loadJsonFile('.pybythecGlobal.json')
 
   # project config
   if 'PYBYTHEC_PROJECT' in os.environ:
     projectCf = os.environ['PYBYTHEC_PROJECT']
   elif 'p' in args:
-    projectCf = config.loadJsonFile(args['p'])
+    projectCf = utils.loadJsonFile(args['p'])
   else:
-    projectCf = config.loadJsonFile('.pybythecProject.json')
+    projectCf = utils.loadJsonFile('.pybythecProject.json')
 
   # local config
   if os.path.exists('.pybythec.json'):
-    localCf = config.loadJsonFile('.pybythec.json')
+    localCf = utils.loadJsonFile('.pybythec.json')
     
   be = config.BuildElements()
     
@@ -236,11 +223,7 @@ def build(argv):
     be.getBuildElements(projectCf)
   if localCf != None:
     be.getBuildElements(localCf)
-  
-  if not be.goodToBuild():
-    log.error('not enough information to build')
-    return
-  
+    
   if be.binaryType == 'executable':
     print('') # formatting
   
@@ -270,6 +253,16 @@ def build(argv):
     be.getBuildElements2(projectCf)
   if localCf != None:
     be.getBuildElements2(localCf)
+  
+  # ensure all the paths are absolute for multi-threading
+  cwDir = os.getcwd()
+  if 'd' in args:
+    cwDir = args['d']
+    
+  be.resolvePaths(cwDir)
+   
+  if not be.goodToBuild():
+    return
    
   # supported compilers
   isGcc   = be.compiler.startswith('gcc')
@@ -283,7 +276,7 @@ def build(argv):
       
     compilerCmd = be.compiler
       
-    if be.isCPlusPlus:
+    if be.plusplus:
       if isGcc:
         compilerCmd = compilerCmd.replace('gcc', 'g++')
       else:
@@ -299,62 +292,40 @@ def build(argv):
     libPathFlag   = '-L'
     staticLibExt  = '.a'
     dynamicLibExt = '.so'
-    if be.osType == 'osx' and isClang:
+    dynamicExt    = '.so'
+    if be.osType == 'osx' and isClang: # TODO: it's not clang that determines this, should have a var called osxConventions or something like that
       dynamicLibExt = '.dylib'
+      dynamicExt    = '.bundle'
       
-    # if be.binaryType == 'static' or be.binaryType == 'dynamic':
-    if be.binaryType == 'static' or be.binaryType == 'dynamicLib':
+    if be.binaryType == 'staticLib' or be.binaryType == 'dynamicLib':
       be.target = 'lib' + be.target
 
-    if be.binaryType == 'dynamicLib':
-      be.binaryType = 'dynamic'
-
-    if be.binaryType == 'static':
+    if be.binaryType == 'staticLib':
       be.target = be.target + '.a'
       linker = 'ar r'
       targetFlag = ''
-    elif be.binaryType == 'dynamic':
+    elif be.binaryType == 'dynamicLib':
       be.target = be.target + dynamicLibExt
-    elif be.binaryType == 'bundle': # osx only
-      be.target = be.target + '.bundle'
-    elif be.binaryType == 'dynamicMaya':
-      if be.osType == 'osx':
-        be.target = be.target + '.bundle'
-      else:
-        be.target = be.target + dynamicLibExt
+    elif be.binaryType == 'dynamic':
+      be.target = be.target + dynamicExt
     elif be.binaryType != 'executable':
       log.error('unrecognized binary type: ' + be.binaryType)
       return False
-          
-    # default flags
-    if useDefaultFlags:
-      if multiThreaded and be.binaryType != 'static':
-        libs.append('pthread')        
+    
+    if be.multithread and be.binaryType != 'staticLib':
+      be.libs.append('pthread')        
 
   #
   # msvc / msvc
   #
-  elif be.compiler.startswith('msvc'):
+  elif isMsvc: # be.compiler.startswith('msvc'):
       
     # compile
     compilerCmd = 'cl'
     objExt      = '.obj'
     objPathFlag = '/Fo'
     flags.append('/nologo /errorReport:prompt')
-
-    if useDefaultFlags:
-      # flags.append('/EHsc /Gy')
         
-      if be.buildType == 'debug':
-        flags.append('/W1 /RTC1 /Z7')
-        if multiThreaded:
-          flags.append('/MDd')
-              
-      elif be.buildType == 'release':
-        flags.append('/DNDEBUG /O2') #' -GL'
-        if multiThreaded:
-          flags.append('/MD')
-    
     # link 
     linker        = 'link'
     targetFlag    = '/OUT:' # can't be '-OUT:' for @tmpLinkCmd to work
@@ -362,18 +333,14 @@ def build(argv):
     libPathFlag   = '/LIBPATH:'
     staticLibExt  = '.lib'
     dynamicLibExt = '.dll'
-    linkFlags.append('/NOLOGO /ERRORREPORT:PROMPT')
     if be.binaryFormat == '64bit':
       linkFlags.append('/MACHINE:X64')
     
-    if be.binaryType == 'static':
+    if be.binaryType == 'staticLib':
       be.target += staticLibExt
-      linker  = 'lib'
-    elif be.binaryType == 'dynamic':
-      be.target    += dynamicLibExt
-      linkFlags.append('/DLL')
-    elif be.binaryType == 'dynamicMaya': # windows only
-      be.target += '.mll'
+      linker = 'lib'
+    elif be.binaryType == 'dynamicLib' or be.binaryType == 'dynamic':
+      be.target += dynamicLibExt
       linkFlags.append('/DLL')
     elif be.binaryType == 'executable':
       be.target += '.exe'
@@ -381,53 +348,37 @@ def build(argv):
       log.error('unrecognized binary type: ' + be.binaryType)
       return False
     
-    if useDefaultFlags:
-      linkFlags.append('/NODEFAULTLIB:LIBCMT') #:libc.lib' #-DYNAMICBASE -NXCOMPAT
+    if be.multithread:
       if be.buildType == 'debug':
-        linkFlags.append('/DEBUG') # -INCREMENTAL 
-      elif be.buildType == 'release':
-        linkFlags.append('/INCREMENTAL:NO /OPT:REF /OPT:ICF') # -LTCG'
+        be.flags.append('/MDd')
+      else:
+        be.flags.append('/MD')
 
   else:
-    log.error('unknown be.compiler')
+    log.error('unknown compiler')
     return False
 
   #
   # general initialization
   #
-  threading = True
-  
-  # ensure all the paths are absolute for multi-threading
-  cwDir = os.getcwd()
-  if 'd' in args:
-    cwDir = args['d']
-
-  utils.makePathsAbsolute(cwDir, sources)
-  utils.makePathsAbsolute(cwDir, incPaths)
-  utils.makePathsAbsolute(cwDir, libPaths)
-  utils.makePathsAbsolute(cwDir, libSrcPaths)
-  
-  binaryRelPath = '/{0}/{1}/{2}'.format(be.buildType, be.binaryFormat, be.compiler)
+  binaryRelPath = '/{0}/{1}/{2}'.format(be.buildType, be.compiler, be.binaryFormat)
   
   buildPath = utils.makePathAbsolute(cwDir, './.build' + binaryRelPath)
   
-  if len(installPath):
-    installPath = utils.makePathAbsolute(cwDir, installPath)
-    # if be.binaryType != 'executable':
-    if be.binaryType == 'static':
-      installPath += binaryRelPath
+  if be.binaryType == 'staticLib' or be.binaryType == 'dynamicLib':
+    be.installPath += binaryRelPath
 
-  for i in range(len(libPaths)):
-    revisedLibPath = libPaths[i] + binaryRelPath
+  for i in range(len(be.libPaths)):
+    revisedLibPath = be.libPaths[i] + binaryRelPath
     if os.path.exists(revisedLibPath):
-      libPaths[i] = revisedLibPath
+      be.libPaths[i] = revisedLibPath
     else: # in case there's also lib paths that don't have  be.buildType, ie for external libraries that only ever have the release version
-      revisedLibPath = '{0}/{1}/{2}'.format(libPaths[i], be.binaryFormat, be.compiler) 
+      revisedLibPath = '{0}/{1}/{2}'.format(be.libPaths[i], be.binaryFormat, be.compiler) 
       if os.path.exists(revisedLibPath):
-        libPaths[i] = revisedLibPath
+        be.libPaths[i] = revisedLibPath
 
   targetBuildPath   = os.path.join(buildPath,   be.target)
-  targetInstallPath = os.path.join(installPath, be.target)
+  targetInstallPath = os.path.join(be.installPath, be.target)
   
   #
   # clean
@@ -462,6 +413,8 @@ def build(argv):
   #
   # building
   #
+  threading = True
+  
   log.info('building {0} ({1} {2} {3})'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
 
   if not os.path.exists(buildPath):
@@ -476,20 +429,22 @@ def build(argv):
   # compile source
   #
   incPathsStr = str()
-  for incDir in incPaths:
+  for incDir in be.incPaths:
     incPathsStr += ' -I"' + incDir + '" '
   
   definesStr = str()
-  for define in defines:
+  for define in be.defines:
     definesStr += '-D' + define + ' '
   
-  flagsStr = ' '.join(flags)
+  flagsStr = ' '.join(be.flags)
   
   cmd = compilerCmd + ' -c' + incPathsStr + definesStr + flagsStr + ' '
-  log.debug(cmd)
 
   objPaths = []
     
+  #
+  # Qt moc file compilation
+  #
   # TODO: timestamp check to see if this needs to happen or if it's up to date
   mocPaths = []
   for qtClass in gtClasses:
@@ -516,22 +471,21 @@ def build(argv):
       return
 
   for mocPath in mocPaths:
-    sources.append(mocPath)
+    be.sources.append(mocPath)
 
   if threading:
-    for source in sources:
-
+    for source in be.sources:
       output.append(str())
       results.append(0)
-      thread = Thread(None, target = compileSrc, args = (source, incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, output, results, i))
+      thread = Thread(None, target = compileSrc, args = (source, be.incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, output, results, i))
       thread.start()
       threads.append(thread)
       i += 1
   else:
-    for source in sources:
+    for source in be.sources:
       output.append(str())
       results.append(0)
-      compileSrc(source, incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, output, results, i)
+      compileSrc(source, be.incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, output, results, i)
       i += 1
   
   srcEndIndex = i - 1
@@ -540,35 +494,35 @@ def build(argv):
   # build library dependencies
   #
   libCmds = str()
-  if len(libs):
-    for lib in libs:
+  if len(be.libs):
+    for lib in be.libs:
 
       libCmds += libFlag + lib
       if be.compiler.startswith('msvc'):
-        libCmds += staticLibExt
+        libCmds += staticLibExt # TODO: both the staticLibExt and dynamicLibExt
       libCmds += ' '
         
       # check if the lib has a directory for building
       if threading:
-        for libSrcDir in libSrcPaths:
+        for libSrcDir in be.libSrcPaths:
           libSrcDir = '{0}/{1}'.format(libSrcDir, lib)
           if os.path.exists(libSrcDir):
             output.append(str())
             results.append(0)
             # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-            thread = Thread(None, target = buildLib, args = (lib, libPaths, libSrcDir, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, output, results, i))
+            thread = Thread(None, target = buildLib, args = (lib, be.libPaths, libSrcDir, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, output, results, i))
             thread.start()
             threads.append(thread)
             i += 1
             break
       else:
-        for libSrcDir in libSrcPaths:
-          libSrcDir = '{0}/{1}'.format(libSrcDir, lib)
-          if os.path.exists(libSrcDir):
+        for libSrcPath in be.libSrcPaths:
+          libSrcPath = '{0}/{1}'.format(libSrcPath, lib)
+          if os.path.exists(libSrcPath):
             output.append(str())
             results.append(0)
             # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-            buildLib(lib, libPaths, libSrcDir, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, output, results, i)
+            buildLib(lib, be.libPaths, be.libSrcPath, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, output, results, i)
             i += 1
             break
 
@@ -603,13 +557,13 @@ def build(argv):
   # link objs or libraries
   #    
   if allUpToDate and os.path.exists(targetBuildPath):
-    install(targetBuildPath, installPath)
+    install(targetBuildPath, be.installPath)
     log.info('{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
     if writeBuildStatus:   
       writeBS(buildPath, '2')
     return True
   
-  # microsoft's be.compiler / linker can only handle so many characters on the command line
+  # microsoft's compiler / linker can only handle so many characters on the command line
   tmpLinkCmdFp = buildPath + '/tmpLinkCmd'
   if be.compiler.startswith('msvc'):
     msvcTmpFile = open(tmpLinkCmdFp, 'w')
@@ -619,12 +573,12 @@ def build(argv):
   else:                               
     linkCmd = '{0} {1} "{2}" {3} {4}'.format(linker, targetFlag, targetBuildPath, objPaths, libCmds)
 
-  if be.binaryType != 'static':
+  if be.binaryType != 'staticLib' and be.binaryType != 'dynamicLib':
     for libPath in libPaths:
       linkCmd += libPathFlag + '"' + os.path.normpath(libPath) + '" '
   
-  if be.binaryType != 'static':
-    linkCmd += ' '.join(linkFlags)
+  # if be.binaryType != 'static':
+      linkCmd += ' '.join(linkFlags)
       
   log.debug(linkCmd + '\n')
   # print(linkCmd + '\n')
@@ -662,22 +616,23 @@ def build(argv):
     log.info(processOutput.decode('utf-8'))
     return False
       
-  if be.compiler.startswith('msvc') and multiThreaded and be.binaryType != 'static':
+  if be.compiler.startswith('msvc') and multiThreaded and (be.binaryType == 'dynamic' or be.binaryType == 'executable'):
+  #be.binaryType != 'staticLib' and be.binaryType != 'dynamicLib':
       
     # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
     mtCmd = 'mt -nologo -manifest ' + targetBuildPath + '.manifest -outputresource:' + targetBuildPath + ';#2'
     mtProcess = None
     try:
-        mtProcess = subprocess.Popen(mtCmd, shell = True, stdout = subprocess.PIPE)  # TODO: remove shell
+      mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE)  # shell = True
     except OSError as e:
-        log.error(str(e))
-        return False
+      log.error(str(e))
+      return False
     processOutput = mtProcess.communicate()[0]
     mtProcess.wait()			
     log.info(processOutput.decode('utf-8'))
   
   # install
-  install(targetBuildPath, installPath)
+  install(targetBuildPath, be.installPath)
   
   log.info('{0} ({1} {2} {3}) build completed in {4} seconds'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
   if be.binaryType == 'executable':
