@@ -173,7 +173,7 @@ class BuildElements:
 class BuildStatus:
   '''
     contains the build status integer:
-    0 - failed
+    0 - failed (default)
     1 - built successfully
     2 - up-to-date or locked
     

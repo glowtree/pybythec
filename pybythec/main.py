@@ -49,14 +49,9 @@ from threading import Thread
 log = logging.getLogger('pybythec')
 
 # def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objPaths, output, results, i):
+def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objPaths, buildStatus):#output, results, i):
 
-  '''
-    return code:
-    0 - failed
-    1 - compiled
-    2 - up to date, no compile happend
-  '''
-  results[i] = 0 # default to failed
+  # buildStatus.result = 0 # default to failed
 
   if not os.path.exists(source):
     log.warning(source + ' is missing, exiting build')
@@ -72,31 +67,33 @@ log = logging.getLogger('pybythec')
   if objExisted:
     objTimestamp = float(os.stat(objPath).st_mtime)
     if not utils.sourceNeedsBuilding(incPaths, source, objTimestamp):
-      results[i] = 2
+      buildStatus.result = 2 # up to date
       return
 
   # compile
   cmd = compileCmd + source + ' ' + objPathFlag + objPath
+  # cm = ['
   log.debug(cmd + '\n')
   try:
     compileProcess = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE) # TODO: remove shell
+    # compileProcess = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE) # TODO: remove shell
   except OSError as e:
     log.error(str(e))
     return
   processOutput = compileProcess.communicate()[0]
-  compileProcess.wait()
+  # compileProcess.wait()
 
   if os.path.exists(objPath):
     if objExisted:
       if float(os.stat(objPath).st_mtime) > objTimestamp:
-        results[i] = 1
+        buildStatus.result = 1
     else:
-      results[i] = 1
+      buildStatus.result = 1
 
-  if results[i] == 1:
-    output[i] += 'compiled ' + os.path.basename(source)
+  if buildStatus.result == 1:
+    buildStatus.description += 'compiled ' + os.path.basename(source)
   else:
-    output[i] += processOutput.decode(locale.getdefaultlocale()[1])
+    buildStatus.description += processOutput.decode(locale.getdefaultlocale()[1])
   
   # time.sleep(0.1)
 
@@ -106,7 +103,7 @@ log = logging.getLogger('pybythec')
   1 - built
   2 - up to date / locked, no build happened
 '''
-def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType, binaryFormat, projectDir, output, results, i):
+def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType, binaryFormat, projectDir, buildStatus:
   
   libPath      = str()
   libTimestamp = 0
@@ -129,7 +126,7 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   
   jsonPath = os.path.join(libSrcDir, '.pybythec.json')
   if not os.path.exists(jsonPath):
-    results[i] = 0
+    # results[i] = 0
     log.warning(libSrcDir + ' does not have a .pybythec.json file')
     return
   
@@ -141,30 +138,33 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
     # buildCmd = 'python {0} -c {1} -o {2} -d {3} -b {4} -bf {5} -ws 1 -p {6}'.format(pyExecPath, compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
     buildCmd = 'pybythc -c {0} -o {1} -d {2} -b {3} -bf {4} -ws 1 -p {5}'.format(compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
     log.debug(buildCmd)
-    libProcess = subprocess.Popen(buildCmd, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)  # TODO: remove shell
+    libProcess = subprocess.Popen(buildCmd, shell = True)#, stdout = subprocess.PIPE, stderr = subprocess.PIPE)  # TODO: remove shell
   except OSError as e:
-    results[i] = 0
+    # results[i] = 0
+    # buildStatus.result = 0
     log.error('libProcess failed ause ' + str(e))
     return
   time.sleep(0.01)
-  processOutput = libProcess.communicate()
+  # processOutput = libProcess.communicate()
   libProcess.wait()
   
-  poSize = len(processOutput)
-  if poSize and len(processOutput[0]):
-    output[i] = processOutput[0].decode('utf-8') # locale.getdefaultlocale()[1]) # convert from bytes to str
+  # poSize = len(processOutput)
+  # if poSize and len(processOutput[0]):
+  #   output[i] = processOutput[0].decode('utf-8') # locale.getdefaultlocale()[1]) # convert from bytes to str
 
-  if poSize > 1 and len(processOutput[1]):
-    output[i] = processOutput[1].decode('utf-8') # locale.getdefaultlocale()[1])
+  # if poSize > 1 and len(processOutput[1]):
+  #   output[i] = processOutput[1].decode('utf-8') # locale.getdefaultlocale()[1])
   
   # read the build status
   bsPath = '{0}/.build/{1}/{2}/{3}/buildStatus.txt'.format(libSrcDir, buildType, binaryFormat, compiler) #Category)
   if not os.path.exists(bsPath):
-    log.debug('error:{} doesn\'t exist'.format(bsPath))
-    results[i] = 0
+    log.debug('error:{0} doesn\'t exist'.format(bsPath))
+    # buildStatus.result = 0
     return
   bsFile = open(bsPath, 'r')
-  results[i] = int(bsFile.readline())
+  buildStatus.result = int(bsFile.readline())
+  buildStatus.description = bsFile.readline()
+  # results[i] = int(bsFile.readline())
   # output[i] = int(bsFile.readline()) # TODO: use this if piping the output is no longer used 
   bsFile.close()
 
@@ -435,8 +435,9 @@ def build(argv):
     os.makedirs(buildPath)
 
   i = 0
-  output  = []
-  results = []
+  buildResults = []
+  # output  = []
+  # results = []
   threads = []
   
   #
@@ -489,17 +490,20 @@ def build(argv):
 
   if threading:
     for source in be.sources:
-      output.append(str())
-      results.append(0)
-      thread = Thread(None, target = compileSrc, args = (source, be.incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, output, results, i))
+      # output.append(str())
+      # results.append(0)
+      buildStatus.append(BuildStatus())
+      thread = Thread(None, target = compileSrc, args = (source, be.incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, buildResults[i]))#output, results, i))
       thread.start()
       threads.append(thread)
       i += 1
   else:
     for source in be.sources:
-      output.append(str())
-      results.append(0)
-      compileSrc(source, be.incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, output, results, i)
+      # output.append(str())
+      # results.append(0)
+      buildStatus.append(BuildStatus())
+      # compileSrc(source, be.incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, output, results, i)
+      compileSrc(source, be.incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, buildResults[i])
       i += 1
   
   srcEndIndex = i - 1
@@ -521,10 +525,11 @@ def build(argv):
         for libSrcDir in be.libSrcPaths:
           libSrcDir = '{0}/{1}'.format(libSrcDir, lib)
           if os.path.exists(libSrcDir):
-            output.append(str())
-            results.append(0)
+            buildResults.append(BuildStats())
+            # output.append(str())
+            # results.append(0)
             # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-            thread = Thread(None, target = buildLib, args = (lib, be.libPaths, libSrcDir, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, output, results, i))
+            thread = Thread(None, target = buildLib, args = (lib, be.libPaths, libSrcDir, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, buildResults[i]))
             thread.start()
             threads.append(thread)
             i += 1
@@ -533,10 +538,11 @@ def build(argv):
         for libSrcPath in be.libSrcPaths:
           libSrcPath = '{0}/{1}'.format(libSrcPath, lib)
           if os.path.exists(libSrcPath):
-            output.append(str())
-            results.append(0)
+            buildResults.append(BuildStats())
+            # output.append(str())
+            # results.append(0)
             # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-            buildLib(lib, be.libPaths, be.libSrcPath, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, output, results, i)
+            buildLib(lib, be.libPaths, be.libSrcPath, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, buildResults[i])
             i += 1
             break
 
@@ -551,20 +557,18 @@ def build(argv):
     else:
       output[srcEndIndex] = ' '
   
-  i = 0
   allUpToDate = True
-  for result in results:
-    if len(output[i]):
-      log.info(output[i])
-    if result == 0:
+  for buildStatus in buildResults:
+    if len(buildStatus.description):
+      log.info(result.description)
+    if buildStatus.result == 0:
       log.info('{0} ({1} {2} {3}) failed, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
       if writeBuildStatus:   
         writeBS(buildPath, '0')
       return False
-    elif result == 1:
+    elif buildStatus.result == 1:
       allUpToDate = False
-    i += 1
-  
+
   objPaths = ''.join(objPaths)
 
   #
