@@ -169,7 +169,6 @@ class BuildElements:
           argsList.append(arg)
 
 
-# TODO: integrate this insteand of using output[] and results[]
 class BuildStatus:
   '''
     contains the build status integer:
@@ -183,15 +182,13 @@ class BuildStatus:
     self.result = result
     self.description = description
 
-def writeBS(buildPath, status):
-  '''
-    write a tmp file that contains the build status information
-    0 - failed
-    1 - built successfully
-    2 - up-to-date or locked
-  '''
-  bsPath = buildPath + '/buildStatus.txt'
-  # log.debug('writing {}'.format(bsPath))
-  tmpFile = open(bsPath, 'w')
-  tmpFile.write(status)
-  tmpFile.close()
+  def readFromFile(self, buildPath):
+    with open(buildPath + '/buildStatus.txt') as f:
+      self.result = int(f.readline())
+      self.description = f.readline()
+
+  def writeToFile(self, buildPath):
+    with open(buildPath + '/buildStatus.txt', 'w') as f:
+      f.write(self.status)
+      f.write(self.description)
+

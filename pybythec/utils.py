@@ -104,6 +104,8 @@ def makePathAbsolute(absPath, path):
     return path
   return os.path.normpath(os.path.join(absPath, './' + path))
     
+
+# TODO: this shouldn't be a funtion
 def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
   '''
     does a build clean on the specified directory
@@ -117,7 +119,6 @@ def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
       print(str(e))
       return
     libProcess.wait()
-
 
 
 def createDirs(path):
@@ -135,15 +136,14 @@ def createDirs(path):
   if os.path.exists(path):
     return
   
-  log.info('createDirs: creating ' + path)
-  # print('creating dir {0}'.format(path))
-
   # if the path above the current one doesn't exist, create it
   abovePath = os.path.dirname(path)
   if not os.path.exists(abovePath):
     createDirs(abovePath)
 
+  log.debug('createDirs: creating ' + path)
   os.mkdir(path)
+  
 
 def copyfile(srcPath, dstDir):
   '''
@@ -175,6 +175,24 @@ def copyfile(srcPath, dstDir):
       
   return True 
   
+
+''' load a json config file '''
+def loadJsonFile(jsonPath):
+  if not os.path.exists(jsonPath):
+    return
+  if os.path.splitext(jsonPath)[1] != '.json':
+    log.warning('{0} is not json'.format(jsonPath))
+    return
+
+  with open(jsonPath) as f:
+    # minifiedJsonStr = jsmin(f.read())
+    # if len(minifiedJsonStr):
+    #   cf = json.loads(minifiedJsonStr)
+    # return cf
+    return json.loads(removeComments(f), encoding = 'utf-8')
+  return None
+
+
 def removeComments(f):
   '''
     removes // style comments from a file, num of lines stays the same
@@ -193,19 +211,4 @@ def removeComments(f):
       i += 1
       sansComments += c
   return sansComments
-
-''' load a json config file '''
-def loadJsonFile(jsonPath):
-  if not os.path.exists(jsonPath):
-    return
-  if os.path.splitext(jsonPath)[1] != '.json':
-    log.warning('{0} is not json'.format(jsonPath))
-    return
-
-  with open(jsonPath) as f:
-    # minifiedJsonStr = jsmin(f.read())
-    # if len(minifiedJsonStr):
-    #   cf = json.loads(minifiedJsonStr)
-    # return cf
-    return json.loads(removeComments(f))
-  return None
+  
