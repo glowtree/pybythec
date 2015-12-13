@@ -46,10 +46,10 @@ class BuildElements:
       self.compiler = configObj['compiler'].encode('ascii')
     
     if 'osType' in configObj:
-      self.osType = configObj['osType']
+      self.osType = configObj['osType'].encode('ascii')
     
     if 'buildType' in configObj:
-      self.buildType = configObj['buildType']
+      self.buildType = configObj['buildType'].encode('ascii')
     
     if 'binaryFormat' in configObj:
       self.binaryFormat = configObj['binaryFormat']

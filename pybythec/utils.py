@@ -106,19 +106,20 @@ def makePathAbsolute(absPath, path):
     
 
 # TODO: this shouldn't be a funtion
-def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
+def buildClean(dirPath, buildType = str(), compiler = str(), binaryFormat = str()):
   '''
-    does a build clean on the specified directory
+  does a build clean on the specified directory
   '''
-  pyExecPath = os.path.join(dir, '.build.py')
+  # pyExecPath = os.path.join(dir, '.build.py')
   
-  if os.path.exists(pyExecPath):
-    try:
-      libProcess = subprocess.Popen('python {0} clean -d {1} -b {2} -bf {3} -c {4}'.format(pyExecPath, dir, buildType, binaryFormat, compiler), shell = True, stdin = subprocess.PIPE)
-    except OSError as e:
-      print(str(e))
-      return
-    libProcess.wait()
+  # if os.path.exists(pyExecPath):
+  try:
+  #   libProcess = subprocess.Popen('python {0} clean -d {1} -b {2} -bf {3} -c {4}'.format(pyExecPath, dir, buildType, binaryFormat, compiler), shell = True, stdin = subprocess.PIPE)
+    cleanProcess = subprocess.Popen(['pybythec', 'clean', '-d', dirPath, '-b', buildType, '-c', compiler, '-bf', binaryFormat], stdin = subprocess.PIPE)
+  except OSError as e:
+    log.error(str(e))
+    return
+  cleanProcess.wait()
 
 
 def createDirs(path):
@@ -185,10 +186,6 @@ def loadJsonFile(jsonPath):
     return
 
   with open(jsonPath) as f:
-    # minifiedJsonStr = jsmin(f.read())
-    # if len(minifiedJsonStr):
-    #   cf = json.loads(minifiedJsonStr)
-    # return cf
     return json.loads(removeComments(f), encoding = 'utf-8')
   return None
 

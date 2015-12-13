@@ -7,32 +7,11 @@ import subprocess
 
 log = logging.getLogger('pybythec')
 
-# TODO: integrate this insteand of using output[] and results[]
-class BuildStatus:
-  '''
-    contains the build status integer:
-    0 - failed
-    1 - built successfully
-    2 - up-to-date or locked
-    
-    and a description of the build
-  '''
-  def __init__(self, result = 0, description = ''):
-    self.result = result
-    self.description = description
 
-def writeBS(buildPath, status):
-  '''
-    write a tmp file that contains the build status information
-    0 - failed
-    1 - built successfully
-    2 - up-to-date or locked
-  '''
-  bsPath = buildPath + '/buildStatus.txt'
-  # log.debug('writing {}'.format(bsPath))
-  tmpFile = open(bsPath, 'w')
-  tmpFile.write(status)
-  tmpFile.close()
+def srcNewer(srcPath, dstPath):
+  if int(os.stat(srcPath).st_mtime) > int(os.stat(dstPath).st_mtime):
+    return True
+  return False
 
 
 def checkTimestamps(incPaths, src, timestamp):
@@ -83,16 +62,10 @@ def getLibPath(libName, libPath, compiler, libExt):
       get the lib path with the os / compiler specific prefix and file extension
   '''
   libPath += '/'
-  if compiler.startswith('gcc'):# or compiler.startswith('g++'):
+  if compiler.startswith('gcc') or compiler.startswith('clang'):
     libPath += 'lib'
   libPath += libName + libExt
   return libPath
-
-
-def srcNewer(srcPath, dstPath):
-  if int(os.stat(srcPath).st_mtime) > int(os.stat(dstPath).st_mtime):
-    return True
-  return False
 
 
 def getCmdLineArgs(args):
@@ -131,6 +104,8 @@ def makePathAbsolute(absPath, path):
     return path
   return os.path.normpath(os.path.join(absPath, './' + path))
     
+
+# TODO: this shouldn't be a funtion
 def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
   '''
     does a build clean on the specified directory
@@ -144,7 +119,6 @@ def buildClean(dir, buildType = str(), binaryFormat = str(), compiler = str()):
       print(str(e))
       return
     libProcess.wait()
-
 
 
 def createDirs(path):
@@ -162,15 +136,14 @@ def createDirs(path):
   if os.path.exists(path):
     return
   
-  log.info('createDirs: creating ' + path)
-  # print('creating dir {0}'.format(path))
-
   # if the path above the current one doesn't exist, create it
   abovePath = os.path.dirname(path)
   if not os.path.exists(abovePath):
     createDirs(abovePath)
 
+  log.debug('createDirs: creating ' + path)
   os.mkdir(path)
+  
 
 def copyfile(srcPath, dstDir):
   '''
@@ -202,6 +175,24 @@ def copyfile(srcPath, dstDir):
       
   return True 
   
+
+''' load a json config file '''
+def loadJsonFile(jsonPath):
+  if not os.path.exists(jsonPath):
+    return
+  if os.path.splitext(jsonPath)[1] != '.json':
+    log.warning('{0} is not json'.format(jsonPath))
+    return
+
+  with open(jsonPath) as f:
+    # minifiedJsonStr = jsmin(f.read())
+    # if len(minifiedJsonStr):
+    #   cf = json.loads(minifiedJsonStr)
+    # return cf
+    return json.loads(removeComments(f), encoding = 'utf-8')
+  return None
+
+
 def removeComments(f):
   '''
     removes // style comments from a file, num of lines stays the same
@@ -220,19 +211,4 @@ def removeComments(f):
       i += 1
       sansComments += c
   return sansComments
-
-''' load a json config file '''
-def loadJsonFile(jsonPath):
-  if not os.path.exists(jsonPath):
-    return
-  if os.path.splitext(jsonPath)[1] != '.json':
-    log.warning('{0} is not json'.format(jsonPath))
-    return
-
-  with open(jsonPath) as f:
-    # minifiedJsonStr = jsmin(f.read())
-    # if len(minifiedJsonStr):
-    #   cf = json.loads(minifiedJsonStr)
-    # return cf
-    return json.loads(removeComments(f))
-  return None
+  
