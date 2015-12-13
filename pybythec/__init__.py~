@@ -9,4 +9,4 @@ logging.basicConfig(level = logging.DEBUG, format = '%(message)s') # DEBUG INFO
 
 log = logging.getLogger('pybythec')
 
-log.info('pybythec init')
+log.debug('pybythec init')

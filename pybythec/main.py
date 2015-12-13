@@ -77,6 +77,8 @@ def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objP
     log.error(buildStatus.description)
     return
 
+  buildStatus.description = compileProcess.communicate()[0].decode('utf-8')
+
   if os.path.exists(objPath):
     if objExisted:
       if float(os.stat(objPath).st_mtime) > objTimestamp:
@@ -86,8 +88,6 @@ def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objP
 
   if buildStatus.result == 1:
     buildStatus.description = 'compiled ' + os.path.basename(source)
-  else: 
-    buildStatus.description = compileProcess.communicate()[0].decode('utf-8') #.decode(locale.getdefaultlocale()[1])
   
   # time.sleep(0.1)
 
@@ -115,9 +115,10 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   # build
   # libProcess = None
   try:
-    buildCmd = 'pybythc -c {0} -o {1} -d {2} -b {3} -bf {4} -ws 1 -p {5}'.format(compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
+    # buildCmd = 'pybythc -c {0} -o {1} -d {2} -b {3} -bf {4} -ws 1 -p {5}'.format(compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
+    buildCmd = ['pybythc', '-c', compiler, '-o', osType, '-d', libSrcDir, '-b', buildType, '-bf', binaryFormat, '-ws', 1, '-p', projectDir]
     log.debug(buildCmd)
-    libProcess = subprocess.Popen(buildCmd, shell = True)#, stdout = subprocess.PIPE, stderr = subprocess.PIPE)  # TODO: remove shell
+    libProcess = subprocess.Popen(buildCmd)#, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
   except OSError as e:
     buildStatus.description = 'libProcess failed because ' + str(e)
     log.error(buildStatus.description)
@@ -146,8 +147,6 @@ def build(argv):
   libPathFlag = str()
   objExt      = str()
   objPathFlag = str()
-  
-  gtClasses = []
   
   args = utils.getCmdLineArgs(argv)
   
@@ -235,7 +234,7 @@ def build(argv):
   #
   if isGcc or isClang:
       
-    compilerCmd = be.compiler.encode('ascii')
+    compilerCmd = be.compiler
       
     if be.plusplus:
       if isGcc:
@@ -397,15 +396,17 @@ def build(argv):
   #
   cmd = [compilerCmd, '-c']
   
-  incPathsStr = str()
-  for incDir in be.incPaths:
-    cmd += ['-I', incDir.encode('ascii')]
+  incPathList = []
+  for incPath in be.incPaths:
+    incPathList += ['-I', incPath]
+    # cmd += ['-I', incDir.encode('ascii')]
   
-  definesStr = str()
+  definesList = []
   for define in be.defines:
-    cmd += ['-D', define]
+    definesList += ['-D', define]
+    # cmd += ['-D', define]
   
-  cmd += be.flags
+  cmd += incPathList + definesList + be.flags
 
   objPaths = []
     
@@ -414,27 +415,34 @@ def build(argv):
   #
   # TODO: timestamp check to see if this needs to happen or if it's up to date
   mocPaths = []
-  for qtClass in gtClasses:
+  for qtClass in be.qtClasses:
     found = False
     qtClassSrc    = qtClass + '.cpp'
     qtClassHeader = qtClass + '.h'
-    for incPath in incPaths:  # find the header file
+    # TODO: should there be a separate list of headers ie be.mocIncPaths?
+    for incPath in be.incPaths:  # find the header file
       includePath = incPath + '/' + qtClassHeader
       if os.path.exists(includePath):
         found = True
         mocPath = buildPath + '/moc_' + qtClassSrc
         # mocCmd = 'moc {0} {1} {2} -o {3}'.format(incPathsStr, definesStr, includePath, mocPath)
-        mocCmd = 'moc {0} {1} -o {2}'.format(definesStr, includePath, mocPath)
+        # mocCmd = 'moc {0} {1} -o {2}'.format(definesStr, includePath, mocPath)
+        mocCmd = ['moc'] + definesList + [includePath, '-o', mocPath]
+        # print(mocCmd)
+        # return
         try:
-          mocProcess = subprocess.Popen(mocCmd, shell = True, stdin = subprocess.PIPE)
+          # mocProcess = subprocess.Popen(mocCmd, shell = True, stdin = subprocess.PIPE)
+          mocProcess = subprocess.Popen(mocCmd, stdin = subprocess.PIPE)
         except OSError as e:
-          log.error(str(e))
+          buildStatus.description = str(e)
+          log.error(buildStatus.description)
           continue
         mocProcess.wait()
         mocPaths.append(mocPath)
         
-    if not found:    
-      log.error('can\'t find {0} for qt moc compilation'.format(qtClassHeader))
+    if not found:
+      buildStatus.description = 'can\'t find {0} for qt moc compilation'.format(qtClassHeader)
+      log.error(buildStatus.description)
       return
 
   for mocPath in mocPaths:

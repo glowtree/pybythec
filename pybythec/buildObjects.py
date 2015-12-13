@@ -32,6 +32,9 @@ class BuildElements:
     self.libSrcPaths = []
     self.keys = []
     
+    self.qtClasses = []
+    
+    
   def getBuildElements(self, configObj):
     if 'target' in configObj:
       self.target = configObj['target']
@@ -40,7 +43,7 @@ class BuildElements:
       self.binaryType = configObj['binaryType']
     
     if 'compiler' in configObj:
-      self.compiler = configObj['compiler']
+      self.compiler = configObj['compiler'].encode('ascii')
     
     if 'osType' in configObj:
       self.osType = configObj['osType']
@@ -107,6 +110,9 @@ class BuildElements:
     if 'libSrcPaths' in configObj: 
       self._getArgsList(self.libSrcPaths, configObj['libSrcPaths'])
 
+    if 'qtClasses' in configObj:
+      self._getArgsList(self.qtClasses, configObj['qtClasses'])
+
     # if 'installPath' in configObj:
       # self._getArgsList(self.installPath, configObj['installPath'])
 
@@ -166,7 +172,7 @@ class BuildElements:
         args = args.split()
       if type(args).__name__ == 'list':
         for arg in args:
-          argsList.append(arg)
+          argsList.append(arg.encode('ascii'))
 
 
 class BuildStatus:

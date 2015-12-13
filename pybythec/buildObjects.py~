@@ -14,7 +14,8 @@ class BuildElements:
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
-    self.installPath = '.'
+    self.installPath = '.build'
+    self.libInstallPathAppend = True
     self.plusplus = True 
     self.multithread = True
     
@@ -34,27 +35,41 @@ class BuildElements:
   def getBuildElements(self, configObj):
     if 'target' in configObj:
       self.target = configObj['target']
+    
     if 'binaryType' in configObj:
       self.binaryType = configObj['binaryType']
+    
     if 'compiler' in configObj:
       self.compiler = configObj['compiler']
+    
     if 'osType' in configObj:
       self.osType = configObj['osType']
+    
     if 'buildType' in configObj:
       self.buildType = configObj['buildType']
+    
     if 'binaryFormat' in configObj:
       self.binaryFormat = configObj['binaryFormat']
-    if 'installPath' in configObj:
-      self.installPath = configObj['installPath']  
+    
+    if 'libInstallPathAppend' in configObj:
+      self.libInstallPathAppend = configObj['libInstallPathAppend']
+    
     if 'plusplus' in configObj:
       self.plusplus = configObj['plusplus']
+    
     if 'multithread' in configObj:
       self.multithread = configObj['multithread']
+      
     if 'locked' in configObj:
-      self.locked = configObj['locked']      
+      self.locked = configObj['locked'] 
+      
+    if 'installPath' in configObj:
+      self.installPath = configObj['installPath']
+      
       
   def setKeys(self):
     self.keys = ['all', self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
+    
     
   def getBuildElements2(self, configObj):
   
@@ -92,6 +107,9 @@ class BuildElements:
     if 'libSrcPaths' in configObj: 
       self._getArgsList(self.libSrcPaths, configObj['libSrcPaths'])
 
+    # if 'installPath' in configObj:
+      # self._getArgsList(self.installPath, configObj['installPath'])
+
   def goodToBuild(self):
     if not len(self.target):
       log.error('no target specified')
@@ -114,9 +132,9 @@ class BuildElements:
     elif not len(self.sources):
       log.error('no source files specified')
       return False
-    elif not os.path.exists(self.installPath):
-      log.error('install path {0} doesn\'t exist'.format(self.installPath))
-      return False
+    # elif not os.path.exists(self.installPath):
+    #   log.error('install path {0} doesn\'t exist'.format(self.installPath))
+    #   return False
     return True
 
   def resolvePaths(self, absPath):
@@ -151,11 +169,10 @@ class BuildElements:
           argsList.append(arg)
 
 
-# TODO: integrate this insteand of using output[] and results[]
 class BuildStatus:
   '''
     contains the build status integer:
-    0 - failed
+    0 - failed (default)
     1 - built successfully
     2 - up-to-date or locked
     
@@ -165,15 +182,13 @@ class BuildStatus:
     self.result = result
     self.description = description
 
-def writeBS(buildPath, status):
-  '''
-    write a tmp file that contains the build status information
-    0 - failed
-    1 - built successfully
-    2 - up-to-date or locked
-  '''
-  bsPath = buildPath + '/buildStatus.txt'
-  # log.debug('writing {}'.format(bsPath))
-  tmpFile = open(bsPath, 'w')
-  tmpFile.write(status)
-  tmpFile.close()
+  def readFromFile(self, buildPath):
+    with open(buildPath + '/buildStatus.txt') as f:
+      self.result = int(f.readline())
+      self.description = f.readline()
+
+  def writeToFile(self, buildPath):
+    with open(buildPath + '/buildStatus.txt', 'w') as f:
+      f.write(self.status)
+      f.write(self.description)
+
