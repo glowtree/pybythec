@@ -39,21 +39,17 @@
   
   "linkFlags":
   {
-    "gcc":
-    {
+    "gcc": {
       "all": "-Wall", "release": "-O3"
     }, 
     "clang":
     {
-      "all": "-Wall", "release": "-O3"
+      "all": "-Wall", "release": "-O3",
+      "dynamicLib": "-dynamiclib", "dynamic": "-bundle"
     }, 
     "linux":
     {
       "dynamicLib": "-shared", "dynamic": "-shared"
-    },                  
-    "osx":
-    {
-      "dynamicLib": "-dynamiclib", "dynamic": "-bundle"
     },
     "msvc":
     {

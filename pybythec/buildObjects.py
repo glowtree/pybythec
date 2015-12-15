@@ -37,10 +37,10 @@ class BuildElements:
     
   def getBuildElements(self, configObj):
     if 'target' in configObj:
-      self.target = configObj['target']
+      self.target = configObj['target'].encode('ascii')
     
     if 'binaryType' in configObj:
-      self.binaryType = configObj['binaryType']
+      self.binaryType = configObj['binaryType'].encode('ascii')
     
     if 'compiler' in configObj:
       self.compiler = configObj['compiler'].encode('ascii')
@@ -52,7 +52,10 @@ class BuildElements:
       self.buildType = configObj['buildType'].encode('ascii')
     
     if 'binaryFormat' in configObj:
-      self.binaryFormat = configObj['binaryFormat']
+      self.binaryFormat = configObj['binaryFormat'].encode('ascii')
+    
+    if 'installPath' in configObj:
+      self.installPath = configObj['installPath'].encode('ascii')
     
     if 'libInstallPathAppend' in configObj:
       self.libInstallPathAppend = configObj['libInstallPathAppend']
@@ -64,10 +67,7 @@ class BuildElements:
       self.multithread = configObj['multithread']
       
     if 'locked' in configObj:
-      self.locked = configObj['locked'] 
-      
-    if 'installPath' in configObj:
-      self.installPath = configObj['installPath']
+      self.locked = configObj['locked']
       
       
   def setKeys(self):
@@ -138,9 +138,6 @@ class BuildElements:
     elif not len(self.sources):
       log.error('no source files specified')
       return False
-    # elif not os.path.exists(self.installPath):
-    #   log.error('install path {0} doesn\'t exist'.format(self.installPath))
-    #   return False
     return True
 
   def resolvePaths(self, absPath):
@@ -195,6 +192,6 @@ class BuildStatus:
 
   def writeToFile(self, buildPath):
     with open(buildPath + '/buildStatus.txt', 'w') as f:
-      f.write(self.status)
+      f.write(str(self.result) + '\n')
       f.write(self.description)
 

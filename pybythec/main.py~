@@ -116,9 +116,9 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   # libProcess = None
   try:
     # buildCmd = 'pybythc -c {0} -o {1} -d {2} -b {3} -bf {4} -ws 1 -p {5}'.format(compiler, osType, libSrcDir, buildType, binaryFormat, projectDir)
-    buildCmd = ['pybythc', '-c', compiler, '-o', osType, '-d', libSrcDir, '-b', buildType, '-bf', binaryFormat, '-ws', 1, '-p', projectDir]
+    buildCmd = ['pybythc', '-d', libSrcDir, '-o', osType, '-b', buildType, '-c', compiler, '-bf', binaryFormat, '-ws', '1', '-p', projectDir]
     log.debug(buildCmd)
-    libProcess = subprocess.Popen(buildCmd)#, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    libProcess = subprocess.Popen(buildCmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
   except OSError as e:
     buildStatus.description = 'libProcess failed because ' + str(e)
     log.error(buildStatus.description)
@@ -350,12 +350,12 @@ def build(argv):
   if 1 in args and args[1].startswith('clean'):
   
     if args[1] == 'cleanall':
-      for lib in libs:
-        for libSrcPath in libSrcPaths:
-          utils.buildClean(os.path.join(libSrcPath, lib), be.buildType, be.binaryFormat, be.compiler)
+      for lib in be.libs:
+        for libSrcPath in be.libSrcPaths:
+          utils.buildClean(os.path.join(libSrcPath, lib), be.buildType, be.compiler, be.binaryFormat)
 
     if not os.path.exists(buildPath):
-      log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.binaryFormat, be.compiler))
+      log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
       return True
         
     shutil.rmtree(buildPath)
@@ -363,7 +363,7 @@ def build(argv):
     if os.path.exists(targetInstallPath):
       os.remove(targetInstallPath)
     
-    log.info('{0} ({1} {2} {3}) all clean'.format(be.target, be.buildType, be.binaryFormat, be.compiler))
+    log.info('{0} ({1} {2} {3}) all clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
     return True
 
   # lock - early return
@@ -482,9 +482,10 @@ def build(argv):
         for libSrcDir in be.libSrcPaths:
           libSrcDir = '{0}/{1}'.format(libSrcDir, lib)
           if os.path.exists(libSrcDir):
-            buildResults.append(BuildStatus())
+            buildStatusDep = BuildStatus()
+            buildStatusDeps.append(buildStatusDep)
             # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-            thread = Thread(None, target = buildLib, args = (lib, be.libPaths, libSrcDir, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, buildStatusDeps[i]))
+            thread = Thread(None, target = buildLib, args = (lib, be.libPaths, libSrcDir, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, buildStatusDep))
             thread.start()
             threads.append(thread)
             i += 1
@@ -493,9 +494,10 @@ def build(argv):
         for libSrcPath in be.libSrcPaths:
           libSrcPath = '{0}/{1}'.format(libSrcPath, lib)
           if os.path.exists(libSrcPath):
-            buildStatusDeps.append(BuildStatus())
+            buildStatusDep = BuildStatus()
+            buildStatusDeps.append(buildStatusDep)
             # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-            buildLib(lib, be.libPaths, be.libSrcPath, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, buildStatusDeps[i])
+            buildLib(lib, be.libPaths, be.libSrcPath, compilerCmd, be.compiler, be.osType, staticLibExt, be.buildType, be.binaryFormat, cwDir, buildStatusDep)
             i += 1
             break
 
