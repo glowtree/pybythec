@@ -12,11 +12,10 @@
 #
 # command line arguments
 # 
-# -c  be.compiler
+# -c  compiler
 # -o  os type: linux, osx, windows, android or ios
 # -b  build type ie debug or release
 # -bf binary format ie 32bit, 64bit etc
-# -ws write the build status to a tmp file, 0 means don't write the status, 1 means do, by default NO tmp file is written
 # -d  directory to build out of, becomes the current working directory
 # -p  project directory, will search this directory for a pybythecProject.py config file and append any arguments ie defines 
 #
@@ -112,21 +111,20 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
     return
   
   # build
-  # libProcess = None
   try:
-    buildCmd = ['pybythec', '-d', libSrcDir, '-o', osType, '-b', buildType, '-c', compiler, '-bf', binaryFormat, '-ws', '1', '-p', projectDir]
+    buildCmd = ['pybythec', '-d', libSrcDir, '-o', osType, '-b', buildType, '-c', compiler, '-bf', binaryFormat, '-p', projectDir]
     log.debug(buildCmd)
     libProcess = subprocess.Popen(buildCmd)#, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
   except OSError as e:
     buildStatus.description = 'libProcess failed because ' + str(e)
     log.error(buildStatus.description)
     return
-  time.sleep(0.01)
   libProcess.wait()
   
   # read the build status
   buildStatus.readFromFile('{0}/.build/{1}/{2}/{3}'.format(libSrcDir, buildType, compiler, binaryFormat))
   
+  # time.sleep(0.01)
 
 '''
   the main function 
@@ -194,10 +192,6 @@ def build(argv):
   
   if 'bf' in args:
     be.binaryFormat = args['bf']
-  
-  writeBuildStatus = False
-  if 'ws' in args:
-    writeBuildStatus = bool(int(args['ws']))
   
   be.setKeys()
 
@@ -341,7 +335,6 @@ def build(argv):
     utils.createDirs(be.installPath)
         
   targetInstallPath = os.path.join(be.installPath, be.target)
-  targetBuildPath = targetInstallPath
 
   #
   # clean
@@ -372,11 +365,10 @@ def build(argv):
     return True
 
   # lock - early return
-  if be.locked and os.path.exists(targetBuildPath):
+  if be.locked and os.path.exists(targetInstallPath):
     buildStatus.result = 2
     log.info(be.target + ' is locked')
-    if writeBuildStatus:
-      buildStatus.writeToFile(buildPath)
+    buildStatus.writeToFile(buildPath)
     return True
 
   #
@@ -461,16 +453,14 @@ def build(argv):
   #
   # build library dependencies
   #
-  libCmds = []#str()
+  libCmds = []
   if len(be.libs):
     for lib in be.libs:
-      # libCmds += libFlag + lib
       libName = lib
       if be.compiler.startswith('msvc'):
-        # libCmds += staticLibExt # TODO: both the staticLibExt and dynamicLibExt
         libName += staticLibExt
-      # libCmds += [libFlag, libName]
-      libCmds.append(libFlag + libName)
+      libCmds += [libFlag, libName]
+      # libCmds.append(libFlag + libName)
         
       # check if the lib has a directory for building
       if threading:
@@ -514,25 +504,20 @@ def build(argv):
     if buildStatusDep.result == 0:
       buildStatus.description = '{0} ({1} {2} {3}) failed, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime)))
       log.info(buildStatus.description)
-      if writeBuildStatus:
-        buildResult.writeToFile(buildPath)
+      buildResult.writeToFile(buildPath)
       return False
     elif buildStatusDep.result == 1:
       allUpToDate = False
-
-  # objPaths = ''.join(objPaths)
 
   #
   # link objs or libraries
   #
   linkCmd = []
-  if allUpToDate and os.path.exists(targetBuildPath):
-    # install(targetBuildPath, be.installPath)
+  if allUpToDate and os.path.exists(targetInstallPath):
     buildStatus.result = 2
     buildStatus.description = '{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime)))
     log.info(buildStatus.description)
-    if writeBuildStatus:   
-      buildStatus.writeToFile(buildPath)
+    buildStatus.writeToFile(buildPath)
     return True
   
   # microsoft's compiler / linker can only handle so many characters on the command line
@@ -546,27 +531,23 @@ def build(argv):
     # linkCmd = '{0} @{1} '.format(linker, tmpLinkCmdFp)
     linkCmd += [linker, '@' + tmpLinkCmdFp]
   else:                               
-    # linkCmd = '{0} {1} "{2}" {3} {4}'.format(linker, targetFlag, targetBuildPath, objPaths, libCmds)
-    # linkCmd = '{0} {1} "{2}" {3} {4}'.format(linker, targetFlag, targetInstallPath, objPaths, libCmds)
     linkCmd += [linker, targetFlag, targetInstallPath] + objPaths + libCmds
 
-  if be.binaryType != 'staticLib': # and be.binaryType != 'dynamicLib':
-    # linkCmd += ' '.join(be.linkFlags)
+  if be.binaryType != 'staticLib': 
     linkCmd += be.linkFlags
     if be.binaryType != 'dynamicLib':
       for libPath in be.libPaths:
-        # linkCmd += [libPathFlag, os.path.normpath(libPath)]
-        linkCmd.append(libPathFlag + os.path.normpath(libPath))
+        linkCmd += [libPathFlag, os.path.normpath(libPath)]
   
   log.debug(linkCmd)
-  # print(linkCmd + '\n')
+  # log.info(linkCmd)
   
   # get the timestamp of the existing target if it exists
   linked = False
   targetExisted = False
   oldTargetTimeStamp = None
-  if os.path.exists(targetBuildPath):
-    oldTargetTimeStamp = float(os.stat(targetBuildPath).st_mtime)
+  if os.path.exists(targetInstallPath):
+    oldTargetTimeStamp = float(os.stat(targetInstallPath).st_mtime)
     targetExisted = True
   else:
     if not os.path.exists(be.installPath):
@@ -577,40 +558,37 @@ def build(argv):
     linkProcess = subprocess.Popen(linkCmd, stdout = subprocess.PIPE)
   except OSError as e:
     buildStatus.description = 'linking failed because: ' + str(e)
-    log.error(buildStatus.description)
-    if writeBuildStatus:   
-      buildStatus.writeToFile(buildPath)
+    log.error(buildStatus.description) 
+    buildStatus.writeToFile(buildPath)
     return False
   processOutput = linkProcess.communicate()[0]
-  # linkProcess.wait()
-  
+
   if be.compiler.startswith('msvc') and os.path.exists(tmpLinkCmdFp):
     os.remove(tmpLinkCmdFp)
   
-  if os.path.exists(targetBuildPath):
+  if os.path.exists(targetInstallPath):
     if targetExisted:
-      if float(os.stat(targetBuildPath).st_mtime) > oldTargetTimeStamp:
+      if float(os.stat(targetInstallPath).st_mtime) > oldTargetTimeStamp:
         linked = True
     else:
       linked = True    
   
   if linked:
-    buildStatus.description = 'linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.binaryFormat, be.compiler)
-    log.info(buildStatus.description)
-    if writeBuildStatus:
-      buildStatus.writeToFile(buildPath)
+    # buildStatus.description = 'linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.binaryFormat, be.compiler)
+    # log.info(buildStatus.description)
+    log.info('linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.binaryFormat, be.compiler))
   else:
     buildStatus.description = 'linking failed because ' + processOutput.decode('utf-8')
     log.info('linking failed because ' + buildStatus.description)
-    if writeBuildStatus:
-      buildStatus.writeToFile(buildPath)
+    # if writeBuildStatus:
+    buildStatus.writeToFile(buildPath)
     return False
       
   if be.compiler.startswith('msvc') and multiThreaded and (be.binaryType == 'dynamic' or be.binaryType == 'executable'):
       
     # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
     # mtCmd = 'mt -nologo -manifest ' + targetBuildPath + '.manifest -outputresource:' + targetBuildPath + ';#2'
-    mtCmd = ['mt', '-nologo', '-manifest', 'targetBuildPath' + '.manifest', '-outputresource:', targetBuildPath + ';#2']
+    mtCmd = ['mt', '-nologo', '-manifest', targetInstallPath + '.manifest', '-outputresource:', targetInstallPath + ';#2']
     mtProcess = None
     try:
       mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE)  # shell = True, 
@@ -618,14 +596,11 @@ def build(argv):
       log.error(str(e))
       return False
     processOutput = mtProcess.communicate()[0]
-    # mtProcess.wait()
-    
+
     buildStatus.description = processOutput.decode('utf-8')
     log.info(buildStatus.description)
   
   # install
-  # install(targetBuildPath, be.installPath)
-  
   buildStatus.result = 1
   buildStatus.description = '{0} ({1} {2} {3}) build completed in {4} seconds'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime)))
   log.info(buildStatus.description)
@@ -633,8 +608,8 @@ def build(argv):
     print('') # formatting
   sys.stdout.flush()
   
-  if writeBuildStatus:
-    buildStatus.writeToFile(buildPath)
+  # if writeBuildStatus:
+  buildStatus.writeToFile(buildPath)
   
   return True
 

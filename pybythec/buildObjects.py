@@ -1,5 +1,6 @@
 
 import os
+import json
 import logging
 import platform
 import utils
@@ -186,12 +187,18 @@ class BuildStatus:
     self.description = description
 
   def readFromFile(self, buildPath):
-    with open(buildPath + '/buildStatus.txt') as f:
-      self.result = int(f.readline())
-      self.description = f.readline()
+    with open(buildPath + '/.pybythecStatus.json') as f:
+      contents = json.loads(f)
+      if 'result' in contents:
+        self.result = contents['result']
+      else:
+        log.warning(buildPath + ' doesn\'t contain a result')
+      if 'description' in contents:
+        self.description = contents['description']
+      else:
+        log.warning(buildPath + ' doesn\'t contain a description')
 
   def writeToFile(self, buildPath):
-    with open(buildPath + '/buildStatus.txt', 'w') as f:
-      f.write(str(self.result) + '\n')
-      f.write(self.description)
+    with open(buildPath + '/.pybythecStatus.json', 'w') as f:
+      json.dump({'result': self.result, 'description': self.description}, f, indent = 4)
 

@@ -169,7 +169,7 @@ def loadJsonFile(jsonPath):
     return
 
   with open(jsonPath) as f:
-    return json.loads(removeComments(f), encoding = 'utf-8')
+    return json.loads(removeComments(f)) #, encoding = 'utf-8')
   return None
 
 
