@@ -15,12 +15,14 @@ class BuildElements:
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
-    self.installPath = '.build'
+    
     self.libInstallPathAppend = True
     self.plusplus = True 
     self.multithread = True
     
     self.locked = False
+    
+    self.installPath = '.build' # [] #
     
     self.sources = []
     self.libs    = []
@@ -55,8 +57,8 @@ class BuildElements:
     if 'binaryFormat' in configObj:
       self.binaryFormat = configObj['binaryFormat'].encode('ascii')
     
-    if 'installPath' in configObj:
-      self.installPath = configObj['installPath'].encode('ascii')
+    # if 'installPath' in configObj:
+      # self.installPath = configObj['installPath'].encode('ascii')
     
     if 'libInstallPathAppend' in configObj:
       self.libInstallPathAppend = configObj['libInstallPathAppend']
@@ -114,8 +116,11 @@ class BuildElements:
     if 'qtClasses' in configObj:
       self._getArgsList(self.qtClasses, configObj['qtClasses'])
 
-    # if 'installPath' in configObj:
-      # self._getArgsList(self.installPath, configObj['installPath'])
+    if 'installPath' in configObj:
+      installPaths = []
+      self._getArgsList(installPaths, configObj['installPath'])
+      if len(installPaths):
+        installPath = installPaths[0]
 
   def goodToBuild(self):
     if not len(self.target):
@@ -187,16 +192,19 @@ class BuildStatus:
     self.description = description
 
   def readFromFile(self, buildPath):
-    with open(buildPath + '/.pybythecStatus.json') as f:
-      contents = json.loads(f)
-      if 'result' in contents:
-        self.result = contents['result']
-      else:
-        log.warning(buildPath + ' doesn\'t contain a result')
-      if 'description' in contents:
-        self.description = contents['description']
-      else:
-        log.warning(buildPath + ' doesn\'t contain a description')
+    contents = utils.loadJsonFile(buildPath + '/.pybythecStatus.json')
+    if not contents:
+      log.error('couldn\'t find build status in ' + buildPath)
+      return
+    if 'result' in contents:
+      self.result = contents['result']
+    else:
+      log.warning(buildPath + ' doesn\'t contain a result')
+    if 'description' in contents:
+      self.description = contents['description']
+    else:
+      log.warning(buildPath + ' doesn\'t contain a description')
+
 
   def writeToFile(self, buildPath):
     with open(buildPath + '/.pybythecStatus.json', 'w') as f:

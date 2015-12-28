@@ -163,10 +163,10 @@ def copyfile(srcPath, dstDir):
 ''' load a json config file '''
 def loadJsonFile(jsonPath):
   if not os.path.exists(jsonPath):
-    return
+    return None
   if os.path.splitext(jsonPath)[1] != '.json':
     log.warning('{0} is not json'.format(jsonPath))
-    return
+    return None
 
   with open(jsonPath) as f:
     return json.loads(removeComments(f)) #, encoding = 'utf-8')

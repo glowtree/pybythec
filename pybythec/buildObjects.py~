@@ -1,5 +1,6 @@
 
 import os
+import json
 import logging
 import platform
 import utils
@@ -14,12 +15,14 @@ class BuildElements:
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
-    self.installPath = '.build'
+    
     self.libInstallPathAppend = True
     self.plusplus = True 
     self.multithread = True
     
     self.locked = False
+    
+    self.installPath = '.build' # [] #
     
     self.sources = []
     self.libs    = []
@@ -37,10 +40,10 @@ class BuildElements:
     
   def getBuildElements(self, configObj):
     if 'target' in configObj:
-      self.target = configObj['target']
+      self.target = configObj['target'].encode('ascii')
     
     if 'binaryType' in configObj:
-      self.binaryType = configObj['binaryType']
+      self.binaryType = configObj['binaryType'].encode('ascii')
     
     if 'compiler' in configObj:
       self.compiler = configObj['compiler'].encode('ascii')
@@ -52,7 +55,10 @@ class BuildElements:
       self.buildType = configObj['buildType'].encode('ascii')
     
     if 'binaryFormat' in configObj:
-      self.binaryFormat = configObj['binaryFormat']
+      self.binaryFormat = configObj['binaryFormat'].encode('ascii')
+    
+    # if 'installPath' in configObj:
+      # self.installPath = configObj['installPath'].encode('ascii')
     
     if 'libInstallPathAppend' in configObj:
       self.libInstallPathAppend = configObj['libInstallPathAppend']
@@ -64,10 +70,7 @@ class BuildElements:
       self.multithread = configObj['multithread']
       
     if 'locked' in configObj:
-      self.locked = configObj['locked'] 
-      
-    if 'installPath' in configObj:
-      self.installPath = configObj['installPath']
+      self.locked = configObj['locked']
       
       
   def setKeys(self):
@@ -113,8 +116,11 @@ class BuildElements:
     if 'qtClasses' in configObj:
       self._getArgsList(self.qtClasses, configObj['qtClasses'])
 
-    # if 'installPath' in configObj:
-      # self._getArgsList(self.installPath, configObj['installPath'])
+    if 'installPath' in configObj:
+      installPaths = []
+      self._getArgsList(installPaths, configObj['installPath'])
+      if len(installPaths):
+        installPath = installPaths[0]
 
   def goodToBuild(self):
     if not len(self.target):
@@ -138,9 +144,6 @@ class BuildElements:
     elif not len(self.sources):
       log.error('no source files specified')
       return False
-    # elif not os.path.exists(self.installPath):
-    #   log.error('install path {0} doesn\'t exist'.format(self.installPath))
-    #   return False
     return True
 
   def resolvePaths(self, absPath):
@@ -189,12 +192,21 @@ class BuildStatus:
     self.description = description
 
   def readFromFile(self, buildPath):
-    with open(buildPath + '/buildStatus.txt') as f:
-      self.result = int(f.readline())
-      self.description = f.readline()
+    print('attempting to read build status from ' + buildPath + '/.pybythecStatus.json')
+    utils.load
+    
+    # with open(buildPath + '/.pybythecStatus.json') as f:
+    #   contents = json.loads(f)
+    #   if 'result' in contents:
+    #     self.result = contents['result']
+    #   else:
+    #     log.warning(buildPath + ' doesn\'t contain a result')
+    #   if 'description' in contents:
+    #     self.description = contents['description']
+    #   else:
+    #     log.warning(buildPath + ' doesn\'t contain a description')
 
   def writeToFile(self, buildPath):
-    with open(buildPath + '/buildStatus.txt', 'w') as f:
-      f.write(self.status)
-      f.write(self.description)
+    with open(buildPath + '/.pybythecStatus.json', 'w') as f:
+      json.dump({'result': self.result, 'description': self.description}, f, indent = 4)
 

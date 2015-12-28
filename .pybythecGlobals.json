@@ -10,12 +10,12 @@
   // turn it on though if you ever actually release any software /GL for the compiler and /LTCG for the linker
   "flags": {
     "gcc": {
-      "all": "-Wall", 
+      "all": "-Wall -Wno-deprecated -fno-gnu-keywords'", 
       "debug": "-g", 
       "release": "-O3"
     },
     "clang": {
-      "all": "-Wall", 
+      "all": "-Wall -Wno-deprecated -fno-gnu-keywords", 
       "debug": "-g", 
       "release": "-O3"
     },

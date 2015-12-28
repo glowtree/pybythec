@@ -105,23 +105,6 @@ def makePathAbsolute(absPath, path):
   return os.path.normpath(os.path.join(absPath, './' + path))
     
 
-# TODO: this shouldn't be a funtion
-def buildClean(dirPath, buildType = str(), compiler = str(), binaryFormat = str()):
-  '''
-  does a build clean on the specified directory
-  '''
-  # pyExecPath = os.path.join(dir, '.build.py')
-  
-  # if os.path.exists(pyExecPath):
-  try:
-  #   libProcess = subprocess.Popen('python {0} clean -d {1} -b {2} -bf {3} -c {4}'.format(pyExecPath, dir, buildType, binaryFormat, compiler), shell = True, stdin = subprocess.PIPE)
-    cleanProcess = subprocess.Popen(['pybythec', 'clean', '-d', dirPath, '-b', buildType, '-c', compiler, '-bf', binaryFormat], stdin = subprocess.PIPE)
-  except OSError as e:
-    log.error(str(e))
-    return
-  cleanProcess.wait()
-
-
 def createDirs(path):
   '''
    recursively goes up the path heiarchy creating the necessary directories along the way
@@ -186,7 +169,7 @@ def loadJsonFile(jsonPath):
     return
 
   with open(jsonPath) as f:
-    return json.loads(removeComments(f), encoding = 'utf-8')
+    return json.loads(removeComments(f)) #, encoding = 'utf-8')
   return None
 
 
