@@ -504,7 +504,7 @@ def build(argv):
     if buildStatusDep.result == 0:
       buildStatus.description = '{0} ({1} {2} {3}) failed, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime)))
       log.info(buildStatus.description)
-      buildResult.writeToFile(buildPath)
+      buildStatus.writeToFile(buildPath)
       return False
     elif buildStatusDep.result == 1:
       allUpToDate = False

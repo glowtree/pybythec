@@ -550,7 +550,7 @@ def build(argv):
     oldTargetTimeStamp = float(os.stat(targetInstallPath).st_mtime)
     targetExisted = True
   else:
-    if not os.path.exists(be.installPath):
+    if not os.path.exists(be.installPath): # TODO: isn't this alread accomplished? (above)
       utils.createDirs(be.installPath)
   
   linkProcess = None

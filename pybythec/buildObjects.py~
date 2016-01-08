@@ -192,19 +192,19 @@ class BuildStatus:
     self.description = description
 
   def readFromFile(self, buildPath):
-    print('attempting to read build status from ' + buildPath + '/.pybythecStatus.json')
-    utils.load
-    
-    # with open(buildPath + '/.pybythecStatus.json') as f:
-    #   contents = json.loads(f)
-    #   if 'result' in contents:
-    #     self.result = contents['result']
-    #   else:
-    #     log.warning(buildPath + ' doesn\'t contain a result')
-    #   if 'description' in contents:
-    #     self.description = contents['description']
-    #   else:
-    #     log.warning(buildPath + ' doesn\'t contain a description')
+    contents = utils.loadJsonFile(buildPath + '/.pybythecStatus.json')
+    if not contents:
+      log.error('couldn\'t find build status in ' + buildPath)
+      return
+    if 'result' in contents:
+      self.result = contents['result']
+    else:
+      log.warning(buildPath + ' doesn\'t contain a result')
+    if 'description' in contents:
+      self.description = contents['description']
+    else:
+      log.warning(buildPath + ' doesn\'t contain a description')
+
 
   def writeToFile(self, buildPath):
     with open(buildPath + '/.pybythecStatus.json', 'w') as f:
