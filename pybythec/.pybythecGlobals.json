@@ -1,0 +1,107 @@
+
+{
+  "defines": {
+    "msvc": "NOMINMAX VC_EXTRALEAN WIN32_LEAN_AND_MEAN", // _WINSOCKAPI_ 
+    "osx": "__APPLE__"
+  },
+  
+  "flags": {
+    "gcc": {
+      "all": "-Wall -Wno-deprecated -fno-gnu-keywords'", 
+      "debug": "-g", 
+      "release": "-O3"
+    },
+    "clang": {
+      "all": "-Wall -Wno-deprecated -fno-gnu-keywords", 
+      "debug": "-g", 
+      "release": "-O3"
+    },
+    "msvc": {
+      "all": "/EHsc /Gy",
+      "debug": "/W1 /RTC1 /Z7",
+      "release": "/DNDEBUG /O2 /GL" /// NOTE: /GL might be slow 
+    },
+    "linux": {
+      "static": "-fPIC", "dynamic": "-fPIC", "dynamicMaya": "-fPIC"
+    },
+    "osx": {
+      "dynamic": "-fno-common", "dynamicMaya": "-fno-common", "bundle": "-fno-common"
+    }
+  },                                                        
+  
+  "linkFlags": {
+    "gcc": {
+      "all": "-Wall", 
+      "release": "-O3", 
+      "dynamicLib": "-shared", 
+      "dynamic": "-shared"
+    },
+    
+    "clang": {
+      "all": "-Wall", 
+      "release": "-O3",
+      "linux": {
+        "dynamicLib": "-shared", 
+        "dynamic": "-shared"
+      },
+      "osx": {
+      "dynamicLib": "-dynamiclib", 
+      "dynamic": "-bundle"
+      }
+    }, 
+    
+    "msvc": {
+      "all": "/NODEFAULTLIB:LIBCMT /NOLOGO /ERRORREPORT:PROMPT", //:libc.lib -DYNAMICBASE -NXCOMPAT
+      "debug": "/DEBUG",
+      "release": "/INCREMENTAL:NO /OPT:REF /OPT:ICF /LTCG" /// NOTE: /GL might be slow 
+    }
+  },
+  
+  "bins": {
+    "gcc412": {
+      "linux": 
+      {
+        "64bit": "/home/tom/work/shared/packages/gcc412/build_final/bin"
+      }
+    },
+    "msvc090": {
+      "all": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin"],
+      "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin",
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin/x86_amd64"
+    },
+    "msvc110": {
+      "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/Common7/IDE", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/bin"],
+      "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin",
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin/x86_amd64"
+    }
+  },
+  
+  "includes": {
+    "gcc412": {
+      "linux": "/home/tom/work/shared/packages/gcc412/build_final/include/c++/4.1.2"
+    },
+    "msvc090": {
+      "all": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include"]
+    },
+    "msvc110": {
+      "all": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/include", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Include"]
+    }
+  },
+  
+  "libs": {
+    "gcc412": {
+      "linux": {
+        "64bit": "/home/tom/work/shared/packages/gcc412/build_final/lib64"
+      }
+    },
+    "msvc090": {
+      "32bit": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/lib", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib"],
+      "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/lib/amd64", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64"]
+    },
+    "msvc110": {
+      "32bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib"],
+      "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib/amd64", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib/x64"]
+    }
+  }
+}
+
