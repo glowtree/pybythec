@@ -2,6 +2,7 @@
 #
 # py by the c
 #
+
 # a cross platform build system for c/c++
 #
 # written by Tom Sirdevan at glowtree
@@ -152,7 +153,6 @@ def build(argv):
         '-p   path to the pybythec project config file (should be in json format)\n'
         '-cl  clean the build\n'
         '-cla clean the build as well the builds of any library dependencies\n'
-        '\n' + arg + ' is an invalid argument\n'
       )
       return
 
@@ -222,7 +222,7 @@ def build(argv):
   
   if not be.goodToBuild():
     return
-   
+  
   #
   # compiler config
   #
@@ -295,7 +295,7 @@ def build(argv):
     objExt      = '.obj'
     objPathFlag = '/Fo'
     flags.append('/nologo /errorReport:prompt')
-        
+    
     # link
     linker        = 'link'
     targetFlag    = '/OUT:' # NOTE: can't be '-OUT:' for @tmpLinkCmd to work

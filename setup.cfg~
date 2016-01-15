@@ -9,6 +9,10 @@ tag = True
 
 [wheel]
 universal = 1
+<<<<<<< HEAD
 
-[easy_install]
-
+[flake8]
+ignore = E226,E302,E41,E251,E111,E114,E261,W293,E303,W391,E221
+max-line-length = 200
+=======
+>>>>>>> 51ab59ffacc899865d3944c73208289ed8f71271

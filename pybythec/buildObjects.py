@@ -11,14 +11,15 @@ log = logging.getLogger('pybythec')
 class BuildElements:
   def __init__(self):
     self.target = ''
-    self.binaryType = ''    # executable, static, dynamic, dynamicLib, dynamicMaya
-    self.compiler = ''      # gcc-4.4 gcc clang msvc110 etc
+    self.binaryType = ''         # executable, static, dynamic, dynamicLib, dynamicMaya
+    self.compiler = ''           # gcc-4.4 gcc clang msvc110 etc
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
 
     self.libInstallPathAppend = True
     self.plusplus = True
+
     self.multithread = True
     
     self.locked = False

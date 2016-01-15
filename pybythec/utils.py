@@ -67,37 +67,6 @@ def getLibPath(libName, libPath, compiler, libExt):
   return libPath
 
 
-def getCmdLineArgs(args):
-  '''
-    input: args: a list of the format ['-key1', 'value1', '-key2', 'value2]
-    returns a dictionary of the form {'key1': 'value1', 'key2': 'value2]}
-    # arguments that don't begin with a '-' get a numeric key begining with 1
-  '''
-  result = dict()
-  key = str()
-  # nKey = 0
-  keyFound = False
-  for arg in args:
-    
-    print('getCmdLineArgs, arg: ' + arg)
-    
-    if keyFound:
-      result[key] = arg
-      keyFound = False
-      continue
-    
-    if arg[0] == '-':
-      key = arg #.lstrip('-')
-      keyFound = True
-    # else: # all arguments have to start with a -
-      # return False
-    #   if nKey:
-    #     result[nKey] = arg
-    #   nKey += 1
-    
-  return result
-
-
 def makePathAbsolute(absPath, path):
   '''
     make a relative file path absolute
@@ -111,7 +80,6 @@ def createDirs(path):
   '''
    recursively goes up the path heiarchy creating the necessary directories along the way
   '''
-
   # if path == None or not len(path):
   if path is None or not len(path):
     log.warning('createDirs: empty path')
@@ -173,6 +141,7 @@ def loadJsonFile(jsonPath):
 
   with open(jsonPath) as f:
     return json.loads(removeComments(f)) # , encoding = 'utf-8')
+
   return None
 
 

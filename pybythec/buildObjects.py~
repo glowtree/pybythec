@@ -7,6 +7,10 @@ import utils
 
 log = logging.getLogger('pybythec')
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 51ab59ffacc899865d3944c73208289ed8f71271
 class BuildElements:
   def __init__(self):
     self.target = ''
@@ -15,9 +19,15 @@ class BuildElements:
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
+<<<<<<< HEAD
+
+    self.libInstallPathAppend = True
+    self.plusplus = True
+=======
     
     self.libInstallPathAppend = True
     self.plusplus = True 
+>>>>>>> 51ab59ffacc899865d3944c73208289ed8f71271
     self.multithread = True
     
     self.locked = False
@@ -30,7 +40,11 @@ class BuildElements:
     self.flags = []
     self.linkFlags = []
     
+<<<<<<< HEAD
+    self.incPaths = []
+=======
     self.incPaths = []       
+>>>>>>> 51ab59ffacc899865d3944c73208289ed8f71271
     self.libPaths = []
     self.libSrcPaths = []
     self.keys = []
@@ -83,10 +97,17 @@ class BuildElements:
     if platform.system() == 'Windows':
       separartor = ';'
     
+<<<<<<< HEAD
+    if 'bins' in configObj:
+      bins = []
+      self._getArgsList(bins, configObj['bins'])
+      for bin in bins:
+=======
     if 'bins' in configObj: 
       bins = []
       self._getArgsList(bins, configObj['bins'])
       for bin in bins: 
+>>>>>>> 51ab59ffacc899865d3944c73208289ed8f71271
         os.environ['PATH'] = bin + separartor + os.environ['PATH']
     
     if 'sources' in configObj:
@@ -98,6 +119,21 @@ class BuildElements:
     if 'defines' in configObj:
       self._getArgsList(self.defines, configObj['defines'])
       
+<<<<<<< HEAD
+    if 'flags' in configObj:
+      self._getArgsList(self.flags, configObj['flags'])
+      
+    if 'linkFlags' in configObj:
+      self._getArgsList(self.linkFlags, configObj['linkFlags'])
+      
+    if 'incPaths' in configObj:
+      self._getArgsList(self.incPaths, configObj['incPaths'])
+      
+    if 'libPaths' in configObj:
+      self._getArgsList(self.libPaths, configObj['libPaths'])
+
+    if 'libSrcPaths' in configObj:
+=======
     if 'flags' in configObj: 
       self._getArgsList(self.flags, configObj['flags'])
       
@@ -111,6 +147,7 @@ class BuildElements:
       self._getArgsList(self.libPaths, configObj['libPaths'])
 
     if 'libSrcPaths' in configObj: 
+>>>>>>> 51ab59ffacc899865d3944c73208289ed8f71271
       self._getArgsList(self.libSrcPaths, configObj['libSrcPaths'])
 
     if 'qtClasses' in configObj:

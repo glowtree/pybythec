@@ -15,7 +15,7 @@ with open('HISTORY.rst') as history_file:
 
 setup(
   name = 'pybythec',
-  version = '0.1.0',
+  version = '0.1.1',
   description = "a lightweight python build system for c/c++",
   long_description = readme + '\n\n' + history,
   author = "glowtree",

@@ -8,7 +8,6 @@ test_pybythec
 Tests for `pybythec` module.
 """
 
-# import sys
 import os
 import platform
 import unittest
