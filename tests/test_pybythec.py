@@ -24,12 +24,16 @@ class TestPybythec(unittest.TestCase):
   
   def test_000_something(self):
     
+    pybythec.build(['-cla']) # clean all
+    
     if platform.system() == 'Linux':
       pybythec.build(['-c', 'gcc', '-os', 'linux'])
-      os.system('./main')
+      # os.system('./main')
     elif platform.system() == 'Darwin':
+      pybythec.build(['-c', 'clang', '-os', 'osx'])
       os.system('./main')
     elif platform.system() == 'Windows':
+      pybythec.build(['-c', 'msvc', '-os', 'windows'])
       os.system('./main.exe')
     else:
       print('unknown operating system')
