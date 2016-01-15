@@ -3,7 +3,6 @@ import os
 import json
 import shutil
 import logging
-import subprocess
 
 log = logging.getLogger('pybythec')
 
@@ -19,7 +18,7 @@ def checkTimestamps(incPaths, src, timestamp):
     finds the newest timestamp of everything upstream of the src file, including the src file
   '''
   if not os.path.exists(src):
-    s = 'does NOT exist: ' + src
+    log.warning('checkTimestamps: {0} doesn\'t exist'.format(src))
     return
 
   srcTimeStamp = float(os.stat(src).st_mtime)
@@ -33,7 +32,7 @@ def checkTimestamps(incPaths, src, timestamp):
   srcFile.close()
   
   for line in fileCopy.split('\n'):
-    if line.startswith('#include'):       
+    if line.startswith('#include'):
       filename = line.lstrip('#include')
       filename = filename.strip()
       if(filename[0] == '"'):
@@ -70,14 +69,17 @@ def getLibPath(libName, libPath, compiler, libExt):
 
 def getCmdLineArgs(args):
   '''
-    returns a dictionary of options (flags) and arguments where each cmd line option starts with a '-'
-    arguments that don't begin with a '-' get a numeric key begining with 1
+    input: args: a list of the format ['-key1', 'value1', '-key2', 'value2]
+    returns a dictionary of the form {'key1': 'value1', 'key2': 'value2]}
+    # arguments that don't begin with a '-' get a numeric key begining with 1
   '''
   result = dict()
   key = str()
-  nKey = 0
+  # nKey = 0
   keyFound = False
   for arg in args:
+    
+    print('getCmdLineArgs, arg: ' + arg)
     
     if keyFound:
       result[key] = arg
@@ -85,20 +87,20 @@ def getCmdLineArgs(args):
       continue
     
     if arg[0] == '-':
-      key = arg.lstrip('-')
+      key = arg #.lstrip('-')
       keyFound = True
-    
-    else:
-      if nKey:
-        result[nKey] = arg
-      nKey += 1
+    # else: # all arguments have to start with a -
+      # return False
+    #   if nKey:
+    #     result[nKey] = arg
+    #   nKey += 1
     
   return result
 
 
 def makePathAbsolute(absPath, path):
   '''
-    make a relative file path absolute 
+    make a relative file path absolute
   '''
   if os.path.isabs(path):
     return path
@@ -109,8 +111,9 @@ def createDirs(path):
   '''
    recursively goes up the path heiarchy creating the necessary directories along the way
   '''
-  
-  if path == None or not len(path):
+
+  # if path == None or not len(path):
+  if path is None or not len(path):
     log.warning('createDirs: empty path')
     return
   
@@ -157,7 +160,7 @@ def copyfile(srcPath, dstDir):
 
   # print('{0} copied to {1}'.format(srcPath, dstPath))
       
-  return True 
+  return True
   
 
 ''' load a json config file '''
@@ -169,7 +172,7 @@ def loadJsonFile(jsonPath):
     return None
 
   with open(jsonPath) as f:
-    return json.loads(removeComments(f)) #, encoding = 'utf-8')
+    return json.loads(removeComments(f)) # , encoding = 'utf-8')
   return None
 
 

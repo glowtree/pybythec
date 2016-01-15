@@ -120,7 +120,7 @@ class BuildElements:
       installPaths = []
       self._getArgsList(installPaths, configObj['installPath'])
       if len(installPaths):
-        installPath = installPaths[0]
+        self.installPath = installPaths[0]
 
   def goodToBuild(self):
     if not len(self.target):

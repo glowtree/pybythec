@@ -7,6 +7,7 @@ import utils
 
 log = logging.getLogger('pybythec')
 
+
 class BuildElements:
   def __init__(self):
     self.target = ''
@@ -15,9 +16,9 @@ class BuildElements:
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
-    
+
     self.libInstallPathAppend = True
-    self.plusplus = True 
+    self.plusplus = True
     self.multithread = True
     
     self.locked = False
@@ -30,7 +31,7 @@ class BuildElements:
     self.flags = []
     self.linkFlags = []
     
-    self.incPaths = []       
+    self.incPaths = []
     self.libPaths = []
     self.libSrcPaths = []
     self.keys = []
@@ -83,10 +84,10 @@ class BuildElements:
     if platform.system() == 'Windows':
       separartor = ';'
     
-    if 'bins' in configObj: 
+    if 'bins' in configObj:
       bins = []
       self._getArgsList(bins, configObj['bins'])
-      for bin in bins: 
+      for bin in bins:
         os.environ['PATH'] = bin + separartor + os.environ['PATH']
     
     if 'sources' in configObj:
@@ -98,19 +99,19 @@ class BuildElements:
     if 'defines' in configObj:
       self._getArgsList(self.defines, configObj['defines'])
       
-    if 'flags' in configObj: 
+    if 'flags' in configObj:
       self._getArgsList(self.flags, configObj['flags'])
       
-    if 'linkFlags' in configObj: 
+    if 'linkFlags' in configObj:
       self._getArgsList(self.linkFlags, configObj['linkFlags'])
       
-    if 'incPaths' in configObj:   
+    if 'incPaths' in configObj:
       self._getArgsList(self.incPaths, configObj['incPaths'])
       
-    if 'libPaths' in configObj: 
+    if 'libPaths' in configObj:
       self._getArgsList(self.libPaths, configObj['libPaths'])
 
-    if 'libSrcPaths' in configObj: 
+    if 'libSrcPaths' in configObj:
       self._getArgsList(self.libSrcPaths, configObj['libSrcPaths'])
 
     if 'qtClasses' in configObj:

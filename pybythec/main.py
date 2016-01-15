@@ -2,35 +2,21 @@
 #
 # py by the c
 #
-# a cross platform build system for making c / c++ applications
+# a cross platform build system for c/c++
 #
-# written by Tom Sirdevan @glowtree
-# 
+# written by Tom Sirdevan at glowtree
+#
 # contact: pybythc@glowtree.com
 #
 
 #
-# command line arguments
+# can build c/c++ projects that create ...
 # 
-# -c  compiler
-# -o  os type: linux, osx, windows, android or ios
-# -b  build type ie debug or release
-# -bf binary format ie 32bit, 64bit etc
-# -d  directory to build out of, becomes the current working directory
-# -p  project directory, will search this directory for a pybythecProject.py config file and append any arguments ie defines 
-#
-
-#
-# binaryType can be one of:
-# staticLib  
-# dynamicLib (for linux and osx this means prepending 'lib')
-# dynamic
-# executable
-#
-
-# for staticLib and dynamicLib on linux and osx this means prepending 'lib'
-# on osx dynamic refers to a bundle
-
+# executables
+# static  libraries: (herein called staticLib)
+# dynamic libraries  (herein called dynamicLib)
+# dynamic plugins / packages, on osx / Mach-O referred to as a bundle (herein called dynamic)
+# 
 
 import utils
 from buildObjects import *
@@ -40,7 +26,6 @@ import sys
 import shutil
 import time
 import logging
-import locale
 import subprocess
 from threading import Thread
 
@@ -93,7 +78,7 @@ def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objP
 def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType, binaryFormat, projectDir, buildStatus):
   
   libPath      = str()
-  libTimestamp = 0
+  # libTimestamp = 0 # TODO: why record the timestamp if you're not using it???
   libExisted   = False
 
   # find the previously built lib in the lib install directories if it exists
@@ -101,7 +86,7 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
     libPath = utils.getLibPath(lib, libDir, compiler, fileExt)
     libExisted = os.path.exists(libPath)
     if libExisted:
-      libTimestamp = float(os.stat(libPath).st_mtime)
+      # libTimestamp = float(os.stat(libPath).st_mtime)
       break
   
   jsonPath = os.path.join(libSrcDir, '.pybythec.json')
@@ -112,9 +97,9 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   
   # build
   try:
-    buildCmd = ['pybythec', '-d', libSrcDir, '-o', osType, '-b', buildType, '-c', compiler, '-bf', binaryFormat, '-p', projectDir]
+    buildCmd = ['pybythec', '-d', libSrcDir, '-os', osType, '-b', buildType, '-c', compiler, '-bf', binaryFormat, '-p', projectDir + '/.pybythecProject.json']
     log.debug(buildCmd)
-    libProcess = subprocess.Popen(buildCmd)#, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    libProcess = subprocess.Popen(buildCmd) # , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
   except OSError as e:
     buildStatus.description = 'libProcess failed because ' + str(e)
     log.error(buildStatus.description)
@@ -126,21 +111,54 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   
   # time.sleep(0.01)
 
+
 '''
-  the main function 
+  the main function
 '''
 def build(argv):
   
   startTime = time.time()
-    
+  
   #
   # config initialization
   #
-  args = utils.getCmdLineArgs(argv)
-  
+
+  # get any arguments passed in
+  if type(argv) is not list:
+    log.error('args must be a list')
+    return
+
+  args = dict()
+  key = str()
+  keyFound = False
+  for arg in argv:
+    if keyFound:
+      args[key] = arg
+      keyFound = False
+      continue
+    if arg == '-cl' or arg == '-cla':
+      args[arg] = ''
+    elif arg == '-c' or arg == '-os' or arg == '-b' or arg == '-bf' or arg == '-d' or arg == '-p':
+      key = arg
+      keyFound = True
+    else:
+      log.info(
+        '\nvalid pybythec arguments:\n\n'
+        '-c   compiler: gcc, clang, or msvc\n'
+        '-os  operating system: linux, osx, or windows\n'
+        '-b   build type: debug release\n'
+        '-bf  binary format: 32bit, 64bit etc\n'
+        '-d   src directory of the lib being built, to be used when building a lib as a dependency from elsewhere\n'
+        '-p   path to the pybythec project config file (should be in json format)\n'
+        '-cl  clean the build\n'
+        '-cla clean the build as well the builds of any library dependencies\n'
+        '\n' + arg + ' is an invalid argument\n'
+      )
+      return
+
   cwDir = os.getcwd()
-  if 'd' in args:
-    cwDir = args['d']
+  if '-d' in args:
+    cwDir = args['-d']
 
   # json config files
   globalCf  = None
@@ -150,16 +168,16 @@ def build(argv):
   # global config
   if 'PYBYTHEC_GLOBALS' in os.environ:
     globalCf = utils.loadJsonFile(os.environ['PYBYTHEC_GLOBALS'])
-  elif 'g' in args:
-    globalCf = utils.loadJsonFile(args['g'])
+  elif '-g' in args:
+    globalCf = utils.loadJsonFile(args['-g'])
   else:
     globalCf = utils.loadJsonFile('.pybythecGlobal.json')
 
   # project config
   if 'PYBYTHEC_PROJECT' in os.environ:
     projectCf = os.environ['PYBYTHEC_PROJECT']
-  elif 'p' in args:
-    projectCf = utils.loadJsonFile(args['p'] + '/.pybythecProject.json')
+  elif '-p' in args:
+    projectCf = utils.loadJsonFile(args['-p']) # + '/.pybythecProject.json')
   else:
     projectCf = utils.loadJsonFile('.pybythecProject.json')
 
@@ -170,42 +188,42 @@ def build(argv):
     
   be = BuildElements()
     
-  if globalCf != None:
+  if globalCf is not None:
     be.getBuildElements(globalCf)
-  if projectCf != None:
+  if projectCf is not None:
     be.getBuildElements(projectCf)
-  if localCf != None:
+  if localCf is not None:
     be.getBuildElements(localCf)
     
   if be.binaryType == 'executable':
     print('') # formatting
   
   # command line overrides
-  if 'c' in args:
-    be.compiler = args['c']
+  if '-c' in args:
+    be.compiler = args['-c']
   
-  if 'o' in args:
-    be.osType = args['o']
+  if '-os' in args:
+    be.osType = args['-os']
   
-  if 'b' in args:
-    be.buildType = args['b']
+  if '-b' in args:
+    be.buildType = args['-b']
   
-  if 'bf' in args:
-    be.binaryFormat = args['bf']
+  if '-bf' in args:
+    be.binaryFormat = args['-bf']
   
   be.setKeys()
 
-  if globalCf != None:
+  if globalCf is not None:
     be.getBuildElements2(globalCf)
-  if projectCf != None:
+  if projectCf is not None:
     be.getBuildElements2(projectCf)
-  if localCf != None:
+  if localCf is not None:
     be.getBuildElements2(localCf)
   
   if not be.goodToBuild():
     return
    
-  # 
+  #
   # compiler config
   #
   compilerCmd = ''      # the compiler command ie if msvc090 is the compiler, but cl is the compilerCmd
@@ -265,7 +283,7 @@ def build(argv):
       return False
     
     if be.multithread and be.binaryType != 'staticLib':
-      be.libs.append('pthread')    
+      be.libs.append('pthread')
 
   #
   # msvc / msvc
@@ -278,7 +296,7 @@ def build(argv):
     objPathFlag = '/Fo'
     flags.append('/nologo /errorReport:prompt')
         
-    # link 
+    # link
     linker        = 'link'
     targetFlag    = '/OUT:' # NOTE: can't be '-OUT:' for @tmpLinkCmd to work
     libFlag       = ''
@@ -307,7 +325,7 @@ def build(argv):
         be.flags.append('/MD')
 
   else:
-    log.error('unknown compiler')
+    log.error('{0} is an unknown compiler'.format(be.compiler))
     return False
 
   #
@@ -324,7 +342,7 @@ def build(argv):
     if os.path.exists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
     else: # in case there's also lib paths that don't have buildType, ie for external libraries that only ever have the release version
-      revisedLibPath = '{0}/{1}/{2}'.format(be.libPaths[i], be.compiler, be.binaryFormat) 
+      revisedLibPath = '{0}/{1}/{2}'.format(be.libPaths[i], be.compiler, be.binaryFormat)
       if os.path.exists(revisedLibPath):
         be.libPaths[i] = revisedLibPath
         
@@ -339,9 +357,8 @@ def build(argv):
   #
   # clean
   #
-  # if len(args) > 1 and args[1] == 'cleanall':
-  if 1 in args and args[1].startswith('clean'):
-    if args[1] == 'cleanall':
+  if '-cl' in args or '-cla' in args:
+    if '-cla' in args:
       for lib in be.libs:
         for libSrcPath in be.libSrcPaths:
           libPath = os.path.join(libSrcPath, lib)
@@ -448,7 +465,7 @@ def build(argv):
       compileSrc(source, be.incPaths, cmd, objPathFlag, objExt, buildPath, objPaths, buildStatusDep)
       i += 1
   
-  srcEndIndex = i - 1
+  # srcEndIndex = i - 1
   
   #
   # build library dependencies
@@ -530,10 +547,10 @@ def build(argv):
     msvcTmpFile.close()
     # linkCmd = '{0} @{1} '.format(linker, tmpLinkCmdFp)
     linkCmd += [linker, '@' + tmpLinkCmdFp]
-  else:                               
+  else:
     linkCmd += [linker, targetFlag, targetInstallPath] + objPaths + libCmds
 
-  if be.binaryType != 'staticLib': 
+  if be.binaryType != 'staticLib':
     linkCmd += be.linkFlags
     if be.binaryType != 'dynamicLib':
       for libPath in be.libPaths:
@@ -558,7 +575,7 @@ def build(argv):
     linkProcess = subprocess.Popen(linkCmd, stdout = subprocess.PIPE)
   except OSError as e:
     buildStatus.description = 'linking failed because: ' + str(e)
-    log.error(buildStatus.description) 
+    log.error(buildStatus.description)
     buildStatus.writeToFile(buildPath)
     return False
   processOutput = linkProcess.communicate()[0]
@@ -571,7 +588,7 @@ def build(argv):
       if float(os.stat(targetInstallPath).st_mtime) > oldTargetTimeStamp:
         linked = True
     else:
-      linked = True    
+      linked = True
   
   if linked:
     # buildStatus.description = 'linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.binaryFormat, be.compiler)
@@ -591,7 +608,7 @@ def build(argv):
     mtCmd = ['mt', '-nologo', '-manifest', targetInstallPath + '.manifest', '-outputresource:', targetInstallPath + ';#2']
     mtProcess = None
     try:
-      mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE)  # shell = True, 
+      mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE) # shell = True,
     except OSError as e:
       log.error(str(e))
       return False
