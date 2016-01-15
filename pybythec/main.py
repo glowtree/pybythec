@@ -12,12 +12,12 @@
 
 #
 # can build c/c++ projects that create ...
-# 
+#
 # executables
 # static  libraries: (herein called staticLib)
 # dynamic libraries  (herein called dynamicLib)
 # dynamic plugins / packages, on osx / Mach-O referred to as a bundle (herein called dynamic)
-# 
+#
 
 import utils
 from buildObjects import *
