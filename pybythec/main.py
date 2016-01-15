@@ -279,7 +279,7 @@ def build(argv):
     elif be.binaryType == 'dynamic':
       be.target = be.target + dynamicExt
     elif be.binaryType != 'executable':
-      log.error('unrecognized binary type: ' + be.binaryType)
+      log.error('unrecognized binary type: {0}'.format(be.binaryType))
       return False
     
     if be.multithread and be.binaryType != 'staticLib':
