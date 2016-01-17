@@ -3,11 +3,12 @@
 # py by the c
 #
 
+#
 # a cross platform build system for c/c++
 #
 # written by Tom Sirdevan at glowtree
 #
-# contact: pybythc@glowtree.com
+# contact: tom@glowtree.com
 #
 
 #
@@ -16,7 +17,7 @@
 # executables
 # static  libraries: (herein called staticLib)
 # dynamic libraries  (herein called dynamicLib)
-# dynamic plugins / packages, on osx / Mach-O referred to as a bundle (herein called dynamic)
+# dynamic bundles / plugins, on OS X / Mach-O referred to as a bundle (herein called dynamic)
 #
 
 from pybythec import utils
@@ -31,6 +32,7 @@ import subprocess
 from threading import Thread
 
 log = logging.getLogger('pybythec')
+
 
 def compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objPaths, buildStatus):
 
@@ -87,7 +89,6 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
     libPath = utils.getLibPath(lib, libDir, compiler, fileExt)
     libExisted = os.path.exists(libPath)
     if libExisted:
-      # libTimestamp = float(os.stat(libPath).st_mtime)
       break
   
   jsonPath = os.path.join(libSrcDir, '.pybythec.json')
@@ -100,12 +101,13 @@ def buildLib(lib, libPaths, libSrcDir, compilerCmd, compiler, osType, fileExt, b
   try:
     buildCmd = ['pybythec', '-d', libSrcDir, '-os', osType, '-b', buildType, '-c', compiler, '-bf', binaryFormat, '-p', projectDir + '/.pybythecProject.json']
     log.debug(buildCmd)
-    libProcess = subprocess.Popen(buildCmd) # , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    # libProcess = subprocess.Popen(buildCmd) # , stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    libProcess = subprocess.call(buildCmd)
   except OSError as e:
     buildStatus.description = 'libProcess failed because ' + str(e)
     log.error(buildStatus.description)
     return
-  libProcess.wait()
+  # libProcess.wait()
   
   # read the build status
   buildStatus.readFromFile('{0}/.build/{1}/{2}/{3}'.format(libSrcDir, buildType, compiler, binaryFormat))
@@ -364,11 +366,12 @@ def build(argv):
           libPath = os.path.join(libSrcPath, lib)
           if os.path.exists(libPath):
             try:
-              cleanProcess = subprocess.Popen(['pybythec', 'clean', '-d', libPath, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat], stdin = subprocess.PIPE)
+              # cleanProcess = subprocess.Popen(['pybythec', 'clean', '-d', libPath, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat], stdin = subprocess.PIPE)
+              cleanProcess = subprocess.call(['pybythec', 'clean', '-d', libPath, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat])
             except OSError as e:
               log.error(str(e))
               return
-            cleanProcess.wait()
+            # cleanProcess.wait()
 
     if not os.path.exists(buildPath):
       log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
@@ -428,12 +431,13 @@ def build(argv):
         mocPath = buildPath + '/moc_' + qtClassSrc
         mocCmd = ['moc'] + definesList + [includePath, '-o', mocPath]
         try:
-          mocProcess = subprocess.Popen(mocCmd, stdin = subprocess.PIPE)
+          # mocProcess = subprocess.Popen(mocCmd, stdin = subprocess.PIPE)
+          mocProcess = subprocess.call(mocCmd) #, stdin = subprocess.PIPE)
         except OSError as e:
           buildStatus.description = str(e)
           log.error(buildStatus.description)
           continue
-        mocProcess.wait()
+        # mocProcess.wait()
         mocPaths.append(mocPath)
         
     if not found:
@@ -608,7 +612,7 @@ def build(argv):
     mtCmd = ['mt', '-nologo', '-manifest', targetInstallPath + '.manifest', '-outputresource:', targetInstallPath + ';#2']
     mtProcess = None
     try:
-      mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE) # shell = True,
+      mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE)
     except OSError as e:
       log.error(str(e))
       return False

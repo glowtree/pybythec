@@ -17,29 +17,38 @@ import pybythec
 class TestPybythec(unittest.TestCase):
   
   def setUp(self):
+    
+    os.environ['PYBYTHEC_GLOBALS'] = './src/.pybythecGlobals.json'
+    
     self.lastCwd = os.getcwd()
-    os.chdir('./tests/exe')
+    os.chdir('./tests/src/exe')
+    
+    pybythec.build(['-cla']) # clean all
+  
   
   def tearDown(self):
     os.chdir(self.lastCwd)
   
   def test_000_something(self):
     
-    pybythec.build(['-cla']) # clean all
-    
     if platform.system() == 'Linux':
       pybythec.build(['-c', 'gcc', '-os', 'linux'])
-      subprocess.call(['./main'])
-      # os.system('./main')
+      exe = './main'
     elif platform.system() == 'Darwin':
       pybythec.build(['-c', 'clang', '-os', 'osx'])
-      os.system('./main')
+      exe = './main'
     elif platform.system() == 'Windows':
       pybythec.build(['-c', 'msvc', '-os', 'windows'])
-      os.system('./main.exe')
+      exe = './main.exe'
     else:
       print('unknown operating system')
-       
+      return
+      
+    p = subprocess.Popen([exe], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    print(stdout)
+    self.assertEqual(stdout, 'running exe\n')
+      
 if __name__ == '__main__':
   import sys
   sys.exit(unittest.main())

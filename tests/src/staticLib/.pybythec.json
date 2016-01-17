@@ -1,0 +1,11 @@
+
+
+{
+  "target": "staticLib",
+  "binaryType": "staticLib",
+  
+  "sources": "staticLib.cpp",
+  
+  "installPath": "."
+}
+
