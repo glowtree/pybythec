@@ -19,8 +19,8 @@
 # dynamic plugins / packages, on osx / Mach-O referred to as a bundle (herein called dynamic)
 #
 
-import utils
-from buildObjects import *
+from pybythec import utils
+from pybythec.buildObjects import *
 
 import os
 import sys

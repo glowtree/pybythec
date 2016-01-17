@@ -3,7 +3,7 @@ import os
 import json
 import logging
 import platform
-import utils
+from pybythec import utils
 
 log = logging.getLogger('pybythec')
 
@@ -42,25 +42,22 @@ class BuildElements:
     
   def getBuildElements(self, configObj):
     if 'target' in configObj:
-      self.target = configObj['target'].encode('ascii')
+      self.target = configObj['target']
     
     if 'binaryType' in configObj:
-      self.binaryType = configObj['binaryType'].encode('ascii')
+      self.binaryType = configObj['binaryType']
     
     if 'compiler' in configObj:
-      self.compiler = configObj['compiler'].encode('ascii')
-    
+      self.compiler = configObj['compiler']
+
     if 'osType' in configObj:
-      self.osType = configObj['osType'].encode('ascii')
+      self.osType = configObj['osType']
     
     if 'buildType' in configObj:
-      self.buildType = configObj['buildType'].encode('ascii')
+      self.buildType = configObj['buildType']
     
     if 'binaryFormat' in configObj:
-      self.binaryFormat = configObj['binaryFormat'].encode('ascii')
-    
-    # if 'installPath' in configObj:
-      # self.installPath = configObj['installPath'].encode('ascii')
+      self.binaryFormat = configObj['binaryFormat']
     
     if 'libInstallPathAppend' in configObj:
       self.libInstallPathAppend = configObj['libInstallPathAppend']
@@ -124,6 +121,7 @@ class BuildElements:
       if len(installPaths):
         self.installPath = installPaths[0]
 
+
   def goodToBuild(self):
     if not len(self.target):
       log.error('no target specified')
@@ -148,6 +146,7 @@ class BuildElements:
       return False
     return True
 
+
   def resolvePaths(self, absPath):
     self.installPath = utils.makePathAbsolute(absPath, os.path.expandvars(self.installPath))
     self._resolvePaths(absPath, self.sources)
@@ -155,11 +154,13 @@ class BuildElements:
     self._resolvePaths(absPath, self.libPaths)
     self._resolvePaths(absPath, self.libSrcPaths)
 
+
   def _resolvePaths(self, absPath, paths):
     i = 0
     for path in paths:
       paths[i] = utils.makePathAbsolute(absPath, os.path.expandvars(path))
       i += 1
+
 
   '''
     recursivley parses args and appends it to argsList if it has any of the keys
@@ -172,12 +173,12 @@ class BuildElements:
           self._getArgsList(argsList, args[key])
     else:
       if type(args).__name__ == 'unicode':
-        args = args.encode('ascii', 'ignore')
+        args = args.encode('ascii')
       if type(args).__name__ == 'str':
         args = args.split()
       if type(args).__name__ == 'list':
         for arg in args:
-          argsList.append(arg.encode('ascii'))
+          argsList.append(arg)
 
 
 class BuildStatus:
@@ -192,6 +193,7 @@ class BuildStatus:
   def __init__(self, result = 0, description = ''):
     self.result = result
     self.description = description
+
 
   def readFromFile(self, buildPath):
     contents = utils.loadJsonFile(buildPath + '/.pybythecStatus.json')

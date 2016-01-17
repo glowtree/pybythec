@@ -8,9 +8,10 @@ test_pybythec
 Tests for `pybythec` module.
 """
 
-import os
+# import os
 import platform
 import unittest
+import subprocess
 import pybythec
 
 class TestPybythec(unittest.TestCase):
@@ -28,6 +29,7 @@ class TestPybythec(unittest.TestCase):
     
     if platform.system() == 'Linux':
       pybythec.build(['-c', 'gcc', '-os', 'linux'])
+      subprocess.call(['./main'])
       # os.system('./main')
     elif platform.system() == 'Darwin':
       pybythec.build(['-c', 'clang', '-os', 'osx'])
