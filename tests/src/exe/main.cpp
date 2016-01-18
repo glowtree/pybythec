@@ -1,9 +1,12 @@
 
+#include "../StaticLib/StaticElectricity.h"
 #include <iostream>
 
 int main(int argc, char * argv[])
-{      
-  std::cout << "running exe" << std::endl; 
+{
+  StaticElectricity se;
+  
+  std::cout << "running exe and " << se.print() << std::endl; 
 
   return 0;
 }

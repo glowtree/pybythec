@@ -1,10 +1,10 @@
 
 
 {
-  "target": "staticLib",
+  "target": "StaticLib",
   "binaryType": "staticLib",
   
-  "sources": "staticLib.cpp",
+  "sources": "StaticElectricity.cpp",
   
   "installPath": "."
 }

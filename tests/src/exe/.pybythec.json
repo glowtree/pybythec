@@ -1,5 +1,4 @@
 
-
 {
   "compiler": "gcc",      // gcc-4.4 gcc msvc110
   "osType":   "linux",    // linux osx windows android ios
@@ -9,10 +8,10 @@
   "binaryType" : "executable",
   
   "sources": "main.cpp",
-  // "libs" : {
-  //   "all": ["libStatic", "libDynamic"]
-  //   // "windows": "user32 gdi32 Shell32 opengl32"
-  // },
+  "libs" : {
+    "all": ["StaticLib"] //, "libDynamic"]
+    // "windows": "user32 gdi32 Shell32 opengl32"
+  },
   
   "linkFlags": {
     "msvc": "-SUBSYSTEM:CONSOLE"
@@ -21,9 +20,9 @@
   // paths
   "incPaths": "./include",
   
-  "libPaths": ["../staticLib", "../staticDynamic"],
+  "libPaths": ["../StaticLib", "../staticDynamic"],
 
-  // "libSrcPaths": ["../staticLib", "../staticDynamic"],
+  "libSrcPaths": [".."],
   
   "installPath": "."
 }

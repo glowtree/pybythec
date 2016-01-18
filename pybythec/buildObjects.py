@@ -127,19 +127,19 @@ class BuildElements:
       log.error('no target specified')
       return False
     elif not len(self.binaryType):
-      log.error('no specified')
+      log.error('no binary type specified')
       return False
     elif not len(self.compiler):
       log.error('no compiler specified')
       return False
     elif not len(self.osType):
-      log.error('no osType specified')
+      log.error('no os specified')
       return False
     elif not len(self.binaryFormat):
-      log.error('no binaryFormat specified')
+      log.error('no binary format specified')
       return False
     elif not len(self.buildType):
-      log.error('no buildType specified')
+      log.error('no build type specified')
       return False
     elif not len(self.sources):
       log.error('no source files specified')
@@ -172,9 +172,7 @@ class BuildElements:
         if key in args:
           self._getArgsList(argsList, args[key])
     else:
-      if type(args).__name__ == 'unicode':
-        args = args.encode('ascii')
-      if type(args).__name__ == 'str':
+      if type(args).__name__ == 'str' or type(args).__name__ == 'unicode':
         args = args.split()
       if type(args).__name__ == 'list':
         for arg in args:
@@ -190,27 +188,42 @@ class BuildStatus:
     
     and a description of the build
   '''
-  def __init__(self, result = 0, description = ''):
+  def __init__(self, path = '', result = 0, description = ''):
+    self.path = path
     self.result = result
     self.description = description
-
-
+    
   def readFromFile(self, buildPath):
     contents = utils.loadJsonFile(buildPath + '/.pybythecStatus.json')
     if not contents:
-      log.error('couldn\'t find build status in ' + buildPath)
+      self.description = 'couldn\'t find build status in ' + buildPath
+      log.error('couldn\'t find build status in ' + self.description)
       return
     if 'result' in contents:
       self.result = contents['result']
     else:
-      log.warning(buildPath + ' doesn\'t contain a result')
+      self.description = 'couldn\'t find the build status in ' + buildPath
+      log.error(self.description)
     if 'description' in contents:
       self.description = contents['description']
     else:
-      log.warning(buildPath + ' doesn\'t contain a description')
+      self.description = buildPath + ' doesn\'t contain a description'
+      log.warning(self.description)
 
+  def writeInfo(self, status, msg):
+    log.info(msg)
+    self.result = status
+    self.description = msg
+    self._writeToFile()
+    
+  def writeError(self, msg):
+    log.error(msg)
+    self.description = msg
+    self._writeToFile()
 
-  def writeToFile(self, buildPath):
-    with open(buildPath + '/.pybythecStatus.json', 'w') as f:
+  def _writeToFile(self):
+    if not os.path.exists(self.path):
+      return
+    with open(self.path + '/.pybythecStatus.json', 'w') as f:
       json.dump({'result': self.result, 'description': self.description}, f, indent = 4)
 
