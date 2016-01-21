@@ -2,7 +2,7 @@
 
 from pybythec import main
 import logging
-logging.basicConfig(level = logging.INFO, format = '%(message)s') # DEBUG INFO
+logging.basicConfig(level = logging.DEBUG, format = '%(message)s') # DEBUG INFO
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'

@@ -89,6 +89,27 @@ def buildLib(lib, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType, 
   buildStatus.readFromFile('{0}/.build/{1}/{2}/{3}'.format(libSrcDir, buildType, compiler, binaryFormat))
 
 
+def clean(buildObj):
+
+  if not os.path.exists(buildObj.buildPath):
+    log.info('{0} ({1} {2} {3}) already clean'.format(buildObj.target, buildObj.buildType, buildObj.compiler, buildObj.binaryFormat))
+    return True
+  
+  for f in os.listdir(buildObj.buildPath):
+    os.remove(buildObj.buildPath + '/' + f)
+  os.removedirs(buildObj.buildPath)
+
+  if os.path.exists(buildObj.targetInstallPath):
+    os.remove(buildObj.targetInstallPath)
+  try:
+    os.removedirs(buildObj.installPath)
+  except:
+    pass
+    
+  log.info('{0} ({1} {2} {3}) all clean'.format(buildObj.target, buildObj.buildType, buildObj.compiler, buildObj.binaryFormat))
+  # return True
+
+
 '''
   the main function
 '''
@@ -148,6 +169,7 @@ def build(argv):
     globalCf = utils.loadJsonFile(args['-g'])
   else:
     globalCf = utils.loadJsonFile('.pybythecGlobal.json')
+
 
   # project config
   if 'PYBYTHEC_PROJECT' in os.environ:
@@ -267,7 +289,7 @@ def build(argv):
     compilerCmd = 'cl'
     objExt      = '.obj'
     objPathFlag = '/Fo'
-    flags.append('/nologo /errorReport:prompt')
+    # be.flags.append('/nologo /errorReport:prompt')
     
     # link
     linker        = 'link'
@@ -277,7 +299,7 @@ def build(argv):
     staticLibExt  = '.lib'
     dynamicLibExt = '.dll'
     if be.binaryFormat == '64bit':
-      linkFlags.append('/MACHINE:X64')
+      be.linkFlags.append('/MACHINE:X64')
     
     if be.binaryType == 'staticLib':
       be.target += staticLibExt
@@ -316,7 +338,8 @@ def build(argv):
   targetInstallPath = os.path.join(be.installPath, be.target)
 
   #
-  # clean
+  # clean 
+  # TODO: this should probably be a seperate function
   #
   if '-cl' in args or '-cla' in args:
     if '-cla' in args:

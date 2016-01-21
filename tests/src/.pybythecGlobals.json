@@ -17,7 +17,7 @@
       "release": "-O3"
     },
     "msvc": {
-      "all": "/EHsc /Gy",
+      "all": "/EHsc /Gy /nologo /errorReport:prompt",
       "debug": "/W1 /RTC1 /Z7",
       "release": "/DNDEBUG /O2 /GL" /// NOTE: /GL might be slow 
     },
