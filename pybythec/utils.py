@@ -120,10 +120,7 @@ def copyfile(srcPath, dstDir):
   # NOTE:  os.mkdirs throws the same exception whether it couldn't create the directory or it was already there
   # therefor not ideal
   createDirs(dstDir)
-  # try:
-  #   os.makedirs(dstDir)
-  # except:
-    
+
   shutil.copy2(srcPath, dstDir)
 
   # print('{0} copied to {1}'.format(srcPath, dstPath))

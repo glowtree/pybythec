@@ -29,17 +29,19 @@ class TestPybythec(unittest.TestCase):
     print('\n')
 
     if platform.system() == 'Linux':
-      pybythec.cleanall('-c', 'gcc', '-os', 'linux']) 
+      pybythec.cleanall(['-c', 'gcc', '-os', 'linux']) 
       pybythec.build(['-c', 'gcc', '-os', 'linux'])
     elif platform.system() == 'Darwin':
       pybythec.cleanall(['-c', 'clang', '-os', 'osx']) 
       pybythec.build(['-c', 'clang', '-os', 'osx'])
     elif platform.system() == 'Windows':
-      pybythec.cleanall(['-c', 'msvc', '-os', 'windows']) 
-      pybythec.build(['-c', 'msvc', '-os', 'windows'])
+      pybythec.cleanall(['-c', 'msvc100', '-os', 'windows']) 
+      pybythec.build(['-c', 'msvc100', '-os', 'windows'])
     else:
       print('unknown operating system')
       return
+      
+    self.assertTrue(os.path.exists('./main'))
       
     p = subprocess.Popen(['./main'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     stdout = p.communicate()[0].decode('utf-8')

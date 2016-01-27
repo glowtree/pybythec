@@ -53,4 +53,3 @@ class BuildStatus:
       return
     with open(self.path + '/.pybythecStatus.json', 'w') as f:
       json.dump({'result': self.result, 'description': self.description}, f, indent = 4)
-

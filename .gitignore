@@ -61,3 +61,5 @@ target/
 # jedit
 *~
 
+# pybythec
+.pybythecStatus.json
