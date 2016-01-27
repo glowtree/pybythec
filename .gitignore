@@ -62,4 +62,18 @@ target/
 *~
 
 # pybythec
+.build/
 .pybythecStatus.json
+
+# C / C++
+*.o
+*.a
+*.so
+*.obj
+*.lib
+*.dll
+*.exe
+*.zip
+*.pkg
+*.msi
+

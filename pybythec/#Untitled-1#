@@ -1,2 +1,0 @@
-
-cl -I C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/include -I C:/Program Files/Microsoft SDKs/Windows/v7.1/Include -I C:\Users\toms\dev\projects\pybythec\tests\src\exe\include /MD C:\Users\toms\dev\projects\pybythec\tests\src\exe\main.cpp /Fo C:\Users\toms\dev\projects\pybythec\tests\src\exe\.build\release\msvc100\64bit\main.obj

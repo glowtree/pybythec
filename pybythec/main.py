@@ -37,34 +37,46 @@ from threading import Thread
 log = logging.getLogger('pybythec')
 
 
-def _compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objPaths, buildStatus):
+# def _compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objPaths, buildStatus):
+def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
+  '''
+    be (in): BuildElements object
+    compileCmd (in): the compile command so far 
+    source (in): the c or cpp source file to compile
+    objPaths (out): list of all object paths that will be passed to the linker
+    buildStatus (out): build status for this particular compile
+  '''
 
   if not os.path.exists(source):
     buildStatus.writeError(source + ' is missing, exiting build')
     return
 
   objFile = os.path.basename(source)
-  objFile = objFile.replace(os.path.splitext(source)[1], objExt)
-  objPath = os.path.join(buildDir, objFile)
+  objFile = objFile.replace(os.path.splitext(source)[1], be.objExt)
+  objPath = os.path.join(be.buildPath, objFile)
   objPaths.append(objPath) # + ' ')
   
   # check if it's up to date
   objExisted = os.path.exists(objPath)
   if objExisted:
     objTimestamp = float(os.stat(objPath).st_mtime)
-    if not utils.sourceNeedsBuilding(incPaths, source, objTimestamp):
+    if not utils.sourceNeedsBuilding(be.incPaths, source, objTimestamp):
       buildStatus.result = 2 # up to date
       return
 
+  # stupid Microsoft Visual C has to have the objPathFlag cuddled up directly next to the objPath - no space in between them!
+  if be.compiler.startswith('msvc'):
+    cmd = compileCmd + [source, be.objPathFlag + objPath]
+  else:
+    cmd = compileCmd + [source, be.objPathFlag, objPath]
+  log.debug('\n' + ' '.join(cmd) + '\n')
+  
   # compile
-  cmd = compileCmd + [source, objPathFlag, objPath]
-  log.debug(' '.join(cmd))
   try:
     compileProcess = subprocess.Popen(cmd, stdout = subprocess.PIPE)
   except OSError as e:
     buildStatus.writeError('compileProcess failed because ' + str(e))
     return
-
   buildStatus.description = compileProcess.communicate()[0].decode('utf-8')
 
   if os.path.exists(objPath):
@@ -95,8 +107,7 @@ def _buildLib(lib, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType,
 def _clean(be):
   '''
     cleans the current project
-
-    be (input): BuildElements object
+    be (in): BuildElements object
   '''
 
   if not os.path.exists(be.buildPath):
@@ -246,7 +257,8 @@ def build(argv):
     for source in be.sources:
       buildStatusDep = BuildStatus()
       buildStatusDeps.append(buildStatusDep)
-      thread = Thread(None, target = _compileSrc, args = (source, be.incPaths, cmd, be.objPathFlag, be.objExt, be.buildPath, objPaths, buildStatusDep))
+      # thread = Thread(None, target = _compileSrc, args = (source, be.incPaths, cmd, be.objPathFlag, be.objExt, be.buildPath, objPaths, buildStatusDep))
+      thread = Thread(None, target = _compileSrc, args = (be, cmd, source, objPaths, buildStatusDep))
       thread.start()
       threads.append(thread)
       i += 1
@@ -254,43 +266,46 @@ def build(argv):
     for source in be.sources:
       buildStatusDep = BuildStatus()
       buildStatusDeps.append(buildStatusDep)
-      _compileSrc(source, be.incPaths, cmd, be.objPathFlag, be.objExt, be.buildPath, objPaths, buildStatusDep)
+      # _compileSrc(source, be.incPaths, cmd, be.objPathFlag, be.objExt, be.buildPath, objPaths, buildStatusDep)
+      _compileSrc(be, cmd, source, objPaths, buildStatusDep)
       i += 1
 
   #
   # build library dependencies
   #
   libCmds = []
-  if len(be.libs):
-    for lib in be.libs:
-      libName = lib
-      if be.compiler.startswith('msvc'):
-        libName += be.staticLibExt
+
+  for lib in be.libs:
+    libName = lib
+    if be.compiler.startswith('msvc'): # stupid Microsoft again
+      # TODO: somehow figure out if this lib is static or dynamic
+      libCmds += [libName + be.staticLibExt]
+    else:
       libCmds += [be.libFlag, libName]
-        
-      # check if the lib has a directory for building
-      if threading:
-        for libSrcDir in be.libSrcPaths:
-          libSrcDir = os.path.join(libSrcDir, lib)
-          if os.path.exists(libSrcDir):
-            buildStatusDep = BuildStatus()
-            buildStatusDeps.append(buildStatusDep)
-            # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-            thread = Thread(None, target = _buildLib, args = (lib, libSrcDir, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep))
-            thread.start()
-            threads.append(thread)
-            i += 1
-            break
-      else:
-        for libSrcPath in be.libSrcPaths:
-          libSrcPath = os.path.join(libSrcPath, lib)
-          if os.path.exists(libSrcPath):
-            buildStatusDep = BuildStatus()
-            buildStatusDeps.append(buildStatusDep)
-            # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-            _buildLib(lib, be.libSrcPath, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep)
-            i += 1
-            break
+      
+    # check if the lib has a directory for building
+    if threading:
+      for libSrcDir in be.libSrcPaths:
+        libSrcDir = os.path.join(libSrcDir, lib)
+        if os.path.exists(libSrcDir):
+          buildStatusDep = BuildStatus()
+          buildStatusDeps.append(buildStatusDep)
+          # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
+          thread = Thread(None, target = _buildLib, args = (lib, libSrcDir, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep))
+          thread.start()
+          threads.append(thread)
+          i += 1
+          break
+    else:
+      for libSrcPath in be.libSrcPaths:
+        libSrcPath = os.path.join(libSrcPath, lib)
+        if os.path.exists(libSrcPath):
+          buildStatusDep = BuildStatus()
+          buildStatusDeps.append(buildStatusDep)
+          # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
+          _buildLib(lib, be.libSrcPath, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep)
+          i += 1
+          break
 
   # wait for all the threads before testing the results
   for thread in threads:
@@ -322,13 +337,11 @@ def build(argv):
     buildStatus.writeInfo(2, '{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
     return True
   
-  # microsoft's compiler / linker can only handle so many characters on the command line
+  # microsoft's compiler / linker can only handle so many characters on the command line (because it's stupid)
   tmpLinkCmdFp = be.buildPath + '/tmpLinkCmd'
   if be.compiler.startswith('msvc'):
     msvcTmpFile = open(tmpLinkCmdFp, 'w')
-    # msvcTmpFile.write('{0}"{1}" {2} {3}'.format(targetFlag, targetBuildPath, objPaths, libCmds))
-    # TODO: objectPaths and libCmds will have to be formatted
-    msvcTmpFile.write('{0}"{1}" {2} {3}'.format(be.targetFlag, be.targetInstallPath, objPaths, libCmds))
+    msvcTmpFile.write('{0}"{1}" {2} {3}'.format(be.targetFlag, be.targetInstallPath, ' '.join(objPaths), ' '.join(libCmds)))
     msvcTmpFile.close()
     # linkCmd = '{0} @{1} '.format(linker, tmpLinkCmdFp)
     linkCmd += [be.linker, '@' + tmpLinkCmdFp]
@@ -339,9 +352,10 @@ def build(argv):
     linkCmd += be.linkFlags
     if be.binaryType != 'dynamicLib':
       for libPath in be.libPaths:
-        linkCmd += [be.libPathFlag, os.path.normpath(libPath)]
-  
-  log.debug(linkCmd)
+        if be.compiler.startswith('msvc'):
+          linkCmd += [be.libPathFlag + os.path.normpath(libPath)]
+        else:
+          linkCmd += [be.libPathFlag, os.path.normpath(libPath)]
   
   # get the timestamp of the existing target if it exists
   linked = False
@@ -353,6 +367,8 @@ def build(argv):
   else:
     if not os.path.exists(be.installPath): # TODO: isn't this alread accomplished? (above)
       utils.createDirs(be.installPath)
+  
+  log.debug('\n' + ' '.join(linkCmd) + '\n')
   
   linkProcess = None
   try:
@@ -378,19 +394,19 @@ def build(argv):
     buildStatus.writeError('linking failed because ' + processOutput)
     return False
       
-  if be.compiler.startswith('msvc') and multiThreaded and (be.binaryType == 'dynamic' or be.binaryType == 'executable'):
+  # if be.compiler.startswith('msvc') and be.multithread and (be.binaryType == 'executable' or be.binaryType == 'dynamicLib' or be.binaryType == 'dynamic' ):
       
-    # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
-    # mtCmd = 'mt -nologo -manifest ' + targetBuildPath + '.manifest -outputresource:' + targetBuildPath + ';#2'
-    mtCmd = ['mt', '-nologo', '-manifest', be.targetInstallPath + '.manifest', '-outputresource:', be.targetInstallPath + ';#2']
-    mtProcess = None
-    try:
-      mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE)
-    except OSError as e:
-      buildStatus.writeError('mt failed because ' + str(e))
-      return False
+  #   # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
+  #   # mtCmd = 'mt -nologo -manifest ' + targetBuildPath + '.manifest -outputresource:' + targetBuildPath + ';#2'
+  #   mtCmd = ['mt', '-nologo', '-manifest', be.targetInstallPath + '.manifest', '-outputresource:', be.targetInstallPath + ';#2']
+  #   mtProcess = None
+  #   try:
+  #     mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE)
+  #   except OSError as e:
+  #     buildStatus.writeError('mt failed because ' + str(e))
+  #     return False
 
-    log.info(mtProcess.communicate()[0].decode('utf-8'))
+  #   log.info(mtProcess.communicate()[0].decode('utf-8'))
   
   # final check that binary file has appeared
   # startTime = time.time()

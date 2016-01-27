@@ -19,34 +19,40 @@ class TestPybythec(unittest.TestCase):
   def setUp(self):
     os.environ['PYBYTHEC_GLOBALS'] = '../.pybythecGlobals.json'
     self.lastCwd = os.getcwd()
-    os.chdir('./tests/src/exe')
+    os.chdir('./example/exe')
 
   def tearDown(self):
-    os.chdir(self.lastCwd)
-  
-  def test_000_something(self):
-    
-    print('\n')
-
     if platform.system() == 'Linux':
       pybythec.cleanall(['-c', 'gcc', '-os', 'linux']) 
-      pybythec.build(['-c', 'gcc', '-os', 'linux'])
     elif platform.system() == 'Darwin':
       pybythec.cleanall(['-c', 'clang', '-os', 'osx']) 
-      pybythec.build(['-c', 'clang', '-os', 'osx'])
     elif platform.system() == 'Windows':
       pybythec.cleanall(['-c', 'msvc100', '-os', 'windows']) 
+    else:
+      print('unknown operating system')
+      return
+    os.chdir(self.lastCwd)
+
+  def test_000_something(self):
+    print('\n')
+    exePath = './main'
+    if platform.system() == 'Linux':
+      pybythec.build(['-c', 'gcc', '-os', 'linux'])
+    elif platform.system() == 'Darwin':
+      pybythec.build(['-c', 'clang', '-os', 'osx'])
+    elif platform.system() == 'Windows':
       pybythec.build(['-c', 'msvc100', '-os', 'windows'])
+      exePath += '.exe'
     else:
       print('unknown operating system')
       return
       
-    self.assertTrue(os.path.exists('./main'))
+    self.assertTrue(os.path.exists(exePath))
       
-    p = subprocess.Popen(['./main'], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     stdout = p.communicate()[0].decode('utf-8')
     print(stdout)
-    self.assertEqual(stdout, 'running exe and static electricity\n')
+    self.assertTrue(stdout.startswith('running exe and static electricity'))
       
 if __name__ == '__main__':
   import sys
