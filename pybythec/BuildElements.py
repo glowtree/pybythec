@@ -129,7 +129,17 @@ class BuildElements:
     if '-bf' in args:
       self.binaryFormat = args['-bf']
     
-    self.keys = ['all', self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
+    # currently compiler root can either be gcc, clang or msvc
+    # TODO: utilize compilerRoot elsewhere
+    self.compilerRoot = ''
+    if self.compiler.startswith('gcc') or self.compiler.startswith('g++'):
+      self.compilerRoot = 'gcc'
+    elif self.compiler.startswith('clang') or self.compiler.startswith('clang++'):
+      self.compilerRoot = 'clang'
+    if self.compiler.startswith('msvc'):
+      self.compilerRoot = 'msvc'
+    
+    self.keys = ['all', self.compilerRoot, self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
   
     if globalCf is not None:
       self._getBuildElements2(globalCf)
@@ -156,7 +166,7 @@ class BuildElements:
     #
     # compiler config
     #
-    self.compilerCmd = ''  # the compiler command ie if msvc090 is the compiler, but cl is the compilerCmd TODO: WTF are you talking about??? compilerCmd is cl!!!
+    self.compilerCmd = ''
     self.linker      = ''
     self.targetFlag  = ''
     self.libFlag     = ''
@@ -177,8 +187,17 @@ class BuildElements:
     #
     if isGcc or isClang:
         
+      # TODO: utilize self.compilerRoot, assume the opposite will happen where if you want to compile with g++ that compiler will be specified
+      # change self.plusplus to self.forceC, like this:...
+      
+      # self.compilerCmd = self.compiler
+      # if self.forceC:
+      #   if isGcc:
+      #     self.compilerCmd = self.compilerCmd.replace('g++', 'gcc')
+      #   else:
+      #     self.compilerCmd = self.compilerCmd.replace('clang++', 'clang')
+      
       self.compilerCmd = self.compiler
-        
       if self.plusplus:
         if isGcc:
           self.compilerCmd = self.compilerCmd.replace('gcc', 'g++')

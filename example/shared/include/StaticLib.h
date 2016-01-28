@@ -1,7 +1,7 @@
 
 #include <string>
 
-class StaticElectricity
+class StaticLib
 {
 public:
   std::string print();

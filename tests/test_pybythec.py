@@ -17,9 +17,9 @@ import pybythec
 class TestPybythec(unittest.TestCase):
   
   def setUp(self):
-    os.environ['PYBYTHEC_GLOBALS'] = '../.pybythecGlobals.json'
     self.lastCwd = os.getcwd()
-    os.chdir('./example/exe')
+    os.chdir('./example/projects/main/src')
+    os.environ['PYBYTHEC_GLOBALS'] = '../../../shared/.pybythecGlobals.json'
 
   def tearDown(self):
     if platform.system() == 'Linux':
@@ -30,12 +30,11 @@ class TestPybythec(unittest.TestCase):
       pybythec.cleanall(['-c', 'msvc100', '-os', 'windows']) 
     else:
       print('unknown operating system')
-      return
     os.chdir(self.lastCwd)
 
   def test_000_something(self):
     print('\n')
-    exePath = './main'
+    exePath = '../main'
     if platform.system() == 'Linux':
       pybythec.build(['-c', 'gcc', '-os', 'linux'])
     elif platform.system() == 'Darwin':
@@ -52,7 +51,7 @@ class TestPybythec(unittest.TestCase):
     p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     stdout = p.communicate()[0].decode('utf-8')
     print(stdout)
-    self.assertTrue(stdout.startswith('running exe and static electricity'))
+    self.assertTrue(stdout.startswith('running the executable and a statically linked library'))
       
 if __name__ == '__main__':
   import sys

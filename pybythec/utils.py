@@ -136,8 +136,11 @@ def loadJsonFile(jsonPath):
     log.warning('{0} is not json'.format(jsonPath))
     return None
 
-  with open(jsonPath) as f:
-    return json.loads(removeComments(f)) # , encoding = 'utf-8')
+  try:
+    with open(jsonPath) as f:
+      return json.loads(removeComments(f)) # , encoding = 'utf-8')
+  except Exception as e:
+    log.warning('failed to read {0} because\n{1}'.format(jsonPath, str(e)))
 
   return None
 

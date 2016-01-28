@@ -8,7 +8,7 @@ import pybythec
 
 if __name__ == '__main__':
   
-  os.environ['PYBYTHEC_GLOBALS'] = '../.pybythecGlobals.json'
+  os.environ['PYBYTHEC_GLOBALS'] = '../../../shared/.pybythecGlobals.json'
   
   if platform.system() == 'Linux':
     pybythec.build(sys.argv[1:] + ['-c', 'gcc', '-os', 'linux'])
@@ -18,4 +18,3 @@ if __name__ == '__main__':
     pybythec.build(sys.argv[1:] + ['-c', 'msvc', '-os', 'windows'])
   else:
     print('unknown platform / system')
-

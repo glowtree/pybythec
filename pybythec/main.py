@@ -73,11 +73,13 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   
   # compile
   try:
-    compileProcess = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+    # stupid Microsoft: pipes compiler info to stderr, so if you don't catch it here it spits it to the command line
+    compileProcess = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE) 
   except OSError as e:
     buildStatus.writeError('compileProcess failed because ' + str(e))
     return
   buildStatus.description = compileProcess.communicate()[0].decode('utf-8')
+  log.info(buildStatus.description)
 
   if os.path.exists(objPath):
     if objExisted:
@@ -90,7 +92,8 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
     buildStatus.description = 'compiled ' + os.path.basename(source)
     
 
-def _buildLib(lib, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType, binaryFormat, projectDir, buildStatus):
+# def _buildLib(lib, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType, binaryFormat, projectDir, buildStatus):
+def _buildLib(be, libSrcDir, buildStatusDep):
   
   jsonPath = os.path.join(libSrcDir, '.pybythec.json')
   if not os.path.exists(jsonPath):
@@ -98,10 +101,10 @@ def _buildLib(lib, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType,
     return
   
   # build
-  build(['-d', libSrcDir, '-os', osType, '-b', buildType, '-c', compiler, '-bf', binaryFormat, '-p', projectDir + '/.pybythecProject.json'])
+  build(['-d', libSrcDir, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat, '-p', be.cwDir + '/.pybythecProject.json'])
   
   # read the build status
-  buildStatus.readFromFile('{0}/.build/{1}/{2}/{3}'.format(libSrcDir, buildType, compiler, binaryFormat))
+  buildStatusDep.readFromFile('{0}/.build/{1}/{2}/{3}'.format(libSrcDir, be.buildType, be.compiler, be.binaryFormat))
 
 
 def _clean(be):
@@ -168,19 +171,19 @@ def cleanall(argv):
 def build(argv):
   '''
   '''
+  #
+  # cleaning
+  #
+  if '-cl' in argv:
+    return clean(argv)
+  if '-cla' in argv:
+    return cleanall(argv)
+  
   try:
     be = BuildElements(argv)
   except Exception as e:
     log.error(str(e))
     return False
-
-  #
-  # clean 
-  #
-  if '-cl' in argv:
-    return clean(be)
-  if '-cla' in argv:
-    return cleanall(be)
 
   # lock - early return
   if be.locked and os.path.exists(be.targetInstallPath):
@@ -247,7 +250,7 @@ def build(argv):
   i = 0
 
   #
-  # compile sources
+  # compile
   #
   objPaths = []
   # cmd = [be.compilerCmd, '-c'] + incPathList + definesList + be.flags 
@@ -271,7 +274,7 @@ def build(argv):
       i += 1
 
   #
-  # build library dependencies
+  # build dependencies
   #
   libCmds = []
 
@@ -290,8 +293,8 @@ def build(argv):
         if os.path.exists(libSrcDir):
           buildStatusDep = BuildStatus()
           buildStatusDeps.append(buildStatusDep)
-          # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-          thread = Thread(None, target = _buildLib, args = (lib, libSrcDir, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep))
+          # thread = Thread(None, target = _buildLib, args = (lib, libSrcDir, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep))
+          thread = Thread(None, target = _buildLib, args = (be, libSrcDir, buildStatusDep))
           thread.start()
           threads.append(thread)
           i += 1
@@ -302,8 +305,8 @@ def build(argv):
         if os.path.exists(libSrcPath):
           buildStatusDep = BuildStatus()
           buildStatusDeps.append(buildStatusDep)
-          # TODO: staticLibExt should probably be a list with both static and dynamic file extensions
-          _buildLib(lib, be.libSrcPath, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep)
+          # _buildLib(lib, be.libSrcPath, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep)
+          _buildLib(be, libSrcDir, buildStatusDep)
           i += 1
           break
 
@@ -330,7 +333,7 @@ def build(argv):
         be.libPaths[i] = revisedLibPath
 
   #
-  # link objs or libraries
+  # linking
   #
   linkCmd = []
   if allUpToDate and os.path.exists(be.targetInstallPath):
@@ -343,7 +346,6 @@ def build(argv):
     msvcTmpFile = open(tmpLinkCmdFp, 'w')
     msvcTmpFile.write('{0}"{1}" {2} {3}'.format(be.targetFlag, be.targetInstallPath, ' '.join(objPaths), ' '.join(libCmds)))
     msvcTmpFile.close()
-    # linkCmd = '{0} @{1} '.format(linker, tmpLinkCmdFp)
     linkCmd += [be.linker, '@' + tmpLinkCmdFp]
   else:
     linkCmd += [be.linker, be.targetFlag, be.targetInstallPath] + objPaths + libCmds
@@ -372,7 +374,7 @@ def build(argv):
   
   linkProcess = None
   try:
-    linkProcess = subprocess.Popen(linkCmd, stdout = subprocess.PIPE)
+    linkProcess = subprocess.Popen(linkCmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
   except OSError as e:
     buildStatus.writeError('linking failed because: ' + str(e))
     return False
@@ -393,7 +395,8 @@ def build(argv):
   else:
     buildStatus.writeError('linking failed because ' + processOutput)
     return False
-      
+  
+  # TODO: finish this part
   # if be.compiler.startswith('msvc') and be.multithread and (be.binaryType == 'executable' or be.binaryType == 'dynamicLib' or be.binaryType == 'dynamic' ):
       
   #   # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
@@ -416,7 +419,7 @@ def build(argv):
   #     buildStatus.writeError('{0} ({1} {2} {3}) build completed BUT {4} can\'t be found'.format(be.target, be.buildType, be.binaryFormat, be.compiler, targetInstallPath), buildPath)
   #     return False
 
-  buildStatus.writeInfo(1, '{0} ({1} {2} {3}) build completed in {4} seconds ({5})'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime)), be.targetInstallPath))
+  buildStatus.writeInfo(1, '{0} ({1} {2} {3}) build completed in {4} seconds ({5}\n)'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime)), be.targetInstallPath))
   
   sys.stdout.flush()
 

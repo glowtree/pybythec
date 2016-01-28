@@ -1,5 +1,6 @@
 
 {
+  /// optional as you can supply this as parameters to the build function
   "compiler": "gcc",      // gcc-4.4 gcc msvc110
   "osType":   "linux",    // linux osx windows android ios
   "buildType": "release", // debug release
@@ -8,22 +9,15 @@
   "binaryType" : "executable",
   
   "sources": "main.cpp",
-  "libs" : {
-    "all": ["StaticLib"] //, "libDynamic"]
-    // "windows": "user32 gdi32 Shell32 opengl32"
-  },
+  "libs": ["StaticLib"], //, "DynamicLib"],
   
   "linkFlags": {
     "msvc": "-SUBSYSTEM:CONSOLE"
   },
   
   // paths
-  "incPaths": "./include",
-  
-  "libPaths": ["../StaticLib", "../staticDynamic"],
-
-  "libSrcPaths": [".."],
-  
-  "installPath": "."
+  "incPaths":    "../../../shared/include",
+  "libPaths":    "../../../shared/lib",
+  "libSrcPaths": "../../../shared/src",
+  "installPath": ".."
 }
-

@@ -1,0 +1,9 @@
+
+{
+  "target": "StaticLib",
+  "binaryType": "staticLib",
+  "sources": "StaticLib.cpp",
+  "incPaths":    "../../include",
+  "installPath": "../../lib"
+}
+
