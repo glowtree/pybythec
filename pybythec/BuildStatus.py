@@ -8,16 +8,16 @@ log = logging.getLogger('pybythec')
 
 class BuildStatus:
   '''
-    contains the build status integer:
-    0 - failed (default)
-    1 - built successfully
-    2 - up-to-date or locked
-    
-    and a description of the build
+    name (in): name of src, lib, or exe
+    binaryType (in): executable, staticLib, dynamicLib, dynamic, lib or obj
+    path (in): path to write .pybythecStatus.json file to
+    status (in): failed, built, up to date, or locked
+    description (in): what happened
   '''
-  def __init__(self, path = '', result = 0, description = ''):
+  def __init__(self, name, path = '', status = 'failed', description = ''): #binaryType, 
+    self.name = name
     self.path = path
-    self.result = result
+    self.status = status
     self.description = description
     
   def readFromFile(self, buildPath):
@@ -26,8 +26,8 @@ class BuildStatus:
       self.description = 'couldn\'t find build status in ' + buildPath
       log.error('couldn\'t find build status in ' + self.description)
       return
-    if 'result' in contents:
-      self.result = contents['result']
+    if 'status' in contents:
+      self.status = contents['status']
     else:
       self.description = 'couldn\'t find the build status in ' + buildPath
       log.error(self.description)
@@ -39,7 +39,7 @@ class BuildStatus:
 
   def writeInfo(self, status, msg):
     log.info(msg)
-    self.result = status
+    self.status = status
     self.description = msg
     self._writeToFile()
     
@@ -52,4 +52,4 @@ class BuildStatus:
     if not os.path.exists(self.path):
       return
     with open(self.path + '/.pybythecStatus.json', 'w') as f:
-      json.dump({'result': self.result, 'description': self.description}, f, indent = 4)
+      json.dump({'status': self.status, 'description': self.description}, f, indent = 4)

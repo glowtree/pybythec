@@ -37,12 +37,11 @@ from threading import Thread
 log = logging.getLogger('pybythec')
 
 
-# def _compileSrc(source, incPaths, compileCmd, objPathFlag, objExt, buildDir, objPaths, buildStatus):
 def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   '''
     be (in): BuildElements object
     compileCmd (in): the compile command so far 
-    source (in): the c or cpp source file to compile
+    source (in): the c or cpp source file to compile (every source file gets it's own object file)
     objPaths (out): list of all object paths that will be passed to the linker
     buildStatus (out): build status for this particular compile
   '''
@@ -61,7 +60,7 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   if objExisted:
     objTimestamp = float(os.stat(objPath).st_mtime)
     if not utils.sourceNeedsBuilding(be.incPaths, source, objTimestamp):
-      buildStatus.result = 2 # up to date
+      buildStatus.status = 'up to date'
       return
 
   # stupid Microsoft Visual C has to have the objPathFlag cuddled up directly next to the objPath - no space in between them!
@@ -73,26 +72,27 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   
   # compile
   try:
-    # stupid Microsoft: pipes compiler info to stderr, so if you don't catch it here it spits it to the command line
     compileProcess = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE) 
   except OSError as e:
     buildStatus.writeError('compileProcess failed because ' + str(e))
     return
-  buildStatus.description = compileProcess.communicate()[0].decode('utf-8')
-  log.info(buildStatus.description)
+  stdout, stderr = compileProcess.communicate()
+  if len(stderr): # bad news first
+    buildStatus.description = stderr.decode('utf-8')
+  else:
+    buildStatus.description = stdout.decode('utf-8')
 
   if os.path.exists(objPath):
     if objExisted:
       if float(os.stat(objPath).st_mtime) > objTimestamp:
-        buildStatus.result = 1
+        buildStatus.status = 'built'
     else:
-      buildStatus.result = 1
+      buildStatus.status = 'built'
 
-  if buildStatus.result == 1:
+  if buildStatus.status == 'built':
     buildStatus.description = 'compiled ' + os.path.basename(source)
     
 
-# def _buildLib(lib, libSrcDir, compilerCmd, compiler, osType, fileExt, buildType, binaryFormat, projectDir, buildStatus):
 def _buildLib(be, libSrcDir, buildStatusDep):
   
   jsonPath = os.path.join(libSrcDir, '.pybythec.json')
@@ -187,7 +187,7 @@ def build(argv):
 
   # lock - early return
   if be.locked and os.path.exists(be.targetInstallPath):
-    buildStatus.writeInfo(2, be.target + ' is locked')
+    buildStatus.writeInfo('locked', be.target + ' is locked')
     return True
 
   #
@@ -213,7 +213,7 @@ def build(argv):
   for define in be.defines:
     definesList += ['-D', define]
   
-  buildStatus = BuildStatus(be.buildPath) # final build status
+  buildStatus = BuildStatus(be.target, be.buildPath) # final build status
 
   #
   # Qt moc file compilation
@@ -253,23 +253,20 @@ def build(argv):
   # compile
   #
   objPaths = []
-  # cmd = [be.compilerCmd, '-c'] + incPathList + definesList + be.flags 
-  cmd = [be.compilerCmd] + incPathList + definesList + be.flags
+  cmd = [be.compilerCmd, be.objFlag] + incPathList + definesList + be.flags
   
   if threading:
     for source in be.sources:
-      buildStatusDep = BuildStatus()
+      buildStatusDep = BuildStatus(source)
       buildStatusDeps.append(buildStatusDep)
-      # thread = Thread(None, target = _compileSrc, args = (source, be.incPaths, cmd, be.objPathFlag, be.objExt, be.buildPath, objPaths, buildStatusDep))
       thread = Thread(None, target = _compileSrc, args = (be, cmd, source, objPaths, buildStatusDep))
       thread.start()
       threads.append(thread)
       i += 1
   else:
     for source in be.sources:
-      buildStatusDep = BuildStatus()
+      buildStatusDep = BuildStatus(source)
       buildStatusDeps.append(buildStatusDep)
-      # _compileSrc(source, be.incPaths, cmd, be.objPathFlag, be.objExt, be.buildPath, objPaths, buildStatusDep)
       _compileSrc(be, cmd, source, objPaths, buildStatusDep)
       i += 1
 
@@ -281,7 +278,7 @@ def build(argv):
   for lib in be.libs:
     libName = lib
     if be.compiler.startswith('msvc'): # stupid Microsoft again
-      # TODO: somehow figure out if this lib is static or dynamic
+      # TODO: somehow figure out if this lib is static or dynamic, probably check if either exists
       libCmds += [libName + be.staticLibExt]
     else:
       libCmds += [be.libFlag, libName]
@@ -291,9 +288,8 @@ def build(argv):
       for libSrcDir in be.libSrcPaths:
         libSrcDir = os.path.join(libSrcDir, lib)
         if os.path.exists(libSrcDir):
-          buildStatusDep = BuildStatus()
+          buildStatusDep = BuildStatus(lib)
           buildStatusDeps.append(buildStatusDep)
-          # thread = Thread(None, target = _buildLib, args = (lib, libSrcDir, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep))
           thread = Thread(None, target = _buildLib, args = (be, libSrcDir, buildStatusDep))
           thread.start()
           threads.append(thread)
@@ -303,9 +299,8 @@ def build(argv):
       for libSrcPath in be.libSrcPaths:
         libSrcPath = os.path.join(libSrcPath, lib)
         if os.path.exists(libSrcPath):
-          buildStatusDep = BuildStatus()
+          buildStatusDep = BuildStatus(lib)
           buildStatusDeps.append(buildStatusDep)
-          # _buildLib(lib, be.libSrcPath, be.compilerCmd, be.compiler, be.osType, be.staticLibExt, be.buildType, be.binaryFormat, be.cwDir, buildStatusDep)
           _buildLib(be, libSrcDir, buildStatusDep)
           i += 1
           break
@@ -316,10 +311,10 @@ def build(argv):
 
   allUpToDate = True
   for buildStatusDep in buildStatusDeps:
-    if buildStatusDep.result == 0:
-      buildStatus.writeError('{0} ({1} {2} {3}) failed, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
+    if buildStatusDep.status == 'failed':
+      buildStatus.writeError('{0} ({1} {2} {3}) failed because {4} failed because...\n\n{5}\n...determined in {6} seconds\n\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, buildStatusDep.name, buildStatusDep.description, str(int(time.time() - startTime))))
       return False
-    elif buildStatusDep.result == 1:
+    elif buildStatusDep.status == 'built':
       allUpToDate = False
 
   # revise the library paths
@@ -337,7 +332,7 @@ def build(argv):
   #
   linkCmd = []
   if allUpToDate and os.path.exists(be.targetInstallPath):
-    buildStatus.writeInfo(2, '{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
+    buildStatus.writeInfo('up to date', '{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
     return True
   
   # microsoft's compiler / linker can only handle so many characters on the command line (because it's stupid)
@@ -419,7 +414,7 @@ def build(argv):
   #     buildStatus.writeError('{0} ({1} {2} {3}) build completed BUT {4} can\'t be found'.format(be.target, be.buildType, be.binaryFormat, be.compiler, targetInstallPath), buildPath)
   #     return False
 
-  buildStatus.writeInfo(1, '{0} ({1} {2} {3}) build completed in {4} seconds ({5}\n)'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime)), be.targetInstallPath))
+  buildStatus.writeInfo('built', '{0} ({1} {2} {3}) built {4}\ncompleted in {5} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler,  be.targetInstallPath, str(int(time.time() - startTime))))
   
   sys.stdout.flush()
 

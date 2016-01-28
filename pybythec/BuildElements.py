@@ -20,7 +20,7 @@ class BuildElements:
       raise Exception('args must be a list, not a {0}'.format(argv))
     
     self.target = ''
-    self.binaryType = ''         # executable, static, dynamic, dynamicLib, dynamic (plugin / bundle)
+    self.binaryType = ''         # executable, staticLib, dynamicLib, dynamic (bundle / plugin)
     self.compiler = ''           # gcc-4.4 gcc clang msvc110 etc
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
@@ -49,9 +49,8 @@ class BuildElements:
     self.qtClasses = []
     
     #
-    # config initialization
+    # parse the args
     #
-  
     args = dict()
     key = str()
     keyFound = False
@@ -204,6 +203,7 @@ class BuildElements:
         else:
           self.compilerCmd = self.compilerCmd.replace('clang', 'clang++')
       
+      self.objFlag     = '-c'
       self.objExt      = '.o'
       self.objPathFlag = '-o'
       self.defines.append('_' + self.binaryFormat.upper()) # TODO: you sure this is universal?
@@ -244,6 +244,7 @@ class BuildElements:
         
       # compile
       self.compilerCmd = 'cl'
+      self.objFlag     = '/c'
       self.objExt      = '.obj'
       self.objPathFlag = '/Fo'
       
