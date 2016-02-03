@@ -19,7 +19,9 @@
     "msvc": {
       "all": ["/EHsc", "/Gy", "/nologo", "/errorReport:prompt"],
       "debug": ["/W1", "/RTC1", "/Z7"],
-      "release": ["/DNDEBUG", "/O2", "/GL"]
+      "release": ["/DNDEBUG", "/O2", "/GL"],
+      "dynamicLib": "/LD",
+      "dynamic": "/LD"
     },
     "linux": {
       "staticLib": "-fPIC", 
@@ -61,11 +63,6 @@
   },
   
   "bins": {
-    "gcc412": {
-      "linux": {
-        "64bit": "/home/tom/work/shared/packages/gcc412/build_final/bin"
-      }
-    },
     "msvc090": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin"],
       "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin",
@@ -84,24 +81,12 @@
   },
   
   "incPaths": {
-    "gcc412": {
-      "linux": "/home/tom/work/shared/packages/gcc412/build_final/include/c++/4.1.2"
-    },
-    "msvc090": {
-      "all": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include"]
-    },
+    "msvc090": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include"],
     "msvc100": ["C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/include", "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include"],
-    "msvc110": {
-      "all": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/include", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Include"]
-    }
+    "msvc110": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/include", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Include"]
   },
   
   "libPaths": {
-    "gcc412": {
-      "linux": {
-        "64bit": "/home/tom/work/shared/packages/gcc412/build_final/lib64"
-      }
-    },
     "msvc090": {
       "32bit": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/lib", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib"],
       "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/lib/amd64", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64"]
@@ -114,7 +99,7 @@
       "32bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib"],
       "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib/amd64", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib/x64"]
     }
-  }//,
+  }
   
   // "libs": {
   //  "msvc": ["user32", "gdi32", "Shell32"],  

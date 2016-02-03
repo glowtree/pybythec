@@ -263,7 +263,7 @@ class BuildElements:
         self.linker = 'lib'
       elif self.binaryType == 'dynamicLib' or self.binaryType == 'dynamic':
         self.target += self.dynamicLibExt
-        linkFlags.append('/DLL')
+        self.linkFlags.append('/DLL')
       elif self.binaryType == 'executable':
         self.target += '.exe'
       else:

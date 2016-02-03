@@ -1,11 +1,11 @@
 
-
 {
-  "target": "StaticLib",
-  "binaryType": "staticLib",
-  
-  "sources": "StaticElectricity.cpp",
-  
-  "installPath": "."
+  "target": "DynamicLib",
+  "binaryType": "dynamicLib",
+  "sources": "DynamicLib.cpp",
+  "defines": {
+    "msvc": "DYNAMICLIB_EXPORTS"
+  },
+  "incPaths":    "../../include",
+  "installPath": "../../lib" /// TODO: the .so /.dll  has to be in a PATH directory or next to the executable
 }
-

@@ -47,11 +47,11 @@ class TestPybythec(unittest.TestCase):
       return
       
     self.assertTrue(os.path.exists(exePath))
-      
+    
     p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     stdout = p.communicate()[0].decode('utf-8')
     print(stdout)
-    self.assertTrue(stdout.startswith('running the executable and a statically linked library'))
+    self.assertTrue(stdout.startswith('running the executable and a statically linked library and a dynamically linked library'))
       
 if __name__ == '__main__':
   import sys

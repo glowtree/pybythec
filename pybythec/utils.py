@@ -96,8 +96,9 @@ def createDirs(path):
   if not os.path.exists(abovePath):
     createDirs(abovePath)
 
-  log.debug('createDirs: creating ' + path)
-  os.mkdir(path)
+  if not os.path.exists(path):
+    log.debug('createDirs: creating ' + path)
+    os.mkdir(path)
   
 
 def copyfile(srcPath, dstDir):
@@ -139,7 +140,7 @@ def loadJsonFile(jsonPath):
   try:
     with open(jsonPath) as f:
       return json.loads(removeComments(f)) # , encoding = 'utf-8')
-  except Exception as e:
+  except ValueError as e: # Exception as e: # TODO: capture exceptions that actually give better output 
     log.warning('failed to read {0} because\n{1}'.format(jsonPath, str(e)))
 
   return None

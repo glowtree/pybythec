@@ -339,20 +339,21 @@ def build(argv):
   tmpLinkCmdFp = be.buildPath + '/tmpLinkCmd'
   if be.compiler.startswith('msvc'):
     msvcTmpFile = open(tmpLinkCmdFp, 'w')
-    msvcTmpFile.write('{0}"{1}" {2} {3}'.format(be.targetFlag, be.targetInstallPath, ' '.join(objPaths), ' '.join(libCmds)))
+    msvcLinkCmd = '{0}"{1}" {2} {3}'.format(be.targetFlag, be.targetInstallPath, ' '.join(objPaths), ' '.join(libCmds))
+    msvcTmpFile.write(msvcLinkCmd)
     msvcTmpFile.close()
     linkCmd += [be.linker, '@' + tmpLinkCmdFp]
+    log.debug('\nmsvcLinkCmd: {0}\n'.format(msvcLinkCmd))
   else:
     linkCmd += [be.linker, be.targetFlag, be.targetInstallPath] + objPaths + libCmds
 
   if be.binaryType != 'staticLib':
     linkCmd += be.linkFlags
-    if be.binaryType != 'dynamicLib':
-      for libPath in be.libPaths:
-        if be.compiler.startswith('msvc'):
-          linkCmd += [be.libPathFlag + os.path.normpath(libPath)]
-        else:
-          linkCmd += [be.libPathFlag, os.path.normpath(libPath)]
+    for libPath in be.libPaths:
+      if be.compiler.startswith('msvc'):
+        linkCmd += [be.libPathFlag + os.path.normpath(libPath)]
+      else:
+        linkCmd += [be.libPathFlag, os.path.normpath(libPath)]
   
   # get the timestamp of the existing target if it exists
   linked = False
@@ -365,7 +366,7 @@ def build(argv):
     if not os.path.exists(be.installPath): # TODO: isn't this alread accomplished? (above)
       utils.createDirs(be.installPath)
   
-  log.debug('\n' + ' '.join(linkCmd) + '\n')
+  log.debug('\n{0}\n'.format(' '.join(linkCmd)))
   
   linkProcess = None
   try:
