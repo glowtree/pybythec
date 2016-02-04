@@ -9,7 +9,8 @@ except ImportError:
 with open('README.rst') as readme_file:
   readme = readme_file.read()
 
-try: # travis ci might not be able to find this file
+history = ''
+try: # travis ci might not be able to find this path
   with open('./docs/history.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 except:
