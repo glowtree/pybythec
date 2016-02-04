@@ -9,8 +9,11 @@ except ImportError:
 with open('README.rst') as readme_file:
   readme = readme_file.read()
 
-with open('./docs/history.rst') as history_file:
-  history = history_file.read().replace('.. :changelog:', '')
+try: # travis ci might not be able to find this file
+  with open('./docs/history.rst') as history_file:
+    history = history_file.read().replace('.. :changelog:', '')
+except:
+  pass
 
 setup(
   name = 'pybythec',
