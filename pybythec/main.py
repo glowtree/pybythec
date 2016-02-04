@@ -20,8 +20,6 @@
 # dynamic bundles / plugins, on OS X / Mach-O it's referred to as a bundle (herein called dynamic)
 #
 
-# _ (underscore) prefix denotes a private function
-
 from pybythec import utils
 from pybythec.BuildStatus import *
 from pybythec.BuildElements import *
@@ -53,7 +51,7 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   objFile = os.path.basename(source)
   objFile = objFile.replace(os.path.splitext(source)[1], be.objExt)
   objPath = os.path.join(be.buildPath, objFile)
-  objPaths.append(objPath) # + ' ')
+  objPaths.append(objPath)
   
   # check if it's up to date
   objExisted = os.path.exists(objPath)
@@ -63,7 +61,7 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
       buildStatus.status = 'up to date'
       return
 
-  # stupid Microsoft Visual C has to have the objPathFlag cuddled up directly next to the objPath - no space in between them!
+  # Microsoft Visual C has to have the objPathFlag cuddled up directly next to the objPath - no space in between them (grrr)
   if be.compiler.startswith('msvc'):
     cmd = compileCmd + [source, be.objPathFlag + objPath]
   else:
@@ -121,6 +119,15 @@ def _clean(be):
     os.remove(be.buildPath + '/' + f)
   os.removedirs(be.buildPath)
 
+  if be.binaryType == 'executable':
+    # remove any dynamic libs that are sitting next to the executable
+    for p in os.listdir(be.installPath):
+      filename, ext = os.path.splitext(p)
+      if ext == be.dynamicLibExt:
+        for lib in be.libs:
+          if lib == filename:
+            os.remove(be.installPath + '/' + p)
+        
   if os.path.exists(be.targetInstallPath):
     os.remove(be.targetInstallPath)
   try:
@@ -218,18 +225,16 @@ def build(argv):
   #
   # Qt moc file compilation
   #
-  # TODO: timestamp check to see if this needs to happen or if it's up to date
   mocPaths = []
   for qtClass in be.qtClasses:
     found = False
-    qtClassSrc    = qtClass + '.cpp'
+    mocPath  = '{0}/moc_{1}.cpp'.format(be.buildPath, qtClass)
     qtClassHeader = qtClass + '.h'
-    # TODO: should there be a separate list of headers ie be.mocIncPaths?
-    for incPath in be.incPaths:  # find the header file
+    
+    for incPath in be.incPaths:  # find the header file, # TODO: should there be a separate list of headers ie be.mocIncPaths?
       includePath = incPath + '/' + qtClassHeader
-      if os.path.exists(includePath):
+      if os.path.exists(includePath and float(os.stat(includePath).st_mtime) > float(os.stat(mocPath).st_mtime)):
         found = True
-        mocPath = be.buildPath + '/moc_' + qtClassSrc
         mocCmd = ['moc'] + definesList + [includePath, '-o', mocPath]
         try:
           mocProcess = subprocess.call(mocCmd)
@@ -271,15 +276,14 @@ def build(argv):
       i += 1
 
   #
-  # build dependencies
+  # build library dependencies
   #
   libCmds = []
 
   for lib in be.libs:
     libName = lib
-    if be.compiler.startswith('msvc'): # stupid Microsoft again
-      # TODO: somehow figure out if this lib is static or dynamic, probably check if either exists
-      libCmds += [libName + be.staticLibExt]
+    if be.compiler.startswith('msvc'):
+      libCmds += [libName + be.staticLibExt] # you need to link against the .lib stub file even if it's ultimately a .dll that gets linked
     else:
       libCmds += [be.libFlag, libName]
       
@@ -335,7 +339,7 @@ def build(argv):
     buildStatus.writeInfo('up to date', '{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
     return True
   
-  # microsoft's compiler / linker can only handle so many characters on the command line (because it's stupid)
+  # microsoft's compiler / linker can only handle so many characters on the command line
   tmpLinkCmdFp = be.buildPath + '/tmpLinkCmd'
   if be.compiler.startswith('msvc'):
     msvcTmpFile = open(tmpLinkCmdFp, 'w')
@@ -362,9 +366,6 @@ def build(argv):
   if os.path.exists(be.targetInstallPath):
     oldTargetTimeStamp = float(os.stat(be.targetInstallPath).st_mtime)
     targetExisted = True
-  else:
-    if not os.path.exists(be.installPath): # TODO: isn't this alread accomplished? (above)
-      utils.createDirs(be.installPath)
   
   log.debug('\n{0}\n'.format(' '.join(linkCmd)))
   
@@ -392,14 +393,14 @@ def build(argv):
     buildStatus.writeError('linking failed because ' + processOutput)
     return False
   
-  # TODO: finish this part
+  # TODO:
   # if be.compiler.startswith('msvc') and be.multithread and (be.binaryType == 'executable' or be.binaryType == 'dynamicLib' or be.binaryType == 'dynamic' ):
       
   #   # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
   #   # mtCmd = 'mt -nologo -manifest ' + targetBuildPath + '.manifest -outputresource:' + targetBuildPath + ';#2'
   #   mtCmd = ['mt', '-nologo', '-manifest', be.targetInstallPath + '.manifest', '-outputresource:', be.targetInstallPath + ';#2']
   #   mtProcess = None
-  #   try:
+    # try:
   #     mtProcess = subprocess.Popen(mtCmd, stdout = subprocess.PIPE)
   #   except OSError as e:
   #     buildStatus.writeError('mt failed because ' + str(e))
@@ -407,13 +408,18 @@ def build(argv):
 
   #   log.info(mtProcess.communicate()[0].decode('utf-8'))
   
-  # final check that binary file has appeared
-  # startTime = time.time()
-  # while not os.path.exists(targetInstallPath):
-  #   time.sleep(0.01)
-  #   if time.time() - startTime > 10: # shouldn't take more than 10 seconds for a file write
-  #     buildStatus.writeError('{0} ({1} {2} {3}) build completed BUT {4} can\'t be found'.format(be.target, be.buildType, be.binaryFormat, be.compiler, targetInstallPath), buildPath)
-  #     return False
+  # for executables copy over any dynamic linked libraries dependencies, NOTE:could be cases where the exe has linked to a static lib and the dynamic lib is copied for no reason
+  if be.binaryType == 'executable':
+    for libPath in be.libPaths:
+      for lib in be.libs:
+        dynamicLibPath = libPath + '/' + lib + be.dynamicLibExt
+        if os.path.exists(dynamicLibPath):
+          utils.copyfile(dynamicLibPath, be.installPath)
+
+    else: # in case there's also lib paths that don't have buildType, ie for external libraries that only ever have the release version
+      revisedLibPath = '{0}/{1}/{2}'.format(be.libPaths[i], be.compiler, be.binaryFormat)
+      if os.path.exists(revisedLibPath):
+        be.libPaths[i] = revisedLibPath
 
   buildStatus.writeInfo('built', '{0} ({1} {2} {3}) built {4}\ncompleted in {5} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler,  be.targetInstallPath, str(int(time.time() - startTime))))
   

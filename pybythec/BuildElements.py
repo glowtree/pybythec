@@ -26,14 +26,11 @@ class BuildElements:
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
 
-    self.libInstallPathAppend = True
-    self.plusplus = True
-
     self.multithread = True
     
     self.locked = False
     
-    self.installPath = '.build' # [] #
+    self.installPath = '.build'
     
     self.sources = []
     self.libs    = []
@@ -47,6 +44,9 @@ class BuildElements:
     self.keys = []
     
     self.qtClasses = []
+    
+    self.libInstallPathAppend = True
+    self.plusplus = True
     
     #
     # parse the args
@@ -187,7 +187,7 @@ class BuildElements:
     if isGcc or isClang:
         
       # TODO: utilize self.compilerRoot, assume the opposite will happen where if you want to compile with g++ that compiler will be specified
-      # change self.plusplus to self.forceC, like this:...
+      # change plusplus to self.forceC, like this:...
       
       # self.compilerCmd = self.compiler
       # if self.forceC:
@@ -230,7 +230,7 @@ class BuildElements:
       elif self.binaryType == 'dynamicLib':
         self.target = self.target + self.dynamicLibExt
       elif self.binaryType == 'dynamic':
-        self.target = self.target + dynamicExt
+        self.target = self.target + self.dynamicExt
       elif self.binaryType != 'executable':
         raise Exception('unrecognized binary type: {0}'.format(self.binaryType))
       

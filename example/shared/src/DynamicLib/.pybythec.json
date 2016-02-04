@@ -7,5 +7,5 @@
     "msvc": "DYNAMICLIB_EXPORTS"
   },
   "incPaths":    "../../include",
-  "installPath": "../../lib" /// TODO: the .so /.dll  has to be in a PATH directory or next to the executable
+  "installPath": "../../lib"
 }

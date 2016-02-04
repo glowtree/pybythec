@@ -9,7 +9,7 @@
   "binaryType" : "executable",
   
   "sources": "main.cpp",
-  "libs": ["StaticLib", "DynamicLib"], /// TODO: the .so /.dll of DynamicLib has to be in PATH, LD_LIBRARY_PATH directory or next to the executable
+  "libs": ["StaticLib", "DynamicLib"],
   
   "linkFlags": {
     "msvc": "-SUBSYSTEM:CONSOLE"

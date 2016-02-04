@@ -96,9 +96,10 @@ def createDirs(path):
   if not os.path.exists(abovePath):
     createDirs(abovePath)
 
-  if not os.path.exists(path):
-    log.debug('createDirs: creating ' + path)
+  try:
     os.mkdir(path)
+  except OSError as e:
+    log.warning('failed to make {0} because {1}'.format(path, str(e)))
   
 
 def copyfile(srcPath, dstDir):
@@ -118,8 +119,7 @@ def copyfile(srcPath, dstDir):
       return
 
   # in case the path doesn't already exist
-  # NOTE:  os.mkdirs throws the same exception whether it couldn't create the directory or it was already there
-  # therefor not ideal
+  # NOTE: os.mkdirs throws the same exception whether it couldn't create the directory or it was already there, therefor not ideal
   createDirs(dstDir)
 
   shutil.copy2(srcPath, dstDir)
@@ -139,9 +139,9 @@ def loadJsonFile(jsonPath):
 
   try:
     with open(jsonPath) as f:
-      return json.loads(removeComments(f)) # , encoding = 'utf-8')
-  except ValueError as e: # Exception as e: # TODO: capture exceptions that actually give better output 
-    log.warning('failed to read {0} because\n{1}'.format(jsonPath, str(e)))
+      return json.loads(removeComments(f))
+  except ValueError as e: # Exception as e:
+    log.warning('failed to read {0} because {1}'.format(jsonPath, str(e)))
 
   return None
 
