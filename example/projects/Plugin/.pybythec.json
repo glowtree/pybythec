@@ -1,0 +1,12 @@
+
+{
+  "target": "Plugin",
+  "binaryType": "plugin",
+  "sources": "Plugin.cpp",
+  "defines": {
+    "msvc": "PLUGIN_EXPORTS"
+  },
+  "incPaths":    "../../include",
+  "installPath": "../../lib"
+}
+

@@ -1,0 +1,24 @@
+
+{  
+  "target": "Main",
+  "binaryType" : "executable",
+  
+  "sources": "main.cpp",
+  "libs": ["StaticLib"], // "DynamicLib"],
+  
+  "linkFlags": {
+    "msvc": "-SUBSYSTEM:CONSOLE"
+  },
+  
+  // paths
+  "incPaths":    "../../../shared/include",
+  "libPaths":    "../../../shared/lib",
+  "libSrcPaths": "../../../shared/src",
+  "installPath": "..",
+  
+  /// defaults: you can also supply / override this information as arguments on the command line
+  "compiler":  "g++",      /// -c g++     (on the command line)
+  "osType":    "linux",    /// -ox linux  (on the command line)
+  "buildType": "release"   /// -b release (on the command line)
+}
+

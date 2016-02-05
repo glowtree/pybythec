@@ -18,10 +18,16 @@
     },
     "msvc": {
       "all": ["/EHsc", "/Gy", "/nologo", "/errorReport:prompt"],
-      "debug": ["/W1", "/RTC1", "/Z7"],
-      "release": ["/DNDEBUG", "/O2", "/GL"],
+      "debug": {
+        "all": ["/W1", "/RTC1", "/Z7"],
+        "multithread": "/MDd"
+      },
+      "release": {
+        "all": ["/DNDEBUG", "/O2", "/GL"],
+        "multithread": "/MD"
+      },
       "dynamicLib": "/LD",
-      "dynamic": "/LD"
+      "plugin": "/LD"
     },
     "linux": {
       "staticLib": "-fPIC", 
@@ -29,17 +35,16 @@
     },
     "osx": {
       "dynamicLib": "-fno-common", 
-      "dynamic": "-fno-common"
-      // "bundle": "-fno-common"
+      "plugin": "-fno-common"
     }
-  },                                                        
+  },
   
   "linkFlags": {
     "gcc": {
-      "all": "-Wall", 
+      // "all": ["-Wall"], 
       "release": "-O3", 
       "dynamicLib": "-shared", 
-      "dynamic": "-shared"
+      "plugin": "-shared"
     },
     
     "clang": {
@@ -47,11 +52,11 @@
       "release": "-O3",
       "linux": {
         "dynamicLib": "-shared", 
-        "dynamic": "-shared"
+        "plugin": "-shared"
       },
       "osx": {
       "dynamicLib": "-dynamiclib", 
-      "dynamic": "-bundle"
+      "plugin": "-bundle"
       }
     }, 
 
@@ -62,6 +67,13 @@
     }
   },
   
+  "libs": {
+    "gcc": {
+      "multithread": "pthread"
+    }
+    // "msvc": ["user32", "gdi32", "Shell32"]
+  },
+
   "bins": {
     "msvc090": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin"],
@@ -100,8 +112,5 @@
       "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib/amd64", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib/x64"]
     }
   }
-  
-  // "libs": {
-  //  "msvc": ["user32", "gdi32", "Shell32"],  
-  // }
 }
+

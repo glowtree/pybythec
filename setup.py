@@ -24,10 +24,8 @@ setup(
   author = "glowtree",
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',
-  packages = [
-      'pybythec'
-  ],
-  # package_dir = {'pybythec': 'lib'},
+  packages = ['pybythec'],
+  scripts = ['bin/pybythec'],
   include_package_data = True,
   install_requires = [],
   license = "ISCL",

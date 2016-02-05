@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 import logging
+import subprocess
 
 log = logging.getLogger('pybythec')
 
@@ -99,7 +100,8 @@ def createDirs(path):
   try:
     os.mkdir(path)
   except OSError as e:
-    log.warning('failed to make {0} because {1}'.format(path, str(e)))
+    # log.warning('failed to make {0} because {1}'.format(path, str(e)))
+    pass
   
 
 def copyfile(srcPath, dstDir):
@@ -124,13 +126,16 @@ def copyfile(srcPath, dstDir):
 
   shutil.copy2(srcPath, dstDir)
 
-  # print('{0} copied to {1}'.format(srcPath, dstPath))
+  log.debug('{0} copied to {1}'.format(srcPath, dstPath))
       
   return True
   
 
-''' load a json config file '''
 def loadJsonFile(jsonPath):
+  ''' 
+    load a json config file
+  '''
+  
   if not os.path.exists(jsonPath):
     return None
   if os.path.splitext(jsonPath)[1] != '.json':
@@ -142,7 +147,6 @@ def loadJsonFile(jsonPath):
       return json.loads(removeComments(f))
   except ValueError as e: # Exception as e:
     log.warning('failed to read {0} because {1}'.format(jsonPath, str(e)))
-
   return None
 
 
@@ -165,3 +169,17 @@ def removeComments(f):
       sansComments += c
   return sansComments
   
+
+def runCmd(cmd):
+  ''' 
+    runs a command and blocks until it's done, returns the output
+  '''
+  try:
+    compileProcess = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE) 
+  except OSError as e:
+    return str(e)
+  stdout, stderr = compileProcess.communicate()
+  if len(stderr): # try bad news first
+    return stderr.decode('utf-8')
+
+  return stdout.decode('utf-8')

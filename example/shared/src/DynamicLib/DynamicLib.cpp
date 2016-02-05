@@ -3,5 +3,5 @@
 
 std::string DynamicLib::print()
 {
-  return "a dynamically linked library";
+  return "the dynamically linked library";
 }

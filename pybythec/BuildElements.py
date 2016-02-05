@@ -20,7 +20,7 @@ class BuildElements:
       raise Exception('args must be a list, not a {0}'.format(argv))
     
     self.target = ''
-    self.binaryType = ''         # executable, staticLib, dynamicLib, dynamic (bundle / plugin)
+    self.binaryType = ''         # executable, staticLib, dynamicLib, plugin
     self.compiler = ''           # gcc-4.4 gcc clang msvc110 etc
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
@@ -54,28 +54,28 @@ class BuildElements:
     args = dict()
     key = str()
     keyFound = False
-    for arg in argv:
+
+    for arg in argv[1:]:
       if keyFound:
         args[key] = arg
         keyFound = False
         continue
       if arg == '-cl' or arg == '-cla': # cleaning
         args[arg] = ''
-      if arg == '-c' or arg == '-os' or arg == '-b' or arg == '-bf' or arg == '-d' or arg == '-p':
+      elif arg == '-c' or arg == '-os' or arg == '-b' or arg == '-bf' or arg == '-d' or arg == '-p':
         key = arg
         keyFound = True
       else:
-        # log.info(
         raise Exception(
-          '\nvalid pybythec arguments:\n\n'
-          '-c   compiler: gcc, clang, or msvc\n'
-          '-os  operating system: linux, osx, or windows\n'
-          '-b   build type: debug release\n'
+          '\nvalid arguments:\n\n'
+          '-c   compiler: any variation of gcc, clang, or msvc\n'
+          '-os  operating system: currently linux, osx, or windows\n'
+          '-b   build type: debug release etc \n'
           '-bf  binary format: 32bit, 64bit etc\n'
-          '-d   src directory of the lib being built, to be used when building a lib as a dependency from elsewhere\n'
-          '-p   path to the pybythec project config file (should be in json format)\n'
+          '-d   directory of the library being built, to be used when building a library as a dependency (ie from a project)\n'
+          '-p   path to a pybythec project config file (json format)\n'
           '-cl  clean the build\n'
-          '-cla clean the build as well the builds of any library dependencies\n'
+          '-cla clean the build as well as the builds of any library dependencies\n'
         )
 
     self.cwDir = os.getcwd()
@@ -129,16 +129,17 @@ class BuildElements:
       self.binaryFormat = args['-bf']
     
     # currently compiler root can either be gcc, clang or msvc
-    # TODO: utilize compilerRoot elsewhere
-    self.compilerRoot = ''
-    if self.compiler.startswith('gcc') or self.compiler.startswith('g++'):
+    self.compilerRoot = self.compiler
+    if self.compilerRoot.startswith('gcc') or self.compilerRoot.startswith('g++'):
       self.compilerRoot = 'gcc'
-    elif self.compiler.startswith('clang') or self.compiler.startswith('clang++'):
+    elif self.compilerRoot.startswith('clang') or self.compilerRoot.startswith('clang++'):
       self.compilerRoot = 'clang'
-    if self.compiler.startswith('msvc'):
+    elif self.compilerRoot.startswith('msvc'):
       self.compilerRoot = 'msvc'
     
     self.keys = ['all', self.compilerRoot, self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
+    if self.multithread:
+      self.keys.append('multithread')
   
     if globalCf is not None:
       self._getBuildElements2(globalCf)
@@ -165,7 +166,7 @@ class BuildElements:
     #
     # compiler config
     #
-    self.compilerCmd = ''
+    self.compilerCmd = self.compiler
     self.linker      = ''
     self.targetFlag  = ''
     self.libFlag     = ''
@@ -175,33 +176,18 @@ class BuildElements:
     
     self.staticLibExt  = ''
     self.dynamicLibExt = ''
-    self.dynamicExt    = ''
-     
-    isGcc   = self.compiler.startswith('gcc')
-    isClang = self.compiler.startswith('clang')
-    isMsvc  = self.compiler.startswith('msvc')
+    self.pluginExt     = ''
     
     #
     # gcc / clang
     #
-    if isGcc or isClang:
-        
-      # TODO: utilize self.compilerRoot, assume the opposite will happen where if you want to compile with g++ that compiler will be specified
-      # change plusplus to self.forceC, like this:...
+    if self.compilerRoot == 'gcc' or self.compilerRoot == 'clang':
       
-      # self.compilerCmd = self.compiler
-      # if self.forceC:
-      #   if isGcc:
-      #     self.compilerCmd = self.compilerCmd.replace('g++', 'gcc')
-      #   else:
-      #     self.compilerCmd = self.compilerCmd.replace('clang++', 'clang')
-      
-      self.compilerCmd = self.compiler
-      if self.plusplus:
-        if isGcc:
-          self.compilerCmd = self.compilerCmd.replace('gcc', 'g++')
-        else:
-          self.compilerCmd = self.compilerCmd.replace('clang', 'clang++')
+      if not self.plusplus: # if forcing plain old C (in the case of a library being built as a dependency that is only C compatible)
+        if self.compilerRoot == 'gcc':
+          self.compilerCmd = self.compilerCmd.replace('g++', 'gcc')
+        elif self.compilerRoot == 'clang':
+          self.compilerCmd = self.compilerCmd.replace('clang++', 'clang')
       
       self.objFlag     = '-c'
       self.objExt      = '.o'
@@ -209,38 +195,37 @@ class BuildElements:
       self.defines.append('_' + self.binaryFormat.upper()) # TODO: you sure this is universal?
         
       # link
-      self.linker        = self.compilerCmd
+      self.linker        = self.compilerCmd # 'ld'
       self.targetFlag    = '-o'
       self.libFlag       = '-l'
       self.libPathFlag   = '-L'
       self.staticLibExt  = '.a'
       self.dynamicLibExt = '.so'
-      self.dynamicExt    = '.so'
+      self.pluginExt     = '.so'
       if self.osType == 'osx' and isClang: # TODO: it's not clang that determines this, should have a var called osxConventions or something like that
         self.dynamicLibExt = '.dylib'
-        self.dynamicExt    = '.bundle'
+        self.pluginExt = '.bundle'
         
       if self.binaryType == 'staticLib' or self.binaryType == 'dynamicLib':
         self.target = 'lib' + self.target
   
-      if self.binaryType == 'staticLib':
+      if self.binaryType == 'executable':
+        pass
+      elif self.binaryType == 'staticLib':
         self.target = self.target + '.a'
         self.linker = 'ar'
         self.targetFlag = 'r'
       elif self.binaryType == 'dynamicLib':
         self.target = self.target + self.dynamicLibExt
-      elif self.binaryType == 'dynamic':
-        self.target = self.target + self.dynamicExt
-      elif self.binaryType != 'executable':
+      elif self.binaryType == 'plugin':
+        self.target = self.target + self.pluginExt
+      else:
         raise Exception('unrecognized binary type: {0}'.format(self.binaryType))
-      
-      if self.multithread and self.binaryType != 'staticLib':
-        self.libs.append('pthread')
-  
+
     #
     # msvc / msvc
     #
-    elif isMsvc:
+    elif self.compilerRoot == 'msvc':
         
       # compile
       self.compilerCmd = 'cl'
@@ -250,7 +235,7 @@ class BuildElements:
       
       # link
       self.linker        = 'link'
-      self.targetFlag    = '/OUT:' # NOTE: can't be '-OUT:' for @tmpLinkCmd to work
+      self.targetFlag    = '/OUT:'
       self.libFlag       = ''
       self.libPathFlag   = '/LIBPATH:'
       self.staticLibExt  = '.lib'
@@ -258,26 +243,21 @@ class BuildElements:
       if self.binaryFormat == '64bit':
         self.linkFlags.append('/MACHINE:X64')
       
-      if self.binaryType == 'staticLib':
+      if self.binaryType == 'executable':
+        self.target += '.exe'
+      elif self.binaryType == 'staticLib':
         self.target += self.staticLibExt
         self.linker = 'lib'
-      elif self.binaryType == 'dynamicLib' or self.binaryType == 'dynamic':
+      elif self.binaryType == 'dynamicLib' or self.binaryType == 'plugin':
         self.target += self.dynamicLibExt
         self.linkFlags.append('/DLL')
-      elif self.binaryType == 'executable':
-        self.target += '.exe'
       else:
         raise Exception('unrecognized binary type: ' + self.binaryType)
-      
-      if self.multithread:
-        if self.buildType == 'debug':
-          self.flags.append('/MDd')
-        else:
-          self.flags.append('/MD')
-  
+
     else:
-      raise Exception('unrecognized binary type: ' + self.binaryType)
-  
+      raise Exception('unrecognized compiler root: ' + self.compilerRoot)
+
+
     #
     # determine paths
     #
@@ -400,3 +380,4 @@ class BuildElements:
       elif type(args).__name__ == 'list':
         for arg in args:
           argsList.append(arg)
+
