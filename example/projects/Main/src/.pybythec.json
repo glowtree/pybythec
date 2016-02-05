@@ -4,7 +4,7 @@
   "binaryType" : "executable",
   
   "sources": "main.cpp",
-  "libs": ["StaticLib"], // "DynamicLib"],
+  "libs": ["StaticLib", "DynamicLib"],
   
   "linkFlags": {
     "msvc": "-SUBSYSTEM:CONSOLE"

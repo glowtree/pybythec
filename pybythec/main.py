@@ -221,8 +221,9 @@ def build(argv):
 
   if be.binaryType == 'executable' or be.binaryType == 'plugin':
     
-    # TODO: get .so(s_ to be found!
-    # linkCmd += ["-Wl,-rpath='$ORIGIN/'", "-L ."]
+    # get .so(s) to be found relative to an executable!
+    # if be.compilerRoot == 'gcc'
+    # linkCmd += ["-Wl,-rpath=$ORIGIN/"]
       
     for libPath in be.libPaths:
       if be.compiler.startswith('msvc'):

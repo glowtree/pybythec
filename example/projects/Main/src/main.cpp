@@ -1,6 +1,6 @@
 
 #include "../../shared/include/StaticLib.h"
-// #include "../../shared/include/DynamicLib.h"
+#include "../../shared/include/DynamicLib.h"
 // #include "../../shared/include/Plugin.h"
 #include <iostream>
 
@@ -15,8 +15,8 @@ int main(int argc, char * argv[])
   cout << " and " << sl.print();
   
   /// dynamic lib
-  // DynamicLib dl;
-  // cout << " and " << dl.print();
+  DynamicLib dl;
+  cout << " and " << dl.print();
   
   /// plugin
   // Plugin p;
