@@ -19,8 +19,10 @@ class TestPybythec(unittest.TestCase):
   def setUp(self):
     self.lastCwd = os.getcwd()
     os.chdir('./example/projects/Main/src')
-    os.environ['PYBYTHEC_GLOBALS'] = '../../../shared/.pybythecGlobals.json'
-
+    os.environ['SHARED'] = '../../../shared'
+    os.environ['PYBYTHEC_GLOBALS'] = '{0}/.pybythecGlobals.json'.format(os.environ['SHARED'])
+    
+    
   def tearDown(self):
     if platform.system() == 'Linux':
       pybythec.cleanall(['', '-c', 'g++', '-os', 'linux']) 
@@ -31,6 +33,7 @@ class TestPybythec(unittest.TestCase):
     else:
       print('unknown operating system')
     os.chdir(self.lastCwd)
+
 
   def test_000_something(self):
     print('\n')

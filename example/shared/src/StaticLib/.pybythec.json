@@ -3,7 +3,7 @@
   "target": "StaticLib",
   "binaryType": "staticLib",
   "sources": "StaticLib.cpp",
-  "incPaths":    "../../include",
-  "installPath": "../../lib"
+  "incPaths": "${SHARED}/include",
+  "installPath": "${SHARED}/lib"
 }
 

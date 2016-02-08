@@ -6,6 +6,12 @@
   "defines": {
     "msvc": "DYNAMICLIB_EXPORTS"
   },
-  "incPaths":    "../../include",
-  "installPath": "../../lib"
+  
+  "linkFlags": {
+    "msvc": "/export:print"
+  },
+  
+  "incPaths":    "${SHARED}/include",
+  "installPath": "${SHARED}/lib"
 }
+

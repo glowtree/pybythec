@@ -1,19 +1,15 @@
 
 {  
   "target": "Main",
-  "binaryType" : "executable",
+  "binaryType": "executable",
   
   "sources": "main.cpp",
   "libs": ["StaticLib", "DynamicLib"],
-  
-  "linkFlags": {
-    "msvc": "-SUBSYSTEM:CONSOLE"
-  },
-  
+    
   // paths
-  "incPaths":    "../../../shared/include",
-  "libPaths":    "../../../shared/lib",
-  "libSrcPaths": "../../../shared/src",
+  "incPaths":    "${SHARED}/include",
+  "libPaths":    "${SHARED}/lib",
+  "libSrcPaths": "${SHARED}/src",
   "installPath": "..",
   
   /// defaults: you can also supply / override this information as arguments on the command line
