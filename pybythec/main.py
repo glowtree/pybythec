@@ -100,7 +100,6 @@ def build(argv):
         found = True
         buildStatus.description = utils.runCmd(['moc'] + definesList + [includePath, '-o', mocPath])
         
-        
         if not os.path.exists(mocPath):
           buildStatus.writeError(buildStatus.description)
           return False
@@ -219,12 +218,8 @@ def build(argv):
   if be.binaryType != 'staticLib': # TODO: is this the case for msvc?
     linkCmd += be.linkFlags
 
-  if be.binaryType == 'executable' or be.binaryType == 'plugin':
-    
-    # get .so(s) to be found relative to an executable!
-    # if be.compilerRoot == 'gcc'
-    # linkCmd += ["-Wl,-rpath=$ORIGIN/"]
-      
+  if be.binaryType == 'executable' or be.binaryType == 'plugin' or (be.compilerRoot == 'msvc' and be.binaryType == 'dynamicLib'):
+          
     for libPath in be.libPaths:
       if be.compiler.startswith('msvc'):
         linkCmd += [be.libPathFlag + os.path.normpath(libPath)]

@@ -43,7 +43,7 @@
     "gcc": {
       "all": "-Wall", 
       "release": "-O3",
-      "executable": "-Wl,-rpath=$ORIGIN/",
+      "executable": "-Wl,-rpath=$ORIGIN/", // in case the 
       "dynamicLib": "-shared", 
       "plugin": "-shared"
     },
