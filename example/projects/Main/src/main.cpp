@@ -28,19 +28,33 @@ int main(int argc, char * argv[])
   
 #elif defined _WIN32
 
-  HINSTANCE plugin = LoadLibrary("Plugin.dll");
-  if(!plugin) 
+  HINSTANCE pluginLib = LoadLibrary("Plugin.dll");
+  if(!pluginLib) 
   {
-    std::err << "could not load Plugin" << std::endl;
+    std::err << "LoadLibrary failed" << std::endl;
     return 1;
   }
   
-  // resolve function address here
-  f_funci funci = (f_funci)GetProcAddress(plugin, "funci");
-  if (!funci) {
-  std::cout << "could not locate the function" << std::endl;
-  return EXIT_FAILURE;
+  Plugin * p = (Plugin *) malloc (sizeof (Plugin));
+  if(!p)
+  {
+    std::err << "malloc failed" << std::endl;
+    return 1;
   }
+    
+  PCTOR pPlugin = (PCTOR) GetProcAddress (pluginLib, "Plugin");
+  if(!pPlugin)
+  {
+    std::err << "GetProcAddress failed" << std::endl;
+    return 1;
+  }    
+  
+  // resolve function address here
+  // f_funci funci = (f_funci)GetProcAddress(plugin, "funci");
+  // if (!funci) {
+  // std::cout << "could not locate the function" << std::endl;
+  // return EXIT_FAILURE;
+  // }
   
   std::cout << "funci() returned " << funci() << std::endl;
 
