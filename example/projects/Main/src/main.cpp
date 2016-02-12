@@ -1,8 +1,12 @@
 
-#include "../../shared/include/StaticLib.h"
-#include "../../shared/include/DynamicLib.h"
-// #include "../../shared/include/Plugin.h"
+#include "StaticLib.h"
+#include "DynamicLib.h"
+#include "PluginBase.h"
 #include <iostream>
+
+#ifdef _WIN32
+  #include <windows.h>
+#endif
 
 using namespace std;
 
@@ -19,48 +23,36 @@ int main(int argc, char * argv[])
   cout << " and " << dl.print();
   
   /// plugin
-  // Plugin p;
+  PluginBase * p;
+  
 #if defined __linux
 
-    // cout << " and " << print();
-  
 #elif defined __APPLE__
   
 #elif defined _WIN32
 
-  HINSTANCE pluginLib = LoadLibrary("Plugin.dll");
+  HINSTANCE pluginLib = LoadLibrary("../../Plugin/Plugin.dll");
   if(!pluginLib) 
   {
-    std::err << "LoadLibrary failed" << std::endl;
+    cerr << "LoadLibrary failed" << endl;
     return 1;
   }
   
-  Plugin * p = (Plugin *) malloc (sizeof (Plugin));
-  if(!p)
+  typedef PluginBase * (*PluginBaseCreator)();
+  PluginBaseCreator pluginBaseCreator = (PluginBaseCreator) GetProcAddress(pluginLib, "creator");
+  if(!pluginBaseCreator)
   {
-    std::err << "malloc failed" << std::endl;
+    cerr << "GetProcAddress failed" << endl;
     return 1;
-  }
-    
-  PCTOR pPlugin = (PCTOR) GetProcAddress (pluginLib, "Plugin");
-  if(!pPlugin)
-  {
-    std::err << "GetProcAddress failed" << std::endl;
-    return 1;
-  }    
+  }  
+  p = (pluginBaseCreator)();
   
-  // resolve function address here
-  // f_funci funci = (f_funci)GetProcAddress(plugin, "funci");
-  // if (!funci) {
-  // std::cout << "could not locate the function" << std::endl;
-  // return EXIT_FAILURE;
-  // }
-  
-  std::cout << "funci() returned " << funci() << std::endl;
-
 #endif
   
-  cout << endl;
+  cout << " and " << p->print();
+  delete p;
   
+  /// finished
+  cout << endl;
   return 0;
 }

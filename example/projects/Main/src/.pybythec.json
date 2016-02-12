@@ -3,11 +3,11 @@
   "target": "Main",
   "binaryType": "executable",
   
-  "sources": "main.cpp",
+  "sources": ["main.cpp", "PluginBase.cpp"],
   "libs": ["StaticLib", "DynamicLib"],
     
   // paths
-  "incPaths":    "${SHARED}/include",
+  "incPaths":   ["${SHARED}/include", "../include"],
   "libPaths":    "${SHARED}/lib",
   "libSrcPaths": "${SHARED}/src",
   "installPath": "..",
@@ -17,4 +17,3 @@
   "osType":    "linux",    /// -ox linux  (on the command line)
   "buildType": "release"   /// -b release (on the command line)
 }
-

@@ -14,4 +14,3 @@
   "incPaths":    "${SHARED}/include",
   "installPath": "${SHARED}/lib"
 }
-

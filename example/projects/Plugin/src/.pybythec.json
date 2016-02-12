@@ -8,10 +8,9 @@
   },
   
   "linkFlags": {
-    "msvc": "/export:creator /export:print"
+    "msvc": "/export:print"
   },
   
-  "incPaths":    "${SHARED}/include",
-  "installPath": "${SHARED}/lib"
+  "incPaths":    "../../Main/include",
+  "installPath": ".."
 }
-
