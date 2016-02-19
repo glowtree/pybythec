@@ -36,15 +36,19 @@ class TestPybythec(unittest.TestCase):
     
     # build Plugin
     os.chdir('./example/projects/Plugin/src')
+    self._build()
     
     # build Main (along with it's library dependencies)
     os.chdir('../../Main/src')
+    self._build()
     
     exePath = '../Main'
     if platform.system() == 'Windows':
       exePath += '.exe'
     
     self.assertTrue(os.path.exists(exePath))
+    
+    print('executing out of {0}'.format(os.getcwd()))
     
     p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     stdout, stderr = p.communicate()
@@ -53,7 +57,7 @@ class TestPybythec(unittest.TestCase):
       raise Exception(stderr)
     
     print(stdout)
-    self.assertTrue(stdout.startswith('running the executable and the statically linked library and the dynamically linked library and the plugin'))
+    self.assertTrue(stdout.startswith('running an executable and a statically linked library and a dynamically linked library and a plugin'))
       
     
   def _build(self):

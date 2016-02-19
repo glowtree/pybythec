@@ -1,0 +1,4 @@
+
+link /OUT:"C:/Users/toms/dev/projects/pybythec/example/shared/lib/release/msvc100/64bit\DynamicLib.dll" C:\Users\toms\dev\projects
+\pybythec\example\shared\src\DynamicLib\.build\release\msvc100\64bit\DynamicLib.obj /NODEFAULTLIB:LIBCMT /NOLOGO /ERRORREPORT:PROMPT /INCREMENTAL:NO /OPT:REF /OPT:ICF /LTCG /export:DynamicLib /MACHINE
+:X64 /DLL /LIBPATH:"C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\lib\amd64" /LIBPATH:"C:\Program Files\Microsoft SDKs\Windows\v7.1\Lib\x64"

@@ -4,6 +4,12 @@
 class DynamicLib
 {
 public:
-
-  std::string print();
+  
+  DynamicLib();
+  
+  std::string const & value();
+  
+private:
+  
+  std::string _value;
 };

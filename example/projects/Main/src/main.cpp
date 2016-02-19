@@ -1,7 +1,6 @@
 
 #include "StaticLib.h"
 #include "DynamicLib.h"
-#include "PluginBase.h"
 #include <iostream>
 
 #ifdef _WIN32
@@ -12,19 +11,17 @@ using namespace std;
 
 int main(int argc, char * argv[])
 {
-  cout << "running the executable";
+  cout << "running a executable";
   
   /// static lib
   StaticLib sl;
-  cout << " and " << sl.print();
+  cout << " and " << sl.value();
   
   /// dynamic lib
   DynamicLib dl;
-  cout << " and " << dl.print();
+  cout << " and " << dl.value();
   
   /// plugin
-  PluginBase * p;
-  
 #if defined __linux
 
 #elif defined __APPLE__
@@ -38,19 +35,26 @@ int main(int argc, char * argv[])
     return 1;
   }
   
-  typedef PluginBase * (*PluginBaseCreator)();
-  PluginBaseCreator pluginBaseCreator = (PluginBaseCreator) GetProcAddress(pluginLib, "creator");
-  if(!pluginBaseCreator)
+  typedef bool (*loadPluginFunc)();
+  loadPluginFunc loadPlugin = (loadPluginFunc) GetProcAddress(pluginLib, "loadPlugin");
+  if(!loadPlugin)
   {
-    cerr << "GetProcAddress failed" << endl;
+    cerr << "GetProcAddress failed for loadPlugin" << endl;
     return 1;
-  }  
-  p = (pluginBaseCreator)();
+  }
+  
+  typedef bool (*unloadPluginFunc)();
+  unloadPluginFunc unloadPlugin = (unloadPluginFunc) GetProcAddress(pluginLib, "unloadPlugin");
+  if(!unloadPlugin)
+  {
+    cerr << "GetProcAddress failed for unloadPlugin" << endl;
+    return 1;
+  }
   
 #endif
   
-  cout << " and " << p->print();
-  delete p;
+  loadPlugin();
+  unloadPlugin();
   
   /// finished
   cout << endl;

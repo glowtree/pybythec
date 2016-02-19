@@ -4,6 +4,12 @@
 class StaticLib
 {
 public:
-  std::string print();
+  
+  StaticLib();
+  
+  std::string const & value();
+  
+private:
+  
+  std::string _value;
 };
-

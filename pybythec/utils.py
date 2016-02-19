@@ -179,7 +179,10 @@ def runCmd(cmd):
   except OSError as e:
     return str(e)
   stdout, stderr = compileProcess.communicate()
-  if len(stderr): # try bad news first
-    return stderr.decode('utf-8')
+  output = ''
+  if len(stderr):
+    output += stderr.decode('utf-8')
+  if len(stdout):
+    output += stdout.decode('utf-8')
 
-  return stdout.decode('utf-8')
+  return output

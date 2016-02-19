@@ -1,7 +1,12 @@
 
 #include "DynamicLib.h"
 
-std::string DynamicLib::print()
+DynamicLib::DynamicLib()
 {
-  return "the dynamically linked library";
+  _value = "a dynamically linked library";
+}
+
+std::string const & DynamicLib::value()
+{
+  return _value;
 }

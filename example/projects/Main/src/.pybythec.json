@@ -3,7 +3,7 @@
   "target": "Main",
   "binaryType": "executable",
   
-  "sources": ["main.cpp", "PluginBase.cpp"],
+  "sources": ["main.cpp"],
   "libs": ["StaticLib", "DynamicLib"],
     
   // paths

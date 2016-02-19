@@ -398,6 +398,12 @@ def _clean(be):
     os.remove(be.buildPath + '/' + f)
   os.removedirs(be.buildPath)
 
+  # if be.compilerRoot == 'msvc':
+  #   for f in os.listdir(be.installPath):
+  #     ext = os.path.splitext(f)[1]
+  #     if ext == '.ilk' or ext == '.pdb' or ext == '.exp':
+
+
   log.info('{0} ({1} {2} {3}) all clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
   return True
 

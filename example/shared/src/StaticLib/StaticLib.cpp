@@ -1,7 +1,12 @@
 
 #include "StaticLib.h"
 
-std::string StaticLib::print()
+StaticLib::StaticLib()
 {
-  return "the statically linked library";
+  _value = "a statically linked library";
+}
+
+std::string const & StaticLib::value()
+{
+  return _value;
 }
