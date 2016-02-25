@@ -76,6 +76,8 @@
     // "msvc": ["user32", "gdi32", "Shell32"]
   },
 
+  // "msvc": "msvc100", /// map msvc to a specific versoin
+  
   "bins": {
     "msvc090": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin"],

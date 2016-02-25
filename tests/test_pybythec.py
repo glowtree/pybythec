@@ -24,9 +24,9 @@ class TestPybythec(unittest.TestCase):
     
   def tearDown(self):
     
-    # self._clean()
-    # os.chdir('../../Plugin/src')
-    # self._clean()
+    self._clean()
+    os.chdir('../../Plugin/src')
+    self._clean()
     
     os.chdir(self.lastCwd)
 
@@ -61,23 +61,25 @@ class TestPybythec(unittest.TestCase):
       
     
   def _build(self):
-    if platform.system() == 'Linux':
-      pybythec.build(['', '-c', 'g++', '-os', 'linux'])
-    elif platform.system() == 'Darwin':
-      pybythec.build(['', '-c', 'clang++', '-os', 'osx'])
-    elif platform.system() == 'Windows':
-      pybythec.build(['', '-c', 'msvc100', '-os', 'windows'])
+    # if platform.system() == 'Linux':
+    #   pybythec.build(['', '-c', 'g++', '-os', 'linux'])
+    # elif platform.system() == 'Darwin':
+    #   pybythec.build(['', '-c', 'clang++', '-os', 'osx'])
+    if platform.system() == 'Windows':
+      pybythec.build(['', '-c', 'msvc100'])
     else:
-      raise Exception('unknown operating system')
+      pybythec.build([''])
+      # raise Exception('unknown operating system')
     
   def _clean(self):
-    if platform.system() == 'Linux':
-      pybythec.cleanall(['', '-c', 'g++', '-os', 'linux'])
-    elif platform.system() == 'Darwin':
-      pybythec.cleanall(['', '-c', 'clang++', '-os', 'osx'])
-    elif platform.system() == 'Windows':
-      pybythec.cleanall(['', '-c', 'msvc100', '-os', 'windows'])
+    # if platform.system() == 'Linux':
+    #   pybythec.cleanall(['', '-c', 'g++'])
+    # elif platform.system() == 'Darwin':
+    #   pybythec.cleanall(['', '-c', 'clang++'])
+    if platform.system() == 'Windows':
+      pybythec.cleanall(['', '-c', 'msvc100'])
     else:
+      pybythec.cleanall([''])
       raise Exception('unknown operating system')
       
 if __name__ == '__main__':

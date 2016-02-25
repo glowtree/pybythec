@@ -18,6 +18,8 @@ class BuildElements:
     # get any arguments passed in
     if type(argv) is not list:
       raise Exception('args must be a list, not a {0}'.format(argv))
+      
+    # TODO: if the first argument is a valid path, ignore it (might allow for leaving out '' as the first argument in some circumstances) 
     
     self.target = ''
     self.binaryType = ''         # executable, staticLib, dynamicLib, plugin
@@ -148,14 +150,32 @@ class BuildElements:
     if localCf is not None:
       self._getBuildElements2(localCf)
     
+    # if osType is not specified use the current one
+    if not len(self.osType):
+      if platform.system() == 'linux':
+        self.osType = 'linux'
+      elif platform.system() == 'Darwin':
+        self.osType = 'osx'
+      elif platform.system() == 'Windows':
+        self.osType = 'windows'
+      else:
+        raise Exception('no os specified and current os does not appear to be Linux, OS X or Windows')
+    
+    # if a compiler isn't specified try to choose an appropiate default compiler
+    if not len(self.compiler):
+      if platform.system() == 'linux':
+        self.compiler = 'g++'
+      elif platform.system() == 'Darwin':
+        self.compiler = 'clang++'
+      elif platform.system() == 'Windows':
+        self.compiler = 'msvc'
+      else:
+        raise Exception('no compiler specified and current os does not appear to be Linux, OS X or Windows')
+    
     if not len(self.target):
       raise Exception('no target specified')
     elif not len(self.binaryType):
       raise Exception('no binary type specified')
-    elif not len(self.compiler):
-      raise Exception('no compiler specified')
-    elif not len(self.osType):
-      raise Exception('no os specified')
     elif not len(self.binaryFormat):
       raise Exception('no binary format specified')
     elif not len(self.buildType):
