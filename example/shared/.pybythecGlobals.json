@@ -23,7 +23,7 @@
         "multithread": "/MDd"
       },
       "release": {
-        "all": ["/DNDEBUG", "/O2", "/GL"],
+        // "all": ["/DNDEBUG", "/O2", "/GL"],
         "multithread": "/MD"
       },
       "dynamicLib": "/LD",
@@ -63,16 +63,16 @@
     }, 
 
     "msvc": {
-      "all": ["/NODEFAULTLIB:LIBCMT", "/NOLOGO", "/ERRORREPORT:PROMPT"], //:libc.lib -DYNAMICBASE -NXCOMPAT
-      "debug": "/DEBUG",
-      "release": ["/INCREMENTAL:NO", "/OPT:REF", "/OPT:ICF", "/LTCG"]
+      "all": ["/NODEFAULTLIB:LIBCMT", "/NOLOGO", "/ERRORREPORT:PROMPT"], //:libc.lib
+      "debug": "/DEBUG"//,
+      // "release": ["/INCREMENTAL:NO", "/OPT:REF", "/OPT:ICF", "/LTCG"]
     }
   },
   
   "libs": {
     "gcc": {
       "multithread": "pthread"
-    }
+    }//,
     // "msvc": ["user32", "gdi32", "Shell32"]
   },
 

@@ -204,13 +204,13 @@ def build(argv):
     return True
   
   # microsoft's compiler / linker can only handle so many characters on the command line
-  tmpLinkCmdFp = be.buildPath + '/tmpLinkCmd'
+  msvcLinkCmdFilePath = be.buildPath + '/linkCmd'
   if be.compiler.startswith('msvc'):
-    msvcTmpFile = open(tmpLinkCmdFp, 'w')
     msvcLinkCmd = '{0}"{1}" {2} {3}'.format(be.targetFlag, be.targetInstallPath, ' '.join(objPaths), ' '.join(libCmds))
-    msvcTmpFile.write(msvcLinkCmd)
-    msvcTmpFile.close()
-    linkCmd += [be.linker, '@' + tmpLinkCmdFp]
+    msvcLinkCmdFp = open(msvcLinkCmdFilePath, 'w')
+    msvcLinkCmdFp.write(msvcLinkCmd)
+    msvcLinkCmdFp.close()
+    linkCmd += [be.linker, '@' + msvcLinkCmdFilePath]
     log.debug('\nmsvcLinkCmd: {0}\n'.format(msvcLinkCmd))
   else:
     linkCmd += [be.linker, be.targetFlag, be.targetInstallPath] + objPaths + libCmds
@@ -238,9 +238,6 @@ def build(argv):
   
   buildStatus.description = utils.runCmd(linkCmd)
 
-  if be.compiler.startswith('msvc') and os.path.exists(tmpLinkCmdFp):
-    os.remove(tmpLinkCmdFp)
-  
   if os.path.exists(be.targetInstallPath):
     if targetExisted:
       if float(os.stat(be.targetInstallPath).st_mtime) > oldTargetTimeStamp:
@@ -383,12 +380,12 @@ def _clean(be):
           if lib == libName:
             os.remove(be.installPath + '/' + p)
         
-  if os.path.exists(be.targetInstallPath):
-    os.remove(be.targetInstallPath)
-  try:
-    os.removedirs(be.installPath)
-  except:
-    pass
+  # if os.path.exists(be.targetInstallPath):
+  #   os.remove(be.targetInstallPath)
+  # try:
+  #   os.removedirs(be.installPath)
+  # except:
+  #   pass
 
   if not os.path.exists(be.buildPath):
     log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
@@ -398,11 +395,18 @@ def _clean(be):
     os.remove(be.buildPath + '/' + f)
   os.removedirs(be.buildPath)
 
-  # if be.compilerRoot == 'msvc':
-  #   for f in os.listdir(be.installPath):
-  #     ext = os.path.splitext(f)[1]
-  #     if ext == '.ilk' or ext == '.pdb' or ext == '.exp':
+  if be.compilerRoot == 'msvc':
+    for f in os.listdir(be.installPath):
+      ext = os.path.splitext(f)[1]
+      if ext == '.exp' or ext == '.ilk' or ext == '.lib' or ext == '.pdb':
+        os.remove(be.installPath + '/' + f)
 
+  if os.path.exists(be.targetInstallPath):
+    os.remove(be.targetInstallPath)
+  try:
+    os.removedirs(be.installPath)
+  except:
+    pass
 
   log.info('{0} ({1} {2} {3}) all clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
   return True

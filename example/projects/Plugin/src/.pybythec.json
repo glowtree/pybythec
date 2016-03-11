@@ -3,9 +3,10 @@
   "target": "Plugin",
   "binaryType": "plugin",
   "sources": "Plugin.cpp",
-  "linkFlags": {
-    "msvc": "/export:loadPlugin /export:unloadPlugin"
-  },
+  // TODO: figure out why this isn't working
+  // "linkFlags": {
+  //   "msvc": "/export:loadPlugin /export:unloadPlugin"
+  // },
   
   "incPaths":    "${SHARED}/include",
   "installPath": "..",

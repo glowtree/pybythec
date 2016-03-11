@@ -4,12 +4,12 @@
   "binaryType": "dynamicLib",
   "sources": "DynamicLib.cpp",
   "defines": {
-    "msvc": "DYNAMICLIB_EXPORTS"
+    "msvc": "WIN_EXPORT"
   },
   
-  "linkFlags": {
-    "msvc": "/EXPORT:DynamicLib"
-  },
+  // "linkFlags": {
+  //   "msvc": "/EXPORT:DynamicLib"
+  // },
   
   "incPaths":    "${SHARED}/include",
   "installPath": "${SHARED}/lib"
