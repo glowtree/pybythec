@@ -155,7 +155,6 @@ def removeComments(f):
     removes // style comments from a file, num of lines stays the same
   '''
   sansComments = ''
-  # with open(path) as f:
   inQuotes = False
   for l in f:
     i = 0

@@ -16,22 +16,22 @@ std::string const & Plugin::value()
 
 Plugin * p = NULL;
 
-#ifdef _WIN32
-  bool __declspec(dllexport) loadPlugin()
-#else
+// #ifdef _WIN32
+//   bool __declspec(dllexport) loadPlugin()
+// #else
   bool loadPlugin()
-#endif
+// #endif
 {
   p = new Plugin();
   cout << p->value();  
   return true;
 }
 
-#ifdef _WIN32
-  bool __declspec(dllexport) unloadPlugin()
-#else
+// #ifdef _WIN32
+//   bool __declspec(dllexport) unloadPlugin()
+// #else
   bool unloadPlugin()
-#endif
+// #endif
 // bool unloadPlugin()
 {
   if(p) delete p;

@@ -15,7 +15,6 @@ if __name__ == '__main__':
   elif platform.system() == 'Darwin':
     pybythec.build(sys.argv + ['-c', 'clang++', '-os', 'osx'])
   elif platform.system() == 'Windows':
-    pybythec.build(sys.argv + ['-c', 'msvc', '-os', 'windows'])
+    pybythec.build(sys.argv + ['-c', 'msvc110', '-os', 'windows'])
   else:
     print('unknown platform / system')
-

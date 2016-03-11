@@ -1,48 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-try:
-  from setuptools import setup
-except ImportError:
-  from distutils.core import setup
+import os
+import sys
+import platform
+from setuptools import setup
+from setuptools.command.install import install as baseInstall
 
-with open('README.rst') as readme_file:
-  readme = readme_file.read()
-
-history = ''
-try: # travis ci might not be able to find this path
-  with open('./docs/history.rst') as history_file:
-    history = history_file.read().replace('.. :changelog:', '')
-except:
-  pass
+class installer(baseInstall):
+  def run(self):
+    baseInstall.run(self)
+    if platform.system() == 'Windows':
+      batPath = os.path.dirname(sys.executable) + '/Scripts/pybythec.bat'
+      with open(batPath, 'w') as f:
+        f.write('@echo off\ncall python %~dp0\pybythec')
 
 setup(
   name = 'pybythec',
-  version = '0.1.1',
-  description = "a lightweight python build system for c/c++",
-  long_description = readme + '\n\n' + history,
-  author = "glowtree",
+  version = '0.1.2',
+  author = 'glowtree',
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',
+  description = 'a lightweight python build system for c/c++',
+  long_description = open('README.rst').read(),
   packages = ['pybythec'],
   scripts = ['bin/pybythec'],
-  include_package_data = True,
-  install_requires = [],
-  license = "ISCL",
-  zip_safe = False,
-  keywords = 'pybythec',
-  classifiers = [
-    'Development Status :: 2 - Pre-Alpha',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: ISC License (ISCL)',
-    'Natural Language :: English',
-    "Programming Language :: Python :: 2",
-    'Programming Language :: Python :: 2.6',
-    'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.3',
-    'Programming Language :: Python :: 3.4'
-  ],
-  test_suite = 'tests',
-  tests_require = []
+  license = 'LICENSE',
+  test_suite = 'example.test',
+  cmdclass={'install': installer},
+  # entry_points = {'console_scripts': ['pybythec = pybythec:main']}
 )

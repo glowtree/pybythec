@@ -8,9 +8,9 @@ pybythec
 .. image:: https://img.shields.io/travis/glowtree/pybythec.svg
         :target: https://travis-ci.org/glowtree/pybythec
 
-.. image:: https://readthedocs.org/projects/pybythec/badge/?version=latest
-        :target: https://readthedocs.org/projects/pybythec/?badge=latest
-        :alt: Documentation Status
+..  .. image:: https://readthedocs.org/projects/pybythec/badge/?version=latest
+..          :target: https://readthedocs.org/projects/pybythec/?badge=latest
+..          :alt: Documentation Status
 
 
 a lightweight python build system for c/c++
