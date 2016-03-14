@@ -86,7 +86,7 @@ def build(argv):
   buildStatus = BuildStatus(be.target, be.buildPath) # final build status
 
   #
-  # Qt support: moc file compilation, TODO: test this
+  # Qt support: moc file compilation
   #
   mocPaths = []
   for qtClass in be.qtClasses:
@@ -145,6 +145,7 @@ def build(argv):
   # build library dependencies
   #
   libCmds = []
+  libsBuilding = []
   if be.binaryType == 'executable' or be.binaryType == 'plugin':
     for lib in be.libs:
       libName = lib
@@ -158,6 +159,7 @@ def build(argv):
         for libSrcDir in be.libSrcPaths:
           libSrcDir = os.path.join(libSrcDir, lib)
           if os.path.exists(libSrcDir):
+            libsBuilding.append(lib)
             buildStatusDep = BuildStatus(lib)
             buildStatusDeps.append(buildStatusDep)
             thread = Thread(None, target = _buildLib, args = (be, libSrcDir, buildStatusDep))
@@ -169,13 +171,14 @@ def build(argv):
         for libSrcPath in be.libSrcPaths:
           libSrcPath = os.path.join(libSrcPath, lib)
           if os.path.exists(libSrcPath):
+            libsBuilding.append(lib)
             buildStatusDep = BuildStatus(lib)
             buildStatusDeps.append(buildStatusDep)
             _buildLib(be, libSrcDir, buildStatusDep)
             i += 1
             break
 
-  # wait for all the threads before testing the results
+  # wait for all the threads before checking the results
   for thread in threads:
     thread.join()
 
@@ -254,16 +257,17 @@ def build(argv):
     buildStatus.writeError('linking failed because ' + buildStatus.description)
     return False
 
-  # copy dynamic library dependencies to the install path
+  # copy dynamic library dependencies (built by this build) to the install path   
   if be.binaryType == 'executable' or be.binaryType == 'plugin':
-    for libPath in be.libPaths:
-      for lib in be.libs:
+    for lib in libsBuilding:
+      for libPath in be.libPaths:
         dynamicLibPath = libPath + '/'
         if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
           dynamicLibPath += 'lib'
         dynamicLibPath += lib + be.dynamicLibExt
         if os.path.exists(dynamicLibPath):
           utils.copyfile(dynamicLibPath, be.installPath)
+  
   
   # TODO ?
   # if be.compiler.startswith('msvc') and be.multithread and (be.binaryType == 'executable' or be.binaryType == 'dynamicLib' or be.binaryType == 'plugin'):
@@ -383,14 +387,8 @@ def _clean(be):
           if lib == libName:
             os.remove(be.installPath + '/' + p)
         
-  # if os.path.exists(be.targetInstallPath):
-  #   os.remove(be.targetInstallPath)
-  # try:
-  #   os.removedirs(be.installPath)
-  # except:
-  #   pass
 
-  if not os.path.exists(be.buildPath):
+  if not os.path.exists(be.buildPath): # canary in the coal mine
     log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
     return True
   
