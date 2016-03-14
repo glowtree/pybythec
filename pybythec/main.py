@@ -6,18 +6,20 @@
 #
 # a cross platform build system for c/c++
 #
+# glowtree.com/pybythec for documentation
+#
 # written by Tom Sirdevan
 #
 # contact: tom@glowtree.com
 #
 
 #
-# build c/c++ projects that create ...
+# builds c/c++ projects that create ...
 #
-# executables
-# static  libraries: (herein called staticLib)
-# dynamic libraries  (herein called dynamicLib)
-# plugins (dynamic libraries that are not linked to executables and loaded on demand)
+# exe     (executable)
+# static  (library)
+# dynamic (library)  
+# plugin  (a dynamic library that is loaded on demand, not linked to executables)
 #
 
 from pybythec import utils
@@ -146,11 +148,11 @@ def build(argv):
   #
   libCmds = []
   libsBuilding = []
-  if be.binaryType == 'executable' or be.binaryType == 'plugin':
+  if be.binaryType == 'exe' or be.binaryType == 'plugin':
     for lib in be.libs:
       libName = lib
       if be.compiler.startswith('msvc'):
-        libCmds += [libName + be.staticLibExt] # you need to link against the .lib stub file even if it's ultimately a .dll that gets linked
+        libCmds += [libName + be.staticExt] # you need to link against the .lib stub file even if it's ultimately a .dll that gets linked
       else:
         libCmds += [be.libFlag, libName]
         
@@ -196,7 +198,7 @@ def build(argv):
     if os.path.exists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
     else: # in case there's also lib paths that don't have buildType, ie for external libraries that only ever have the release version
-      revisedLibPath = '{0}/{1}/{2}'.format(be.libPaths[i], be.compilerRoot, be.binaryFormat)
+      revisedLibPath = '{0}/{1}{2}/{3}'.format(be.libPaths[i], be.compilerRoot, be.compilerVersion, be.binaryFormat)
       if os.path.exists(revisedLibPath):
         be.libPaths[i] = revisedLibPath
 
@@ -221,10 +223,10 @@ def build(argv):
   else:
     linkCmd += [be.linker, be.targetFlag, be.targetInstallPath] + objPaths + libCmds
 
-  if be.binaryType != 'staticLib': # TODO: is this the case for msvc?
+  if be.binaryType != 'static': # TODO: is this the case for msvc?
     linkCmd += be.linkFlags
 
-  if be.binaryType == 'executable' or be.binaryType == 'plugin' or (be.compilerRoot == 'msvc' and be.binaryType == 'dynamicLib'):
+  if be.binaryType == 'exe' or be.binaryType == 'plugin' or (be.compilerRoot == 'msvc' and be.binaryType == 'dynamic'):
           
     for libPath in be.libPaths:
       if be.compiler.startswith('msvc'):
@@ -258,19 +260,19 @@ def build(argv):
     return False
 
   # copy dynamic library dependencies (built by this build) to the install path   
-  if be.binaryType == 'executable' or be.binaryType == 'plugin':
+  if be.binaryType == 'exe' or be.binaryType == 'plugin':
     for lib in libsBuilding:
       for libPath in be.libPaths:
-        dynamicLibPath = libPath + '/'
+        dynamicPath = libPath + '/'
         if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
-          dynamicLibPath += 'lib'
-        dynamicLibPath += lib + be.dynamicLibExt
-        if os.path.exists(dynamicLibPath):
-          utils.copyfile(dynamicLibPath, be.installPath)
+          dynamicPath += 'lib'
+        dynamicPath += lib + be.dynamicExt
+        if os.path.exists(dynamicPath):
+          utils.copyfile(dynamicPath, be.installPath)
   
   
   # TODO ?
-  # if be.compiler.startswith('msvc') and be.multithread and (be.binaryType == 'executable' or be.binaryType == 'dynamicLib' or be.binaryType == 'plugin'):
+  # if be.compiler.startswith('msvc') and be.multithread and (be.binaryType == 'exe' or be.binaryType == 'dynamic' or be.binaryType == 'plugin'):
     # # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
     # buildStatus.description = utils.runCmd(['mt', '-nologo', '-manifest', be.targetInstallPath + '.manifest', '-outputresource:', be.targetInstallPath + ';#2'])      
   
@@ -376,11 +378,11 @@ def _clean(be):
     be (in): BuildElements object
   '''
 
-  # remove any dynamic libs that are sitting next to the executable
-  if be.binaryType == 'executable' or be.binaryType == 'plugin':
+  # remove any dynamic libs that are sitting next to the exe
+  if be.binaryType == 'exe' or be.binaryType == 'plugin':
     for p in os.listdir(be.installPath):
       libName, ext = os.path.splitext(p)
-      if ext == be.dynamicLibExt:
+      if ext == be.dynamicExt:
         if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
           libName = libName.lstrip('lib')
         for lib in be.libs:

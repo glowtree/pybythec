@@ -1,7 +1,7 @@
 
 {  
   "target": "Main",
-  "binaryType": "executable",
+  "binaryType": "exe",
   
   "sources": ["main.cpp"],
   "libs": ["StaticLib", "DynamicLib"],

@@ -22,13 +22,13 @@ class BuildElements:
     # TODO: if the first argument is a valid path, ignore it (might allow for leaving out '' as the first argument in some circumstances) 
     
     self.target = ''
-    self.binaryType = ''         # executable, staticLib, dynamicLib, plugin
-    self.compiler = ''           # gcc-4.4 gcc clang msvc110 etc
+    self.binaryType = ''         # exe, static, dynamic, plugin
+    self.compiler = ''           # g++-4.4 g++ clang++ msvc110 etc
     self.osType = ''             # linux, osx, windows
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
 
-    self.filetype = '' # elf, mach-o, windows
+    self.filetype = '' # elf, mach-o, pe
 
     self.multithread = True
     
@@ -169,6 +169,12 @@ class BuildElements:
     else:
       raise Exception('unrecognized compiler {0}'.format(self.compiler))
     
+    # compiler version
+    self.compilerVersion = ''
+    v = self.compiler.split('-')
+    if len(v) > 1:
+       self.compilerVersion = '-' + v[1]
+    
     self.keys = ['all', self.compilerRoot, self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
     if self.multithread:
       self.keys.append('multithread')
@@ -179,7 +185,6 @@ class BuildElements:
       self._getBuildElements2(projectCf)
     if localCf is not None:
       self._getBuildElements2(localCf)
-
 
     if not len(self.target):
       raise Exception('no target specified')
@@ -203,8 +208,8 @@ class BuildElements:
     self.objExt      = ''
     self.objPathFlag = ''
     
-    self.staticLibExt  = ''
-    self.dynamicLibExt = ''
+    self.staticExt  = ''
+    self.dynamicExt = ''
     self.pluginExt     = ''
     
     #
@@ -224,31 +229,31 @@ class BuildElements:
       self.defines.append('_' + self.binaryFormat.upper()) # TODO: you sure this is universal?
         
       # link
-      self.linker        = self.compilerCmd # 'ld'
-      self.targetFlag    = '-o'
-      self.libFlag       = '-l'
-      self.libPathFlag   = '-L'
-      self.staticLibExt  = '.a'
-      self.dynamicLibExt = '.so'
-      self.pluginExt     = '.so'
+      self.linker      = self.compilerCmd # 'ld'
+      self.targetFlag  = '-o'
+      self.libFlag     = '-l'
+      self.libPathFlag = '-L'
+      self.staticExt   = '.a'
+      self.dynamicExt  = '.so'
+      self.pluginExt   = '.so'
       
       # log.info('*** filetype {0}'.format(self.filetype))
       
       if self.filetype == 'mach-o':
-        self.dynamicLibExt = '.dylib'
+        self.dynamicExt = '.dylib'
         self.pluginExt = '.bundle'
         
-      if self.binaryType == 'staticLib' or self.binaryType == 'dynamicLib':
+      if self.binaryType == 'static' or self.binaryType == 'dynamic':
         self.target = 'lib' + self.target
   
-      if self.binaryType == 'executable':
+      if self.binaryType == 'exe':
         pass
-      elif self.binaryType == 'staticLib':
+      elif self.binaryType == 'static':
         self.target = self.target + '.a'
         self.linker = 'ar'
         self.targetFlag = 'r'
-      elif self.binaryType == 'dynamicLib':
-        self.target = self.target + self.dynamicLibExt
+      elif self.binaryType == 'dynamic':
+        self.target = self.target + self.dynamicExt
       elif self.binaryType == 'plugin':
         self.target = self.target + self.pluginExt
       else:
@@ -266,22 +271,22 @@ class BuildElements:
       self.objPathFlag = '/Fo'
       
       # link
-      self.linker        = 'link'
-      self.targetFlag    = '/OUT:'
-      self.libFlag       = ''
-      self.libPathFlag   = '/LIBPATH:'
-      self.staticLibExt  = '.lib'
-      self.dynamicLibExt = '.dll'
+      self.linker      = 'link'
+      self.targetFlag  = '/OUT:'
+      self.libFlag     = ''
+      self.libPathFlag = '/LIBPATH:'
+      self.staticExt   = '.lib'
+      self.dynamicExt  = '.dll'
       if self.binaryFormat == '64bit':
         self.linkFlags.append('/MACHINE:X64')
       
-      if self.binaryType == 'executable':
+      if self.binaryType == 'exe':
         self.target += '.exe'
-      elif self.binaryType == 'staticLib':
-        self.target += self.staticLibExt
+      elif self.binaryType == 'static':
+        self.target += self.staticExt
         self.linker = 'lib'
-      elif self.binaryType == 'dynamicLib' or self.binaryType == 'plugin':
-        self.target += self.dynamicLibExt
+      elif self.binaryType == 'dynamic' or self.binaryType == 'plugin':
+        self.target += self.dynamicExt
         self.linkFlags.append('/DLL')
       else:
         raise Exception('unrecognized binary type: ' + self.binaryType)
@@ -293,7 +298,6 @@ class BuildElements:
     #
     # determine paths
     #
-    # self.installPath = utils.makePathAbsolute(self.cwDir, os.path.expandvars(self.installPath))
     self.installPath = utils.makePathAbsolute(self.cwDir, self.installPath)
     self._resolvePaths(self.cwDir, self.sources)
     self._resolvePaths(self.cwDir, self.incPaths)
@@ -304,13 +308,15 @@ class BuildElements:
     
     self.buildPath = utils.makePathAbsolute(self.cwDir, './.build' + self.binaryRelPath)
           
-    if self.libInstallPathAppend and (self.binaryType == 'staticLib' or self.binaryType == 'dynamicLib'):
+    if self.libInstallPathAppend and (self.binaryType == 'static' or self.binaryType == 'dynamic'):
       self.installPath += self.binaryRelPath
           
     self.targetInstallPath = os.path.join(self.installPath, self.target)
 
 
   def _getBuildElements(self, configObj):
+    '''
+    '''
     if 'target' in configObj:
       self.target = configObj['target']
     
@@ -340,14 +346,11 @@ class BuildElements:
       
     if 'locked' in configObj:
       self.locked = configObj['locked']
-      
-    # if 'filetype' in configObj:
-    #   self.filetype = configObj['filetype']
-      
-      
+
     
   def _getBuildElements2(self, configObj):
-  
+    '''
+    '''
     separartor = ':'
     if platform.system() == 'Windows':
       separartor = ';'
@@ -358,7 +361,6 @@ class BuildElements:
       self._getArgsList(bins, configObj['bins'])
       for bin in bins:
         os.environ['PATH'] = bin + separartor + os.environ['PATH']
-        # print('\nappending {0}\n'.format(bin))
 
     if 'sources' in configObj:
       self._getArgsList(self.sources, configObj['sources'])
@@ -403,7 +405,6 @@ class BuildElements:
   def _resolvePaths(self, absPath, paths):
     i = 0
     for path in paths:
-      # paths[i] = utils.makePathAbsolute(absPath, os.path.expandvars(path))
       paths[i] = utils.makePathAbsolute(absPath, path)
       i += 1
 
@@ -419,11 +420,8 @@ class BuildElements:
           self._getArgsList(argsList, args[key])
     else:
       if type(args).__name__ == 'str' or type(args).__name__ == 'unicode':
-        # args = args.split()
-        # argsList.append(args)
         argsList.append(os.path.expandvars(args))
       elif type(args).__name__ == 'list':
         for arg in args:
-          # argsList.append(arg)
           argsList.append(os.path.expandvars(arg))
 

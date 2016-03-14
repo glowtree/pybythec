@@ -1,7 +1,7 @@
 
 {
   "target": "StaticLib",
-  "binaryType": "staticLib",
+  "binaryType": "static",
   "sources": "StaticLib.cpp",
   "incPaths": "${SHARED}/include",
   "installPath": "${SHARED}/lib"

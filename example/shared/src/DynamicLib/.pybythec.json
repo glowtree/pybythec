@@ -1,7 +1,7 @@
 
 {
   "target": "DynamicLib",
-  "binaryType": "dynamicLib",
+  "binaryType": "dynamic",
   "sources": "DynamicLib.cpp",
   "defines": {
     "msvc": "WIN_EXPORT"
