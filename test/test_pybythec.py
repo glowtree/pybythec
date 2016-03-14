@@ -77,7 +77,6 @@ class TestPybythec(unittest.TestCase):
       pybythec.cleanall(['', '-c', 'msvc110'])
     else:
       pybythec.cleanall([''])
-      raise Exception('unknown operating system')
 
 
 if __name__ == '__main__':

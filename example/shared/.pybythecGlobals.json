@@ -43,7 +43,7 @@
     "gcc": {
       "all": "-Wall", 
       "release": "-O3",
-      "executable": "-Wl,-rpath=$ORIGIN/", // in case the 
+      "executable": "-Wl,-rpath=$ORIGIN/", // to get shared libraries to be found in same directory as executable
       "dynamicLib": "-shared", 
       "plugin": "-shared"
     },
@@ -51,14 +51,15 @@
     "clang": {
       "all": "-Wall", 
       "release": "-O3",
-      "executable": "-Wl,-rpath=$ORIGIN/",
+      // "executable": "-Wl,-rpath=$ORIGIN/",
       "linux": {
+        "executable": "-Wl,-rpath=$ORIGIN/",
         "dynamicLib": "-shared", 
         "plugin": "-shared"
       },
       "osx": {
-      "dynamicLib": "-dynamiclib", 
-      "plugin": "-bundle"
+        "dynamicLib": "-dynamiclib", 
+        "plugin": "-bundle"
       }
     }, 
 
@@ -77,6 +78,13 @@
   },
 
   // "msvc": "msvc100", /// map msvc to a specific versoin
+  
+  "filetype": {
+    "linux": "elf",
+    "osx": "mach-o",
+    "windows": "pe"
+  },
+  
   
   "bins": {
     "msvc090": {

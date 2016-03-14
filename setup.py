@@ -26,7 +26,7 @@ setup(
   packages = ['pybythec'],
   scripts = ['bin/pybythec'],
   license = 'LICENSE',
-  test_suite = 'example.test',
+  test_suite = 'test',
   cmdclass={'install': installer},
   # entry_points = {'console_scripts': ['pybythec = pybythec:main']}
 )

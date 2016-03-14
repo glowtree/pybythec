@@ -28,6 +28,8 @@ class BuildElements:
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
 
+    self.filetype = '' # elf, mach-o, windows
+
     self.multithread = True
     
     self.locked = False
@@ -130,6 +132,32 @@ class BuildElements:
     if '-bf' in args:
       self.binaryFormat = args['-bf']
     
+
+    # defaults (if they haven't already been declared)
+    if platform.system() == 'Linux':
+      if not len(self.osType):
+        self.osType = 'linux'
+      if not len(self.compiler):
+        self.compiler = 'g++'
+      if not len(self.filetype):
+        self.filetype = 'elf'
+    elif platform.system() == 'Darwin':
+      if not len(self.osType):
+        self.osType = 'osx'
+      if not len(self.compiler):
+        self.compiler = 'clang++'
+      if not len(self.filetype):
+        self.filetype = 'mach-o'
+    elif platform.system() == 'Windows':
+      if not len(self.osType):
+        self.osType = 'windows'
+      if not len(self.compiler):
+        self.compiler = 'msvc' # TODO: version needs to specified or a mapping to default version needs to happen
+      if not len(self.filetype):
+        self.filetype = 'pe'
+    else:
+      raise Exception('os does not appear to be Linux, OS X or Windows')
+    
     # currently compiler root can either be gcc, clang or msvc
     self.compilerRoot = self.compiler
     if self.compilerRoot.startswith('gcc') or self.compilerRoot.startswith('g++'):
@@ -138,6 +166,8 @@ class BuildElements:
       self.compilerRoot = 'clang'
     elif self.compilerRoot.startswith('msvc'):
       self.compilerRoot = 'msvc'
+    else:
+      raise Exception('unrecognized compiler {0}'.format(self.compiler))
     
     self.keys = ['all', self.compilerRoot, self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
     if self.multithread:
@@ -149,29 +179,8 @@ class BuildElements:
       self._getBuildElements2(projectCf)
     if localCf is not None:
       self._getBuildElements2(localCf)
-    
-    # if osType is not specified use the current one
-    if not len(self.osType):
-      if platform.system() == 'linux':
-        self.osType = 'linux'
-      elif platform.system() == 'Darwin':
-        self.osType = 'osx'
-      elif platform.system() == 'Windows':
-        self.osType = 'windows'
-      else:
-        raise Exception('no os specified and current os does not appear to be Linux, OS X or Windows')
-    
-    # if a compiler isn't specified try to choose an appropiate default compiler
-    if not len(self.compiler):
-      if platform.system() == 'linux':
-        self.compiler = 'g++'
-      elif platform.system() == 'Darwin':
-        self.compiler = 'clang++'
-      elif platform.system() == 'Windows':
-        self.compiler = 'msvc'
-      else:
-        raise Exception('no compiler specified and current os does not appear to be Linux, OS X or Windows')
-    
+
+
     if not len(self.target):
       raise Exception('no target specified')
     elif not len(self.binaryType):
@@ -203,7 +212,7 @@ class BuildElements:
     #
     if self.compilerRoot == 'gcc' or self.compilerRoot == 'clang':
       
-      if not self.plusplus: # if forcing plain old C (in the case of a library being built as a dependency that is only C compatible)
+      if not self.plusplus: # if forcing plain old C (ie when a library is being built as a dependency that is only C compatible)
         if self.compilerRoot == 'gcc':
           self.compilerCmd = self.compilerCmd.replace('g++', 'gcc')
         elif self.compilerRoot == 'clang':
@@ -222,7 +231,10 @@ class BuildElements:
       self.staticLibExt  = '.a'
       self.dynamicLibExt = '.so'
       self.pluginExt     = '.so'
-      if self.osType == 'osx' and isClang: # TODO: it's not clang that determines this, should have a var called osxConventions or something like that
+      
+      # log.info('*** filetype {0}'.format(self.filetype))
+      
+      if self.filetype == 'mach-o':
         self.dynamicLibExt = '.dylib'
         self.pluginExt = '.bundle'
         
@@ -281,7 +293,8 @@ class BuildElements:
     #
     # determine paths
     #
-    self.installPath = utils.makePathAbsolute(self.cwDir, os.path.expandvars(self.installPath))
+    # self.installPath = utils.makePathAbsolute(self.cwDir, os.path.expandvars(self.installPath))
+    self.installPath = utils.makePathAbsolute(self.cwDir, self.installPath)
     self._resolvePaths(self.cwDir, self.sources)
     self._resolvePaths(self.cwDir, self.incPaths)
     self._resolvePaths(self.cwDir, self.libPaths)
@@ -328,6 +341,10 @@ class BuildElements:
     if 'locked' in configObj:
       self.locked = configObj['locked']
       
+    # if 'filetype' in configObj:
+    #   self.filetype = configObj['filetype']
+      
+      
     
   def _getBuildElements2(self, configObj):
   
@@ -370,6 +387,12 @@ class BuildElements:
     if 'qtClasses' in configObj:
       self._getArgsList(self.qtClasses, configObj['qtClasses'])
 
+    if 'filetype' in configObj:
+      filetypes = []
+      self._getArgsList(filetypes, configObj['filetype'])
+      if len(filetypes):
+        self.filetype = filetypes[0]
+
     if 'installPath' in configObj:
       installPaths = []
       self._getArgsList(installPaths, configObj['installPath'])
@@ -380,7 +403,8 @@ class BuildElements:
   def _resolvePaths(self, absPath, paths):
     i = 0
     for path in paths:
-      paths[i] = utils.makePathAbsolute(absPath, os.path.expandvars(path))
+      # paths[i] = utils.makePathAbsolute(absPath, os.path.expandvars(path))
+      paths[i] = utils.makePathAbsolute(absPath, path)
       i += 1
 
 
@@ -396,8 +420,10 @@ class BuildElements:
     else:
       if type(args).__name__ == 'str' or type(args).__name__ == 'unicode':
         # args = args.split()
-        argsList.append(args)
+        # argsList.append(args)
+        argsList.append(os.path.expandvars(args))
       elif type(args).__name__ == 'list':
         for arg in args:
-          argsList.append(arg)
+          # argsList.append(arg)
+          argsList.append(os.path.expandvars(arg))
 

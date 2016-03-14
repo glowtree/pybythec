@@ -96,15 +96,18 @@ def build(argv):
     
     for incPath in be.incPaths:  # find the header file, # TODO: should there be a separate list of headers ie be.mocIncPaths?
       includePath = incPath + '/' + qtClassHeader
-      if os.path.exists(includePath and float(os.stat(includePath).st_mtime) > float(os.stat(mocPath).st_mtime)):
-        found = True
+      if not os.path.exists(includePath):
+        continue
+
+      if os.path.exists(mocPath) and float(os.stat(mocPath).st_mtime) < float(os.stat(includePath).st_mtime) or not os.path.exists(mocPath):
         buildStatus.description = utils.runCmd(['moc'] + definesList + [includePath, '-o', mocPath])
+      
+      if not os.path.exists(mocPath):
+        buildStatus.writeError(buildStatus.description)
+        return False
         
-        if not os.path.exists(mocPath):
-          buildStatus.writeError(buildStatus.description)
-          return False
-          
-        mocPaths.append(mocPath)
+      mocPaths.append(mocPath)
+      found = True
           
     if not found:
       buildStatus.writeError('can\'t find {0} for qt moc compilation'.format(qtClassHeader))
@@ -190,7 +193,7 @@ def build(argv):
     if os.path.exists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
     else: # in case there's also lib paths that don't have buildType, ie for external libraries that only ever have the release version
-      revisedLibPath = '{0}/{1}/{2}'.format(be.libPaths[i], be.compiler, be.binaryFormat)
+      revisedLibPath = '{0}/{1}/{2}'.format(be.libPaths[i], be.compilerRoot, be.binaryFormat)
       if os.path.exists(revisedLibPath):
         be.libPaths[i] = revisedLibPath
 
