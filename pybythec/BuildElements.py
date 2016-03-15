@@ -152,7 +152,11 @@ class BuildElements:
       if not len(self.osType):
         self.osType = 'windows'
       if not len(self.compiler):
-        self.compiler = 'msvc' # TODO: version needs to specified or a mapping to default version needs to happen
+        # TODO: check for more msvc versions or other compilers
+        if os.path.exists('C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin'):
+          self.compiler = 'msvc-110'
+        else:
+          raise Exception('can\'t find a compiler for Windows')
       if not len(self.filetype):
         self.filetype = 'pe'
     else:

@@ -88,7 +88,7 @@ def build(argv):
   buildStatus = BuildStatus(be.target, be.buildPath) # final build status
 
   #
-  # Qt support: moc file compilation
+  # qt moc file compilation
   #
   mocPaths = []
   for qtClass in be.qtClasses:
@@ -102,7 +102,7 @@ def build(argv):
         continue
 
       if os.path.exists(mocPath) and float(os.stat(mocPath).st_mtime) < float(os.stat(includePath).st_mtime) or not os.path.exists(mocPath):
-        buildStatus.description = utils.runCmd(['moc'] + definesList + [includePath, '-o', mocPath])
+        buildStatus.description = 'qt moc: ' + utils.runCmd(['moc'] + definesList + [includePath, '-o', mocPath])
       
       if not os.path.exists(mocPath):
         buildStatus.writeError(buildStatus.description)
@@ -208,7 +208,7 @@ def build(argv):
   linkCmd = []
   
   if allUpToDate and os.path.exists(be.targetInstallPath):
-    buildStatus.writeInfo('up to date', '{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler, str(int(time.time() - startTime))))
+    buildStatus.writeInfo('up to date', '{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, str(int(time.time() - startTime))))
     return True
   
   # microsoft's compiler / linker can only handle so many characters on the command line
@@ -379,16 +379,17 @@ def _clean(be):
   '''
 
   # remove any dynamic libs that are sitting next to the exe
-  if be.binaryType == 'exe' or be.binaryType == 'plugin':
-    for p in os.listdir(be.installPath):
-      libName, ext = os.path.splitext(p)
+  if os.path.exists(be.installPath) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
+    for f in os.listdir(be.installPath):
+      libName, ext = os.path.splitext(f)
       if ext == be.dynamicExt:
         if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
           libName = libName.lstrip('lib')
         for lib in be.libs:
           if lib == libName:
-            os.remove(be.installPath + '/' + p)
-        
+            os.remove(be.installPath + '/' + f)
+      elif ext == '.exp' or ext == '.ilk' or ext == '.lib' or ext == '.pdb': # msvc files
+        os.remove(be.installPath + '/' + f)
 
   if not os.path.exists(be.buildPath): # canary in the coal mine
     log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
@@ -397,12 +398,6 @@ def _clean(be):
   for f in os.listdir(be.buildPath):
     os.remove(be.buildPath + '/' + f)
   os.removedirs(be.buildPath)
-
-  if be.compilerRoot == 'msvc':
-    for f in os.listdir(be.installPath):
-      ext = os.path.splitext(f)[1]
-      if ext == '.exp' or ext == '.ilk' or ext == '.lib' or ext == '.pdb':
-        os.remove(be.installPath + '/' + f)
 
   if os.path.exists(be.targetInstallPath):
     os.remove(be.targetInstallPath)
