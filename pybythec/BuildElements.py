@@ -28,13 +28,17 @@ class BuildElements:
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'     # debug, release etc
 
+    self.hiddenFiles = False  # if pybythec files are "hidden files" TODO: implement this
+  
     self.filetype = '' # elf, mach-o, pe
 
     self.multithread = True
     
     self.locked = False
     
-    self.installPath = '.build'
+    self.buildDir = 'pybythecBuild'
+    
+    self.installPath = self.buildDir 
     
     self.sources = []
     self.libs    = []
@@ -98,8 +102,8 @@ class BuildElements:
       globalCf = utils.loadJsonFile(args['-g'])
     if not globalCf:
       globalCf = utils.loadJsonFile('pybythecGlobal.json')
-    if not globalCf:
-      globalCf = utils.loadJsonFile('.pybythecGlobal.json')      
+    # if not globalCf:
+    #   globalCf = utils.loadJsonFile('.pybythecGlobal.json')
     if not globalCf:
       log.warning('no global pybythec file found')
   
@@ -110,13 +114,13 @@ class BuildElements:
       projectCf = utils.loadJsonFile(args['-p'])
     if not projectCf:
       projectCf = utils.loadJsonFile('pybythecProject.json')
-    if not projectCf:
-      projectCf = utils.loadJsonFile('.pybythecProject.json')
+    # if not projectCf:
+    #   projectCf = utils.loadJsonFile('.pybythecProject.json')
   
     # local config, expected to be in the current working directory
     localConfigPath = self.cwDir + '/pybythec.json'
-    if not os.path.exists(localConfigPath):
-      localConfigPath = self.cwDir + '/.pybythec.json'
+    # if not os.path.exists(localConfigPath):
+      # localConfigPath = self.cwDir + '/.pybythec.json'
     if os.path.exists(localConfigPath):
       localCf = utils.loadJsonFile(localConfigPath)
       
@@ -319,7 +323,8 @@ class BuildElements:
 
     self.binaryRelPath = '/{0}/{1}/{2}'.format(self.buildType, self.compiler, self.binaryFormat)
     
-    self.buildPath = utils.makePathAbsolute(self.cwDir, './.build' + self.binaryRelPath)
+    # self.buildPath = utils.makePathAbsolute(self.cwDir, './pybythecBuild' + self.binaryRelPath)
+    self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + self.binaryRelPath)
           
     if self.libInstallPathAppend and (self.binaryType == 'static' or self.binaryType == 'dynamic'):
       self.installPath += self.binaryRelPath

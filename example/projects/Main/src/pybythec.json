@@ -3,7 +3,7 @@
   "target": "Main",
   "binaryType": "exe",
   
-  "sources": ["main.cpp"],
+  "sources": "main.cpp",
   "libs": ["StaticLib", "DynamicLib"],
     
   // paths

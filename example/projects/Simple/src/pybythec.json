@@ -1,0 +1,10 @@
+
+{  
+  "target": "Simple",
+  
+  "binaryType": "exe",
+  
+  "sources": "main.cpp",
+
+  "installPath": ".."
+}

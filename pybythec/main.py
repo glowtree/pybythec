@@ -360,16 +360,16 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
 
 def _buildLib(be, libSrcDir, buildStatusDep):
   
-  jsonPath = os.path.join(libSrcDir, '.pybythec.json')
+  jsonPath = os.path.join(libSrcDir, 'pybythec.json')
   if not os.path.exists(jsonPath):
-    buildStatus.writeError(libSrcDir + ' does not have a .pybythec.json file')
+    buildStatus.writeError(libSrcDir + ' does not have a pybythec.json file')
     return
   
   # build
-  build(['', '-d', libSrcDir, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat, '-p', be.cwDir + '/.pybythecProject.json'])
+  build(['', '-d', libSrcDir, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat, '-p', be.cwDir + '/pybythecProject.json'])
   
   # read the build status
-  buildStatusDep.readFromFile('{0}/.build/{1}/{2}/{3}'.format(libSrcDir, be.buildType, be.compiler, be.binaryFormat))
+  buildStatusDep.readFromFile('{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat))
 
 
 def _clean(be):
@@ -413,7 +413,6 @@ def _clean(be):
 def _cleanall(be):
   '''
     cleans both the current project and also the dependencies
-
     be (input): BuildElements object
   '''
   _clean(be)

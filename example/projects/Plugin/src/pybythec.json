@@ -8,7 +8,5 @@
   },
   
   "incPaths": "${SHARED}/include",
-  "installPath": "..",
-  
-  "buildType": "release"   /// -b release (on the command line)
+  "installPath": ".."
 }

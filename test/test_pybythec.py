@@ -20,37 +20,26 @@ class TestPybythec(unittest.TestCase):
     '''
       typical setup for building with pybythc
     '''
-    self.lastCwd = os.getcwd()
-    
-    #
-    # setup the environment variables used in the build
-    #
+    # setup the environment variables...
+    # normally you would probably set these in your .bashrc (linux / osx) or profile.ps1 (windows) file
     os.environ['SHARED'] = '../../../shared'
-    os.environ['PYBYTHEC_GLOBALS'] = '{0}/.pybythecGlobals.json'.format(os.environ['SHARED'])
+    os.environ['PYBYTHEC_GLOBALS'] = '{0}/pybythecGlobals.json'.format(os.environ['SHARED'])
     
     
-  def tearDown(self):
-    '''
-    '''
-    self._clean()
-    os.chdir('../../Plugin/src')
-    self._clean()
-    os.chdir(self.lastCwd)
-
-
   def test_000_something(self):
     '''
+      build
     '''
     print('\n')
     
     # build Plugin
     os.chdir('./example/projects/Plugin/src')
-    self._build()
+    pybythec.build(['']) # TODO: shouldn't have to enter an empty list
     
     # build Main (along with it's library dependencies)
     os.chdir('../../Main/src')
-    self._build()
-    
+    pybythec.build([''])
+
     exePath = '../Main'
     if platform.system() == 'Windows':
       exePath += '.exe'
@@ -65,14 +54,15 @@ class TestPybythec(unittest.TestCase):
     if len(stderr):
       raise Exception(stderr)
     
-    self.assertTrue(stdout.startswith('running an executable and a statically linked library and a dynamically linked library\r\n and a plugin'))
+    self.assertTrue(stdout.startswith('running an executable and a statically linked library and a dynamically linked library'))# and a plugin'))
 
 
-  # private  
-  def _build(self):
-    pybythec.build(['']) # TODO: shouldn't have to enter an empty list
-    
-  def _clean(self):
+  def tearDown(self):
+    '''
+      clean the builds
+    '''
+    pybythec.cleanall(['']) # TODO: shouldn't have to enter an empty list
+    os.chdir('../../Plugin/src')
     pybythec.cleanall([''])
 
 

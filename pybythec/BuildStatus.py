@@ -10,7 +10,7 @@ class BuildStatus:
   '''
     member variables:
     name: name of target
-    path: path to write .pybythecStatus.json file to
+    path: path to write pybythecStatus.json file to
     status: failed, built, up to date, or locked
     description: what happened
   '''
@@ -24,9 +24,9 @@ class BuildStatus:
   
   def readFromFile(self, buildPath):
     '''
-      buildPath (in): where to read the .pybythecStatus.json file from
+      buildPath (in): where to read the pybythecStatus.json file from
     '''
-    contents = utils.loadJsonFile(buildPath + '/.pybythecStatus.json')
+    contents = utils.loadJsonFile(buildPath + '/pybythecStatus.json')
     if not contents:
       self.description = 'couldn\'t find build status in ' + buildPath
       log.error('couldn\'t find build status in ' + self.description)
@@ -59,5 +59,5 @@ class BuildStatus:
   def _writeToFile(self):
     if not os.path.exists(self.path):
       return
-    with open(self.path + '/.pybythecStatus.json', 'w') as f:
+    with open(self.path + '/pybythecStatus.json', 'w') as f:
       json.dump({'status': self.status, 'description': self.description}, f, indent = 4)

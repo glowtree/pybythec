@@ -9,12 +9,26 @@
     "gcc": {
       "all": ["-Wall", "-Wno-deprecated", "-fno-gnu-keywords"], 
       "debug": "-g", 
-      "release": "-O3"
+      "release": "-O3",
+      "linux": {
+        "static": "-fPIC", 
+        "dynamic": "-fPIC",
+        "plugin": "-fPIC"
+      }
     },
     "clang": {
       "all": ["-Wall", "-Wno-deprecated", "-fno-gnu-keywords"], 
       "debug": "-g", 
-      "release": "-O3"
+      "release": "-O3",
+      "linux": {
+        "static": "-fPIC", 
+        "dynamic": "-fPIC",
+        "plugin": "-fPIC"
+      }
+    },
+    "osx": {
+      "dynamic": "-fno-common", 
+      "plugin": "-fno-common"
     },
     "msvc": {
       "all": ["/EHsc", "/Gy", "/nologo", "/errorReport:prompt"],
@@ -28,15 +42,6 @@
       },
       "dynamic": "/LD",
       "plugin": "/LD"
-    },
-    "linux": {
-      "static": "-fPIC", 
-      "dynamic": "-fPIC",
-      "plugin": "-fPIC"
-    },
-    "osx": {
-      "dynamic": "-fno-common", 
-      "plugin": "-fno-common"
     }
   },
   
@@ -45,24 +50,26 @@
       "all": "-Wall", 
       "release": "-O3",
       "exe": "-Wl,-rpath=$ORIGIN/", // so an exe can find shared libraries in the same directory
-      "dynamic": ["-shared", "-fPIC"],
-      "plugin": ["-shared", "-fPIC"]
+      "dynamic": "-shared",
+      "plugin": "-shared",
+      "linux": {
+        "dynamic": "-fPIC",
+        "plugin":  "-fPIC"
+      }
     },
-    
     "clang": {
       "all": "-Wall", 
       "release": "-O3",
       "linux": {
         "exe": "-Wl,-rpath=$ORIGIN/",
-        "dynamic": "-shared", 
-        "plugin": "-shared"
+        "dynamic": ["-shared", "-fPIC"],
+        "plugin":  ["-shared", "-fPIC"]
       },
       "osx": {
-        "dynamic": "-dynamic", 
+        "dynamic": "-dynamiclib", 
         "plugin": "-bundle"
       }
     }, 
-
     "msvc": {
       "all": ["/NODEFAULTLIB:LIBCMT", "/NOLOGO", "/ERRORREPORT:PROMPT"], //:libc.lib
       "debug": "/DEBUG",
