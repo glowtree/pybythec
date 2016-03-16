@@ -21,6 +21,10 @@ class TestPybythec(unittest.TestCase):
       typical setup for building with pybythc
     '''
     self.lastCwd = os.getcwd()
+    
+    #
+    # setup the environment variables used in the build
+    #
     os.environ['SHARED'] = '../../../shared'
     os.environ['PYBYTHEC_GLOBALS'] = '{0}/.pybythecGlobals.json'.format(os.environ['SHARED'])
     
@@ -29,8 +33,8 @@ class TestPybythec(unittest.TestCase):
     '''
     '''
     self._clean()
-    # os.chdir('../../Plugin/src')
-    # self._clean()
+    os.chdir('../../Plugin/src')
+    self._clean()
     os.chdir(self.lastCwd)
 
 
@@ -39,13 +43,12 @@ class TestPybythec(unittest.TestCase):
     '''
     print('\n')
     
-    # # build Plugin
-    # os.chdir('./example/projects/Plugin/src')
-    # self._build()
-    # os.chdir('../../Main/src')
+    # build Plugin
+    os.chdir('./example/projects/Plugin/src')
+    self._build()
     
     # build Main (along with it's library dependencies)
-    os.chdir('./example/projects/Main/src')
+    os.chdir('../../Main/src')
     self._build()
     
     exePath = '../Main'
@@ -62,21 +65,15 @@ class TestPybythec(unittest.TestCase):
     if len(stderr):
       raise Exception(stderr)
     
-    self.assertTrue(stdout.startswith('running an executable and a statically linked library and a dynamically linked library'))
-    # and a plugin'))
-      
+    self.assertTrue(stdout.startswith('running an executable and a statically linked library and a dynamically linked library\r\n and a plugin'))
+
+
   # private  
   def _build(self):
-    if platform.system() == 'Windows':
-      pybythec.build(['', '-c', 'msvc110']) # TODO: check which version if any is installed
-    else:
-      pybythec.build([''])
+    pybythec.build(['']) # TODO: shouldn't have to enter an empty list
     
   def _clean(self):
-    if platform.system() == 'Windows':
-      pybythec.cleanall(['', '-c', 'msvc110'])
-    else:
-      pybythec.cleanall([''])
+    pybythec.cleanall([''])
 
 
 if __name__ == '__main__':

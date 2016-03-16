@@ -22,39 +22,42 @@ int main(int argc, char * argv[])
   cout << " and " << dl.value();
   
   /// plugin
-// #if defined __linux
+#if defined __linux
 
-// #elif defined __APPLE__
+#elif defined __APPLE__
   
-// #elif defined _WIN32
+#elif defined _WIN32
 
-//   HINSTANCE pluginLib = LoadLibrary("../../Plugin/Plugin.dll");
-//   if(!pluginLib) 
-//   {
-//     cerr << "LoadLibrary failed" << endl;
-//     return 1;
-//   }
+  HINSTANCE pluginLib = LoadLibrary("../../Plugin/Plugin.dll");
+  if(!pluginLib) 
+  {
+    cerr << "LoadLibrary failed" << endl;
+    return 1;
+  }
   
-//   typedef bool (*loadPluginFunc)();
-//   loadPluginFunc loadPlugin = (loadPluginFunc) GetProcAddress(pluginLib, "loadPlugin");
-//   if(!loadPlugin)
-//   {
-//     cerr << "GetProcAddress failed for loadPlugin" << endl;
-//     return 1;
-//   }
+  typedef void (*loadPluginFunc)();
+  loadPluginFunc loadPlugin = (loadPluginFunc) GetProcAddress(pluginLib, "loadPlugin");
+  if(!loadPlugin)
+  {
+    cerr << "GetProcAddress failed for loadPlugin" << endl;
+    return 1;
+  }
   
-//   typedef bool (*unloadPluginFunc)();
-//   unloadPluginFunc unloadPlugin = (unloadPluginFunc) GetProcAddress(pluginLib, "unloadPlugin");
-//   if(!unloadPlugin)
-//   {
-//     cerr << "GetProcAddress failed for unloadPlugin" << endl;
-//     return 1;
-//   }
+  typedef void (*unloadPluginFunc)();
+  unloadPluginFunc unloadPlugin = (unloadPluginFunc) GetProcAddress(pluginLib, "unloadPlugin");
+  if(!unloadPlugin)
+  {
+    cerr << "GetProcAddress failed for unloadPlugin" << endl;
+    return 1;
+  }
   
-// #endif
+#endif
   
-//   loadPlugin();
-//   unloadPlugin();
+  // string v;
+  loadPlugin();//v);
+  unloadPlugin();
+  
+  // cout << " and " << v;
   
   /// finished
   cout << endl;

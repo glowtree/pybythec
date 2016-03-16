@@ -3,12 +3,11 @@
   "target": "Plugin",
   "binaryType": "plugin",
   "sources": "Plugin.cpp",
-  // TODO: figure out why this isn't working
   "linkFlags": {
-    "msvc": "/export:loadPlugin /export:unloadPlugin"
+    "msvc": ["/export:loadPlugin", "/export:unloadPlugin"]
   },
   
-  "incPaths":    "${SHARED}/include",
+  "incPaths": "${SHARED}/include",
   "installPath": "..",
   
   "buildType": "release"   /// -b release (on the command line)

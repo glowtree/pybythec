@@ -97,18 +97,26 @@ class BuildElements:
     if not globalCf and '-g' in args:
       globalCf = utils.loadJsonFile(args['-g'])
     if not globalCf:
-      globalCf = utils.loadJsonFile('.pybythecGlobal.json')
+      globalCf = utils.loadJsonFile('pybythecGlobal.json')
+    if not globalCf:
+      globalCf = utils.loadJsonFile('.pybythecGlobal.json')      
+    if not globalCf:
+      log.warning('no global pybythec file found')
   
     # project config
     if 'PYBYTHEC_PROJECT' in os.environ:
       projectCf = os.environ['PYBYTHEC_PROJECT']
-    elif '-p' in args:
+    if not projectCf and '-p' in args:
       projectCf = utils.loadJsonFile(args['-p'])
-    else:
+    if not projectCf:
+      projectCf = utils.loadJsonFile('pybythecProject.json')
+    if not projectCf:
       projectCf = utils.loadJsonFile('.pybythecProject.json')
   
-    # local config
-    localConfigPath = self.cwDir + '/.pybythec.json'
+    # local config, expected to be in the current working directory
+    localConfigPath = self.cwDir + '/pybythec.json'
+    if not os.path.exists(localConfigPath):
+      localConfigPath = self.cwDir + '/.pybythec.json'
     if os.path.exists(localConfigPath):
       localCf = utils.loadJsonFile(localConfigPath)
       
@@ -153,8 +161,8 @@ class BuildElements:
         self.osType = 'windows'
       if not len(self.compiler):
         # TODO: check for more msvc versions or other compilers
-        if os.path.exists('C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin'):
-          self.compiler = 'msvc-110'
+        if os.path.exists('C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin'):
+          self.compiler = 'msvc-100'
         else:
           raise Exception('can\'t find a compiler for Windows')
       if not len(self.filetype):
@@ -190,6 +198,7 @@ class BuildElements:
     if localCf is not None:
       self._getBuildElements2(localCf)
 
+    # deal breakers
     if not len(self.target):
       raise Exception('no target specified')
     elif not len(self.binaryType):

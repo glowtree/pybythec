@@ -8,7 +8,7 @@
   },
   
   // "linkFlags": {
-  //   "msvc": "/EXPORT:DynamicLib"
+  //   "msvc": "/export:DynamicLib"
   // },
   
   "incPaths":    "${SHARED}/include",
