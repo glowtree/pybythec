@@ -44,8 +44,8 @@ coverage.xml
 
 # pybythec 
 .build/
-pybythec/
 .pybythec/
+pybythecBuild/
 
 # C / C++
 *.o
