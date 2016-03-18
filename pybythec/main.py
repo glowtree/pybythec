@@ -74,8 +74,8 @@ def build(argv):
   if not os.path.exists(be.installPath):
     utils.createDirs(be.installPath)
 
-  if not os.path.exists(be.buildPath):
-    os.makedirs(be.buildPath)
+  # if not os.path.exists(be.buildPath):
+  #   os.makedirs(be.buildPath)
 
   incPathList = []
   for incPath in be.incPaths:

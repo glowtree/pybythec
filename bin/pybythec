@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# TODO: create a pybythec.exe for Windows installs
+
 import sys
 from pybythec import main
 

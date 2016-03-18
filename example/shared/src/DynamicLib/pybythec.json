@@ -7,10 +7,6 @@
     "msvc": "WIN_EXPORT"
   },
   
-  // "linkFlags": {
-  //   "msvc": "/export:DynamicLib"
-  // },
-  
   "incPaths":    "${SHARED}/include",
   "installPath": "${SHARED}/lib"
 }

@@ -73,6 +73,9 @@ class BuildElements:
       elif arg == '-c' or arg == '-os' or arg == '-b' or arg == '-bf' or arg == '-d' or arg == '-p':
         key = arg
         keyFound = True
+      elif arg == '-v':
+        log.info('pybthec version: {0}'.format(utils.__version__))
+        # return # TODO:
       else:
         raise Exception(
           '\nvalid arguments:\n\n'
@@ -84,6 +87,8 @@ class BuildElements:
           '-p   path to a pybythec project config file (json format)\n'
           '-cl  clean the build\n'
           '-cla clean the build as well as the builds of any library dependencies\n'
+          '-v   version',
+          '-vb  verbose'
         )
 
     self.cwDir = os.getcwd()
@@ -102,8 +107,8 @@ class BuildElements:
       globalCf = utils.loadJsonFile(args['-g'])
     if not globalCf:
       globalCf = utils.loadJsonFile('pybythecGlobal.json')
-    # if not globalCf:
-    #   globalCf = utils.loadJsonFile('.pybythecGlobal.json')
+    if not globalCf:
+      globalCf = utils.loadJsonFile('.pybythecGlobal.json')
     if not globalCf:
       log.warning('no global pybythec file found')
   
@@ -114,13 +119,13 @@ class BuildElements:
       projectCf = utils.loadJsonFile(args['-p'])
     if not projectCf:
       projectCf = utils.loadJsonFile('pybythecProject.json')
-    # if not projectCf:
-    #   projectCf = utils.loadJsonFile('.pybythecProject.json')
+    if not projectCf:
+      projectCf = utils.loadJsonFile('.pybythecProject.json')
   
     # local config, expected to be in the current working directory
     localConfigPath = self.cwDir + '/pybythec.json'
-    # if not os.path.exists(localConfigPath):
-      # localConfigPath = self.cwDir + '/.pybythec.json'
+    if not os.path.exists(localConfigPath):
+      localConfigPath = self.cwDir + '/.pybythec.json'
     if os.path.exists(localConfigPath):
       localCf = utils.loadJsonFile(localConfigPath)
       
