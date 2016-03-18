@@ -4,7 +4,7 @@ from pybythec import main
 import logging
 
 # DEPLOY
-logging.basicConfig(level = logging.INFO, format = '%(message)s') # DEBUG INFO
+logging.basicConfig(level = logging.DEBUG, format = '%(message)s') # DEBUG INFO
 
 # wrapper functions to be used by the outside world
 def build(argv):

@@ -14,7 +14,7 @@ class BuildStatus:
     status: failed, built, up to date, or locked
     description: what happened
   '''
-  
+                                     
   def __init__(self, name, path = ''):
     self.name = name
     self.path = path

@@ -101,16 +101,19 @@ class BuildElements:
     localCf   = None
   
     # global config
-    if 'PYBYTHEC_GLOBALS' in os.environ:
-      globalCf = utils.loadJsonFile(os.environ['PYBYTHEC_GLOBALS'])
     if not globalCf and '-g' in args:
       globalCf = utils.loadJsonFile(args['-g'])
+    if 'PYBYTHEC_GLOBALS' in os.environ:
+      globalCf = utils.loadJsonFile(os.environ['PYBYTHEC_GLOBALS'])
     if not globalCf:
-      globalCf = utils.loadJsonFile('pybythecGlobal.json')
+      globalCf = utils.loadJsonFile('.pybythecGlobals.json')
     if not globalCf:
-      globalCf = utils.loadJsonFile('.pybythecGlobal.json')
+      if platform.system() == 'Linux' or platform.system() == 'Darwin':
+        globalCf = utils.loadJsonFile(os.environ['HOME'] + '/.pybythecGlobals.json')
+      elif platform.system() == 'Windows':
+        globalCf = utils.loadJsonFile(os.environ['USERPROFILE'] + '/.pybythecGlobals.json')
     if not globalCf:
-      log.warning('no global pybythec file found')
+      log.warning('no global pybythec json file found')
   
     # project config
     if 'PYBYTHEC_PROJECT' in os.environ:

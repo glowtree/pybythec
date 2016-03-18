@@ -16,12 +16,41 @@ pybythec
 a lightweight python build system for c/c++
 
 * Free software: ISC license
-* Documentation: https://pybythec.readthedocs.org.
+* Documentation: https://github.com/glowtree/pybythec
+..  * Documentation: https://pybythec.readthedocs.org.
 
-Features
+
+Install
 --------
 
-* TODO
+pip install pybythec
+
+
+Usage
+--------
+
+In your project directory create a pybythec.json file (or .pybythec.json).
+
+Look in the example directory in the github repository to see what to add.
+
+
+Then from the command line run:
+
+pybythec
+
+
+Clean your project with:
+
+pybythec -cl
+
+
+Clean your project and all it's dependencies with:
+
+pybythec -cla
+
+
+Better documentation to come!!!
+
 
 Credits
 ---------

@@ -74,8 +74,8 @@ def build(argv):
   if not os.path.exists(be.installPath):
     utils.createDirs(be.installPath)
 
-  # if not os.path.exists(be.buildPath):
-  #   os.makedirs(be.buildPath)
+  if not os.path.exists(be.buildPath):
+    os.makedirs(be.buildPath)
 
   incPathList = []
   for incPath in be.incPaths:
@@ -358,9 +358,11 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
     buildStatus.description = 'compiled ' + os.path.basename(source)
     
 
-def _buildLib(be, libSrcDir, buildStatusDep):
+def _buildLib(be, libSrcDir, buildStatus):
   
   jsonPath = os.path.join(libSrcDir, 'pybythec.json')
+  if not os.path.exists(jsonPath):
+    jsonPath = os.path.join(libSrcDir, '.pybythec.json')
   if not os.path.exists(jsonPath):
     buildStatus.writeError(libSrcDir + ' does not have a pybythec.json file')
     return
@@ -369,7 +371,7 @@ def _buildLib(be, libSrcDir, buildStatusDep):
   build(['', '-d', libSrcDir, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat, '-p', be.cwDir + '/pybythecProject.json'])
   
   # read the build status
-  buildStatusDep.readFromFile('{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat))
+  buildStatus.readFromFile('{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat))
 
 
 def _clean(be):
