@@ -6,10 +6,9 @@ import sys
 import platform
 from setuptools import setup
 from setuptools.command.install import install as baseInstall
-# from pkg_resources import Requirement, resource_filename
 
 # inject pybytheGlobals
-# TODO: automate injection?
+# TODO: have it in a seperate file and automate injection?
 pybythecGlobals = \
 r"""
 {
@@ -170,12 +169,11 @@ class installer(baseInstall):
 
 setup(
   name = 'pybythec',
-  version = '0.2.2',
+  version = '0.2.5',
   author = 'glowtree',
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',
-  description = 'a lightweight python build system for c/c++',
-  long_description = open('README.rst').read(),
+  description = 'a lightweight cross-platform build system for c/c++',
   packages = ['pybythec'],
   scripts = ['bin/pybythec'],
   license = 'LICENSE',

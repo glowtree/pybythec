@@ -16,8 +16,6 @@ pybythec
 a lightweight python build system for c/c++
 
 * Free software: ISC license
-* Documentation: https://github.com/glowtree/pybythec
-..  * Documentation: https://pybythec.readthedocs.org.
 
 
 Install
@@ -57,8 +55,6 @@ Credits
 
 Tools used in rendering this package:
 
-*  Cookiecutter_
 *  `cookiecutter-pypackage`_
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+
