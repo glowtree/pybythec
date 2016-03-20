@@ -13,7 +13,7 @@ pybythec
 ..          :alt: Documentation Status
 
 
-a lightweight python build system for c/c++
+a lightweight cross-platform build system for c/c++, written in python
 
 * Free software: ISC license
 
