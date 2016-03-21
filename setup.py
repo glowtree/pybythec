@@ -169,11 +169,12 @@ class installer(baseInstall):
 
 setup(
   name = 'pybythec',
-  version = '0.2.5',
+  version = '0.2.6',
   author = 'glowtree',
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',
   description = 'a lightweight cross-platform build system for c/c++',
+  long_description = 'for gcc, clang and msvc, on Linux, OS X and Windows',
   packages = ['pybythec'],
   scripts = ['bin/pybythec'],
   license = 'LICENSE',
