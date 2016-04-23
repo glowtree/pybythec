@@ -172,22 +172,14 @@ class installer(baseInstall):
     baseInstall.run(self)
 
 
-description = 'A lightweight cross-platform build system for c/c++, written in python'
-long_description = re.sub(
-  "\`(.*)\<#.*\>\`\_",
-  r"\1",
-  str(open('README.rst', 'rb').read()).replace(description, '')
-)
-
-
 setup(
   name = 'pybythec',
-  version = '0.2.8',
+  version = '0.2.10',
   author = 'glowtree',
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',
-  description = description,
-  long_description = long_description,
+  description = 'A lightweight cross-platform build system for c/c++, written in python',
+  long_description = open('README.rst', 'rb').read(),
   packages = ['pybythec'],
   scripts = ['bin/pybythec'],
   license = 'LICENSE',
@@ -195,8 +187,6 @@ setup(
   cmdclass = {'install': installer}
   # entry_points = {'console_scripts': ['pybythec = pybythec:main']}
 )
-
-
 
 
 
