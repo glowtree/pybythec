@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import os
 import sys
 import platform
 from setuptools import setup
 from setuptools.command.install import install as baseInstall
 
-# inject pybytheGlobals
+#
+# custom install...
+#
+
 # TODO: have it in a seperate file and automate injection?
 pybythecGlobals = \
 r"""
@@ -167,14 +171,23 @@ class installer(baseInstall):
     
     baseInstall.run(self)
 
+
+description = 'A lightweight cross-platform build system for c/c++, written in python'
+long_description = re.sub(
+  "\`(.*)\<#.*\>\`\_",
+  r"\1",
+  str(open('README.rst', 'rb').read()).replace(description, '')
+)
+
+
 setup(
   name = 'pybythec',
-  version = '0.2.6',
+  version = '0.2.8',
   author = 'glowtree',
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',
-  description = 'a lightweight cross-platform build system for c/c++',
-  long_description = 'for gcc, clang and msvc, on Linux, OS X and Windows',
+  description = description,
+  long_description = long_description,
   packages = ['pybythec'],
   scripts = ['bin/pybythec'],
   license = 'LICENSE',
@@ -182,4 +195,8 @@ setup(
   cmdclass = {'install': installer}
   # entry_points = {'console_scripts': ['pybythec = pybythec:main']}
 )
+
+
+
+
 

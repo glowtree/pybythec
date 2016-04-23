@@ -2,28 +2,21 @@
 pybythec
 ===============================
 
+A lightweight cross-platform build system for c/c++, written in python
+
 .. image:: https://img.shields.io/pypi/v/pybythec.svg
-        :target: https://pypi.python.org/pypi/pybythec
+  :target: https://pypi.python.org/pypi/pybythec
 
 .. image:: https://img.shields.io/travis/glowtree/pybythec.svg
-        :target: https://travis-ci.org/glowtree/pybythec
-
-
-A lightweight cross-platform build system for c/c++, written in python.  Currently it supports gcc, clang and msvc,
-on Linux, OS X and Windows.  
-
-* Free software: ISC license
-
+  :target: https://travis-ci.org/glowtree/pybythec
 
 Install
---------
+============
 
 pip install pybythec
 
-
 Usage
---------
-
+============
 
 Create a pybythec.json file (or .pybythec.json) in the same directory as your c / c++ files.
 
@@ -36,19 +29,13 @@ Create a pybythec.json file (or .pybythec.json) in the same directory as your c 
 }
 
 Then from the command line run:
-
 pybythec
 
-
 Clean your project with:
-
 pybythec -cl
 
-
 Clean your project and all it's dependencies with:
-
 pybythec -cla
-
 
 Look at other exmples in the './example' directory to see how to build a static library, a dynamic library, and also an executable with library dependencies.
 
@@ -65,9 +52,9 @@ export PYBYTHEC_GLOBALS=/Users/user/dev/.myPybythecGlobals.json
 
 or for windows powershell:
 
-$env:PYBYTHEC_GLOBALS="/Users/user/dev/.myPybythecGlobals.json"
+$env:PYBYTHEC_GLOBALS="C:/Users/user/dev/.myPybythecGlobals.json"
 
-There are up to 3 configuration files for any given build: global, project and local.  The project file overrides global settings, 
+There are up to 3 configuration files for any given build: global, project and local, where project overrides global, 
 and local overrides both global and project.
 
 You can point pybythec to the project configuration file with the environment variable PYBYTHEC_PROJECT.
@@ -90,16 +77,20 @@ following to my project level config file:
   }
 }
 
-You can use environmet variables in your configuration files simply by prepending with $, for example
-
+You can use environmet variables in your configuration files simply by prepending with $, for example:
 "libPaths": "$SHARED/lib"
 
+Currently pybythec supports gcc/g++, clang/clang++ and msvc 
 
 More documentation to come!!!
 
+License
+=======
+
+See LICENSE
 
 Credits
----------
+=======
 
 Tools used in rendering this package:
 

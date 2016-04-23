@@ -219,7 +219,8 @@ def build(argv):
     msvcLinkCmdFp.write(msvcLinkCmd)
     msvcLinkCmdFp.close()
     linkCmd += [be.linker, '@' + msvcLinkCmdFilePath]
-    log.debug('\nmsvcLinkCmd: {0}\n'.format(msvcLinkCmd))
+    if be.showLinkerCmds:
+      log.info('\nmsvcLinkCmd: {0}\n'.format(msvcLinkCmd))
   else:
     linkCmd += [be.linker, be.targetFlag, be.targetInstallPath] + objPaths + libCmds
 
@@ -241,8 +242,9 @@ def build(argv):
   if os.path.exists(be.targetInstallPath):
     oldTargetTimeStamp = float(os.stat(be.targetInstallPath).st_mtime)
     targetExisted = True
-     
-  log.debug('\n{0}\n'.format(' '.join(linkCmd)))
+  
+  if be.showLinkerCmds:
+    log.info('\n{0}\n'.format(' '.join(linkCmd)))
   
   buildStatus.description = utils.runCmd(linkCmd)
 
@@ -311,6 +313,9 @@ def cleanall(argv):
   return _cleanall(be)
 
 
+#
+# private functions
+#
 def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   '''
     be (in): BuildElements object
@@ -343,7 +348,8 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   else:
     cmd = compileCmd + [source, be.objPathFlag, objPath]
   
-  log.debug('\n' + ' '.join(cmd) + '\n')
+  if be.showCompilerCmds:
+    log.info('\n' + ' '.join(cmd) + '\n')
   
   buildStatus.description = utils.runCmd(cmd)
 
@@ -368,7 +374,16 @@ def _buildLib(be, libSrcDir, buildStatus):
     return
   
   # build
-  build(['', '-d', libSrcDir, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat, '-p', be.cwDir + '/pybythecProject.json'])
+  args = ['', '-d', libSrcDir, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat]
+  
+  projectCf = be.cwDir + '/pybythecProject.json'
+  projectCfHidden = be.cwDir + '/.pybythecProject.json'
+  if os.path.exists(projectCf):
+    args += ['-p', projectCf]
+  elif os.path.exists(projectCfHidden):
+    args += ['-p', projectCfHidden]
+  
+  build(args)
   
   # read the build status
   buildStatus.readFromFile('{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat))

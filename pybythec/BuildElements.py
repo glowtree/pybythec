@@ -35,8 +35,12 @@ class BuildElements:
     self.multithread = True
     
     self.locked = False
+        
+    self.showCompilerCmds = False
+    self.showLinkerCmds = False
     
     self.buildDir = 'pybythecBuild'
+    self.hideBuildDirs = False
     
     self.installPath = self.buildDir 
     
@@ -121,9 +125,9 @@ class BuildElements:
     if not projectCf and '-p' in args:
       projectCf = utils.loadJsonFile(args['-p'])
     if not projectCf:
-      projectCf = utils.loadJsonFile('pybythecProject.json')
+      projectCf = utils.loadJsonFile(self.cwDir + '/pybythecProject.json')
     if not projectCf:
-      projectCf = utils.loadJsonFile('.pybythecProject.json')
+      projectCf = utils.loadJsonFile(self.cwDir + '/.pybythecProject.json')
   
     # local config, expected to be in the current working directory
     localConfigPath = self.cwDir + '/pybythec.json'
@@ -221,6 +225,9 @@ class BuildElements:
       raise Exception('no build type specified')
     elif not len(self.sources):
       raise Exception('no source files specified')
+    
+    if self.hideBuildDirs:
+      self.buildDir = '.' + self.buildDir
     
     #
     # compiler config
@@ -331,7 +338,6 @@ class BuildElements:
 
     self.binaryRelPath = '/{0}/{1}/{2}'.format(self.buildType, self.compiler, self.binaryFormat)
     
-    # self.buildPath = utils.makePathAbsolute(self.cwDir, './pybythecBuild' + self.binaryRelPath)
     self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + self.binaryRelPath)
           
     if self.libInstallPathAppend and (self.binaryType == 'static' or self.binaryType == 'dynamic'):
@@ -372,8 +378,17 @@ class BuildElements:
       
     if 'locked' in configObj:
       self.locked = configObj['locked']
+      
+    if 'hideBuildDirs' in configObj:
+      self.hideBuildDirs = configObj['hideBuildDirs']      
+      
+    if 'showCompilerCmds' in configObj:
+      self.showCompilerCmds = configObj['showCompilerCmds']  
 
-    
+    if 'showLinkerCmds' in configObj:
+      self.showLinkerCmds = configObj['showLinkerCmds']  
+
+
   def _getBuildElements2(self, configObj):
     '''
     '''
@@ -381,7 +396,7 @@ class BuildElements:
     if platform.system() == 'Windows':
       separartor = ';'
     
-    # TODO: PATH will grow  for any build with dependencies, is there a way to prevent it?
+    # TODO: PATH will grow for any build with dependencies, is there a way to prevent it?
     if 'bins' in configObj:
       bins = []
       self._getArgsList(bins, configObj['bins'])
