@@ -3,7 +3,7 @@ import sys
 import subprocess
 
 subprocess.call(['bumpversion', 'patch', '--allow-dirty'])
-subprocess.call(['sudo', ',python', 'setup.py', 'sdist', 'upload']) # bdist_wheel
+subprocess.call(['sudo', 'python', 'setup.py', 'sdist', 'upload'])
 
 if len(sys.argv) < 2:
     print('message required')

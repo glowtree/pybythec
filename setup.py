@@ -175,7 +175,7 @@ class installer(baseInstall):
 
 setup(
   name = 'pybythec',
-  version = '0.2.11',
+  version = '0.2.12',
   author = 'glowtree',
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',
