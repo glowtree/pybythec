@@ -159,6 +159,7 @@ class installer(baseInstall):
       batPath = os.path.dirname(sys.executable) + '/Scripts/pybythec.bat'
       with open(batPath, 'w') as f:
         f.write('@echo off\ncall python %~dp0\pybythec')
+        # f.write(bytes('@echo off\ncall python %~dp0\pybythec', 'UTF-8'))
       globalsPath = os.environ['USERPROFILE'] + '/.pybythecGlobals.json' 
 
     else:
@@ -168,18 +169,18 @@ class installer(baseInstall):
     print('installing ' + globalsPath)
     with open(globalsPath, 'w') as f:
       f.write(pybythecGlobals)
-    
+      # f.write(bytes(pybythecGlobals, 'UTF-8'))
     baseInstall.run(self)
 
 
 setup(
   name = 'pybythec',
-  version = '0.2.10',
+  version = '0.2.11',
   author = 'glowtree',
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',
   description = 'A lightweight cross-platform build system for c/c++, written in python',
-  long_description = open('README.rst', 'rb').read(),
+  long_description = open('README.rst', 'r').read(),
   packages = ['pybythec'],
   scripts = ['bin/pybythec'],
   license = 'LICENSE',

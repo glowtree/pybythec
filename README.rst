@@ -26,21 +26,26 @@ Usage
 Create a pybythec.json file (or .pybythec.json) in the same directory as your c / c++ files.
 
 Here's an example of what would be declared in pybythec.json if you were building an executable called Simple::
-{  
-  "target": "Simple",
-  "binaryType": "exe",
-  "sources": "main.cpp",
-  "installPath": "."
-}
+
+    {  
+      "target": "Simple",
+      "binaryType": "exe",
+      "sources": "main.cpp",
+      "installPath": "."
+    }
+
 
 Then from the command line run::
-pybythec
+
+  pybythec
 
 Clean your project with::
-pybythec -cl
+
+  pybythec -cl
 
 Clean your project and all it's dependencies with::
-pybythec -cla
+
+  pybythec -cla
 
 Look at other exmples in the './example' directory to see how to build a static library, a dynamic library, and also an executable with library dependencies.
 
@@ -50,15 +55,18 @@ When you install pybythec with pip it will add a file called .pybythecGlobals.js
 This is a master file that declares all of your compiler and linker configurations.  
 You can edit this as needed for system-wide configuration.
 If you want to move this file just be sure to have an environment variable called PYBYTHEC_GLOBALS point to the new location, for example::
-export PYBYTHEC_GLOBALS=/Users/user/dev/.myPybythecGlobals.json
+
+  export PYBYTHEC_GLOBALS=/Users/user/dev/.myPybythecGlobals.json
 
 or for windows powershell::
-$env:PYBYTHEC_GLOBALS="C:/Users/user/dev/.myPybythecGlobals.json"
+
+  $env:PYBYTHEC_GLOBALS="C:/Users/user/dev/.myPybythecGlobals.json"
 
 There are up to 3 configuration files for any given build: global, project and local, where project overrides global, and local overrides both global and project.
 
 You can point pybythec to the project configuration file with the environment variable PYBYTHEC_PROJECT, for example::
-export PYBYTHEC_PROJECT=/Users/user/dev/myProject/.myProjectConfig.json
+
+  export PYBYTHEC_PROJECT=/Users/user/dev/myProject/.myProjectConfig.json
 
 pybythec will always look for your local file in your current directoy, and it must be called pybythec.json or .pybythec.json.
 
@@ -69,15 +77,16 @@ The configuration files allow for nested declarations so that you can get specif
 For example if I want a preprocessor declaration that's project wide but only used when building on OS X for gcc, I can add the 
 following to my project level config file::
 
-"defines": 
-{
-  "osx": {
-    "gcc" : "SOME_DEFINE"
+  "defines":
+  {
+    "osx": {
+      "gcc" : "SOME_DEFINE"
+    }
   }
-}
 
 You can use environmet variables in your configuration files simply by prepending with $, for example::
-"libPaths": "$SHARED/lib"
+
+  "libPaths": "$SHARED/lib"
 
 Currently pybythec supports gcc/g++, clang/clang++ and msvc 
 
