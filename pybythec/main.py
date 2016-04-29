@@ -432,11 +432,19 @@ def _cleanall(be):
     cleans both the current project and also the dependencies
     be (input): BuildElements object
   '''
+  projArgs = []
+  projectCf = be.cwDir + '/pybythecProject.json'
+  projectCfHidden = be.cwDir + '/.pybythecProject.json'
+  if os.path.exists(projectCf):
+    projArgs += ['-p', projectCf]
+  elif os.path.exists(projectCfHidden):
+    projArgs += ['-p', projectCfHidden]
+  
   _clean(be)
   for lib in be.libs:
     for libSrcPath in be.libSrcPaths:
       libPath = os.path.join(libSrcPath, lib)
       if os.path.exists(libPath):
-        clean(['', '-d', libPath, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat])
+        clean(['', '-d', libPath, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat] + projArgs)
 
 
