@@ -54,7 +54,7 @@ def build(argv):
   try:
     be = BuildElements(argv)
   except Exception as e:
-    log.error(str(e))
+    log.error(e[0])
     return False
 
   # lock - early return
@@ -294,7 +294,7 @@ def clean(argv):
   try:
     be = BuildElements(argv)
   except Exception as e:
-    log.error(str(e))
+    log.error(e[0])
     return False
   return _clean(be)
 
@@ -308,7 +308,7 @@ def cleanall(argv):
   try:
     be = BuildElements(argv)
   except Exception as e:
-    log.error(str(e))
+    log.error(e[0])
     return False
   return _cleanall(be)
 
