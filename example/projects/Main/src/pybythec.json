@@ -14,6 +14,6 @@
   
   /// defaults: you can also supply / override this information as arguments on the command line
   // "compiler":  "g++",      /// -c g++     (on the command line)
-  // "osType":    "linux",    /// -ox linux  (on the command line)
+  // "osType":    "linux",    /// -os linux  (on the command line)
   // "buildType": "release"   /// -b release (on the command line)
 }

@@ -42,8 +42,7 @@ coverage.xml
 #*#
 *.marks
 
-# pybythec 
-.build/
+# pybythec
 .pybythec/
 pybythecBuild/
 
