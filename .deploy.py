@@ -1,9 +1,14 @@
 
 import sys
+import platform
 import subprocess
 
 subprocess.call(['bumpversion', 'patch', '--allow-dirty'])
-subprocess.call(['sudo', 'python', 'setup.py', 'sdist', 'upload'])
+
+if platform.system() == 'Linux' or platform.system() == 'Darwin':
+  subprocess.call(['sudo', 'python', 'setup.py', 'sdist', 'upload'])
+else:
+  subprocess.call(['python', 'setup.py', 'sdist', 'upload'])
 
 if len(sys.argv) < 2:
     print('message required')

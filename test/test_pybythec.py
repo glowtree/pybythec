@@ -23,7 +23,6 @@ class TestPybythec(unittest.TestCase):
     # setup the environment variables...
     # normally you would probably set these in your .bashrc (linux / osx) or profile.ps1 (windows) file
     os.environ['SHARED'] = '../../../shared'
-    os.environ['PYBYTHEC_GLOBALS'] = '{0}/pybythecGlobals.json'.format(os.environ['SHARED'])
     
     
   def test_000_something(self):
