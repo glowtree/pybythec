@@ -110,24 +110,30 @@ r"""
     "msvc-090": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin"],
       "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin",
-      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin/x86_amd64"
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin/amd64"
     },
     "msvc-100": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 10.0/Common7/IDE", "C:/Program Files/Microsoft SDKs/Windows/v7.1/bin"],
       "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin",
-      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/x86_amd64"
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/amd64"
     },
     "msvc-110": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/Common7/IDE", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/bin"],
       "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin",
-      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin/x86_amd64"
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin/amd64"
+    },
+    "msvc-140": {
+      "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/Common7/IDE", "C:/Program Files (x86)/Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.6.1 Tools"],
+      "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin",
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/amd64"
     }
   },
   
   "incPaths": {
     "msvc-090": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include"],
     "msvc-100": ["C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/include", "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include"],
-    "msvc-110": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/include", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Include"]
+    "msvc-110": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/include", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Include"],
+    "msvc-140": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include", "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"]
   },
   
   "libPaths": {
@@ -142,6 +148,10 @@ r"""
     "msvc-110": {
       "32bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib"],
       "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib/amd64", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib/x64"]
+    },
+    "msvc-140": {
+      "32bit": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib", "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x86"],
+      "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib/amd64", "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x64"]
     }
   }
 }

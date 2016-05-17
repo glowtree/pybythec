@@ -156,7 +156,6 @@ class BuildElements:
     if '-bf' in args:
       self.binaryFormat = args['-bf']
     
-
     # defaults (if they haven't already been declared)
     if platform.system() == 'Linux':
       if not len(self.osType):
@@ -176,9 +175,16 @@ class BuildElements:
       if not len(self.osType):
         self.osType = 'windows'
       if not len(self.compiler):
-        # TODO: check for more msvc versions or other compilers
-        if os.path.exists('C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin'):
-          self.compiler = 'msvc-100'
+        i = 25 # NOTE: hopefully that covers enough VisualStudio releases
+        vcPath = 'C:/Program Files (x86)/Microsoft Visual Studio {0}.0/VC'
+        foundVc = False
+        while i > 5:
+          if os.path.exists(vcPath.format(i)):
+            foundVc = True
+            break
+          i -= 1
+        if foundVc:
+          self.compiler = 'msvc-{0:02}0'.format(i)
         else:
           raise Exception('can\'t find a compiler for Windows')
       if not len(self.filetype):

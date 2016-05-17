@@ -4,7 +4,6 @@ from pybythec import main
 import logging
 
 # DEPLOY
-# TODO: verbose should be set in the normal configuration
 logging.basicConfig(level = logging.INFO, format = '%(message)s') # DEBUG INFO
 
 # wrapper functions to be used by the outside world
