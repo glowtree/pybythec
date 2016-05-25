@@ -17,7 +17,7 @@ pybythecGlobals = \
 r"""
 {
   "defines": {
-    "msvc": ["NOMINMAX", "VC_EXTRALEAN", "WIN32_LEAN_AND_MEAN"], // _WINSOCKAPI_ 
+    "msvc": ["NOMINMAX", "VC_EXTRALEAN", "WIN32_LEAN_AND_MEAN"],
     "osx": "__APPLE__"
   },
   
@@ -133,7 +133,8 @@ r"""
     "msvc-090": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include"],
     "msvc-100": ["C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/include", "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include"],
     "msvc-110": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/include", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Include"],
-    "msvc-140": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include", "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"]
+    "msvc-140": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include", "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/shared", 
+                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/um", "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"]
   },
   
   "libPaths": {
@@ -150,8 +151,10 @@ r"""
       "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib/amd64", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib/x64"]
     },
     "msvc-140": {
-      "32bit": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib", "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x86"],
-      "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib/amd64", "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x64"]
+      "32bit": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib", "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x86",
+                "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/um/x86"],
+      "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib/amd64", "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x64", 
+                "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/um/x64"]
     }
   }
 }
