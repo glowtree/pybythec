@@ -82,7 +82,7 @@ class BuildElements:
         # return # TODO:
       else:
         raise Exception(
-          '\nvalid arguments:\n\n'
+          '\nvalid arguments:\r\n\n'
           '-c   compiler: any variation of gcc, clang, or msvc\n'
           '-os  operating system: currently linux, osx, or windows\n'
           '-b   build type: debug release etc \n'
@@ -92,8 +92,8 @@ class BuildElements:
           '-cl  clean the build\n'
           '-cla clean the build as well as the builds of any library dependencies\n'
           '-v   version',
-          '-vb  verbose'
-        )
+          '-vb  verbose')
+        
 
     self.cwDir = os.getcwd()
     if '-d' in args:
@@ -232,6 +232,10 @@ class BuildElements:
     elif not len(self.sources):
       raise Exception('no source files specified')
     
+    if not (self.binaryType == 'exe' or self.binaryType == 'static' or self.binaryType == 'dynamic' or self.binaryType == 'plugin'):
+      raise Exception('unrecognized binary type: ' + self.binaryType)
+
+
     if self.hideBuildDirs:
       self.buildDir = '.' + self.buildDir
     
@@ -294,8 +298,7 @@ class BuildElements:
         self.target = self.target + self.dynamicExt
       elif self.binaryType == 'plugin':
         self.target = self.target + self.pluginExt
-      else:
-        raise Exception('unrecognized binary type: {0}'.format(self.binaryType))
+
 
     #
     # msvc / msvc
@@ -326,12 +329,13 @@ class BuildElements:
       elif self.binaryType == 'dynamic' or self.binaryType == 'plugin':
         self.target += self.dynamicExt
         self.linkFlags.append('/DLL')
-      else:
-        raise Exception('unrecognized binary type: ' + self.binaryType)
-
+        
+      # make sure the compiler is in PATH
+      if utils.runCmd(self.compilerCmd).startswith('[WinError 2]'):
+        raise Exception('compiler not found, check the paths set in bins')
+        
     else:
       raise Exception('unrecognized compiler root: ' + self.compilerRoot)
-
 
     #
     # determine paths

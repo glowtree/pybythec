@@ -110,17 +110,17 @@ r"""
     "msvc-090": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE", "C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin"],
       "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin",
-      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin/amd64"
+      "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin/amd64", "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin/x86_amd64"]
     },
     "msvc-100": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 10.0/Common7/IDE", "C:/Program Files/Microsoft SDKs/Windows/v7.1/bin"],
       "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin",
-      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/amd64"
+      "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/amd64", "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/x86_amd64"]
     },
     "msvc-110": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/Common7/IDE", "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/bin"],
       "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin",
-      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin/amd64"
+      "64bit": ["C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin/amd64", "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin/x86_amd64"]
     },
     "msvc-140": {
       "all":  ["C:/Program Files (x86)/Microsoft Visual Studio 14.0/Common7/IDE", "C:/Program Files (x86)/Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.6.1 Tools"],

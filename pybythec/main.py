@@ -54,7 +54,7 @@ def build(argv):
   try:
     be = BuildElements(argv)
   except Exception as e:
-    log.error(e[0])
+    print(e.args[0])
     return False
 
   # lock - early return
@@ -197,10 +197,6 @@ def build(argv):
     revisedLibPath = be.libPaths[i] + be.binaryRelPath
     if os.path.exists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
-    # else: # in case there's also lib paths that don't have buildType, ie for external libraries that only ever have the release version
-    #   revisedLibPath = '{0}/{1}{2}/{3}'.format(be.libPaths[i], be.compilerRoot, be.compilerVersion, be.binaryFormat)
-    #   if os.path.exists(revisedLibPath):
-    #     be.libPaths[i] = revisedLibPath
 
   #
   # linking
@@ -362,7 +358,7 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
 
   if buildStatus.status == 'built':
     buildStatus.description = 'compiled ' + os.path.basename(source)
-    
+      
 
 def _buildLib(be, libSrcDir, buildStatus):
   
