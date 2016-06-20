@@ -187,7 +187,8 @@ def build(argv):
   allUpToDate = True
   for buildStatusDep in buildStatusDeps:
     if buildStatusDep.status == 'failed':
-      buildStatus.writeError('{0} ({1} {2} {3}) failed because {4} failed because...\n\n{5}\n...determined in seconds\n\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, buildStatusDep.name, buildStatusDep.description.encode('ascii', 'ignore'), str(int(time.time() - startTime))))
+      # buildStatus.writeError('{0} ({1} {2} {3}) failed because {4} failed because...\n\n{5}\n...determined in seconds\n\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, buildStatusDep.name, buildStatusDep.description.encode('ascii', 'ignore'), str(int(time.time() - startTime))))
+      buildStatus.writeError('{0} ({1} {2} {3}) failed because {4} failed because...\n\n{5}\n...determined in seconds\n\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, buildStatusDep.name, buildStatusDep.description, str(int(time.time() - startTime))))
       return False
     elif buildStatusDep.status == 'built':
       allUpToDate = False

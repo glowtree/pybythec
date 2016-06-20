@@ -430,7 +430,7 @@ class BuildElements:
       
     if 'incPaths' in configObj:
       self._getArgsList(self.incPaths, configObj['incPaths'])
-      
+    
     if 'libPaths' in configObj:
       self._getArgsList(self.libPaths, configObj['libPaths'])
 
