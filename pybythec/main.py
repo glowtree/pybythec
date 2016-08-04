@@ -279,6 +279,15 @@ def build(argv):
   
   sys.stdout.flush()
 
+  # run a post-build script if it exists
+  postScript = './pybythecPost.py'
+  if not os.path.exists(postScript):
+    postScript = './.pybythecPost.py'
+
+  if os.path.exists(postScript):
+    with open(postScript) as pf:
+      exec(pf.read())
+
   return True
 
 
