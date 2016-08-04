@@ -1,4 +1,0 @@
-{
-    "status": "failed",
-    "description": "Plugin.dll (release msvc100 64bit) failed because C:\\Users\\Tom\\work\\projects\\pybythec\\example\\projects\\Plugin\\src\\Plugin.cpp failed because...\n\nb'[WinError 2] The system cannot find the file specified'\n...determined in seconds\n\n"
-}

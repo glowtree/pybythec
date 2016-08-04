@@ -23,57 +23,56 @@ int main(int argc, char * argv[])
   DynamicLib dl;
   cout << " and " << dl.value();
   
-  /// plugin
-  typedef void (*loadPluginFunc)();//string);
-  typedef void (*unloadPluginFunc)();
+  // /// plugin
+  // typedef void (*loadPluginFunc)(string);
+  // typedef void (*unloadPluginFunc)();
   
-  loadPluginFunc loadPlugin;
-  unloadPluginFunc unloadPlugin;
+  // loadPluginFunc loadPlugin;
+  // unloadPluginFunc unloadPlugin;
   
-  #if defined __linux
+  // #if defined __linux
   
-  #elif defined __APPLE__
+  // #elif defined __APPLE__
     
-    void * pluginHandle = dlopen("../../Plugin/Plugin.bundle", RTLD_NOW);
-    if(!pluginHandle)
-    {
-      cerr << "dlopen failed because" << dlerror() << endl;
-      return 1;
-    }
+  //   void * pluginHandle = dlopen("../../Plugin/Plugin.bundle", RTLD_NOW);
+  //   if(!pluginHandle)
+  //   {
+  //     cerr << "dlopen failed because" << dlerror() << endl;
+  //     return 1;
+  //   }
     
-    loadPlugin   =   (loadPluginFunc) dlsym(pluginHandle, "loadPlugin");
-    unloadPlugin = (unloadPluginFunc) dlsym(pluginHandle, "unloadPlugin");
+  //   loadPlugin   =   (loadPluginFunc) dlsym(pluginHandle, "loadPlugin");
+  //   unloadPlugin = (unloadPluginFunc) dlsym(pluginHandle, "unloadPlugin");
     
-  #elif defined _WIN32
-  
-    HINSTANCE pluginHandle = LoadLibrary("../../Plugin/Plugin.dll");
-    if(!pluginHandle) 
-    {
-      cerr << "LoadLibrary failed" << endl;
-      return 1;
-    }
-    
-    loadPlugin = (loadPluginFunc) GetProcAddress(pluginHandle, "loadPlugin");
-    unloadPlugin = (unloadPluginFunc) GetProcAddress(pluginHandle, "unloadPlugin");
+  //   if(!loadPlugin)
+  //   {
+  //     cerr << "failed to find loadPlugin because " << dlerror() << endl;
+  //     return 1;
+  //   }
 
-  #endif
+  // #elif defined _WIN32
   
-  // if(!loadPlugin)
-  // {
-  //   cerr << "failed to find loadPlugin because " << dlerror() << endl;
-  //   return 1;
-  // }
+  //   HINSTANCE pluginHandle = LoadLibrary("../../Plugin/Plugin.dll");
+  //   if(!pluginHandle) 
+  //   {
+  //     cerr << "LoadLibrary failed" << endl;
+  //     return 1;
+  //   }
+    
+  //   loadPlugin = (loadPluginFunc) GetProcAddress(pluginHandle, "loadPlugin");
+  //   unloadPlugin = (unloadPluginFunc) GetProcAddress(pluginHandle, "unloadPlugin");
+
+  // #endif
   
+
   // if(!loadPlugin)
   // {
   //   cerr << "failed to find loadPlugin" << endl;
   //   return 1;
   // }
   
-  // loadPlugin();
   // string v;
   // loadPlugin(v);
-  
   // cout << " and " << v;
   
   // if(!unloadPlugin)

@@ -16,13 +16,10 @@ std::string const & Plugin::value()
 
 Plugin * p = NULL;
 
-void loadPlugin()
-// void loadPlugin(string & value)
+void loadPlugin(string & value)
 {
   p = new Plugin();
-  
-  // value = p->value();
-  cout << " and " << p->value();  
+  value = p->value();
 }
 
 void unloadPlugin()

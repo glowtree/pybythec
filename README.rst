@@ -88,6 +88,10 @@ You can use environmet variables in your configuration files simply by prependin
 
   "libPaths": "$SHARED/lib"
 
+
+You can have a python script automatically run after the build finishes, just be sure it's called pythecPost.py or .pybythecPost.py.
+
+
 Currently pybythec supports gcc/g++, clang/clang++ and msvc 
 
 More documentation to come!!!
