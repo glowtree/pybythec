@@ -488,7 +488,7 @@ class BuildElements:
         if key in args:
           self._getArgsList(argsList, args[key])
     else:
-      if type(args) == str or type(args) == unicode:
+      if type(args) == str or type(args).__name__ == 'unicode':
         argsList.append(os.path.expandvars(args))
       elif type(args) == list:
         for arg in args:
