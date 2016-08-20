@@ -60,6 +60,42 @@ class BuildElements:
     self.libInstallPathAppend = True
     self.plusplus = True
     
+    # defaults
+    if platform.system() == 'Linux':
+      if not len(self.osType):
+        self.osType = 'linux'
+      if not len(self.compiler):
+        self.compiler = 'g++'
+      if not len(self.filetype):
+        self.filetype = 'elf'
+    elif platform.system() == 'Darwin':
+      if not len(self.osType):
+        self.osType = 'osx'
+      if not len(self.compiler):
+        self.compiler = 'clang++'
+      if not len(self.filetype):
+        self.filetype = 'mach-o'
+    elif platform.system() == 'Windows':
+      if not len(self.osType):
+        self.osType = 'windows'
+      if not len(self.compiler):
+        i = 25 # NOTE: hopefully that covers enough VisualStudio releases
+        vcPath = 'C:/Program Files (x86)/Microsoft Visual Studio {0}.0/VC'
+        foundVc = False
+        while i > 5:
+          if os.path.exists(vcPath.format(i)):
+            foundVc = True
+            break
+          i -= 1
+        if foundVc:
+          self.compiler = 'msvc-{0:02}0'.format(i)
+        else:
+          raise Exception('can\'t find a compiler for Windows')
+      if not len(self.filetype):
+        self.filetype = 'pe'
+    else:
+      raise Exception('os does not appear to be Linux, OS X or Windows')
+
     #
     # parse the args
     #
@@ -142,56 +178,38 @@ class BuildElements:
       self._getBuildElements(projectCf)
     if localCf is not None:
       self._getBuildElements(localCf)
-        
+
     # command line overrides
-    if '-c' in args:
-      self.compiler = args['-c']
-    
     if '-os' in args:
       self.osType = args['-os']
-    
+
     if '-b' in args:
       self.buildType = args['-b']
     
     if '-bf' in args:
       self.binaryFormat = args['-bf']
     
-    # defaults (if they haven't already been declared)
-    if platform.system() == 'Linux':
-      if not len(self.osType):
-        self.osType = 'linux'
-      if not len(self.compiler):
-        self.compiler = 'g++'
-      if not len(self.filetype):
-        self.filetype = 'elf'
-    elif platform.system() == 'Darwin':
-      if not len(self.osType):
-        self.osType = 'osx'
-      if not len(self.compiler):
-        self.compiler = 'clang++'
-      if not len(self.filetype):
-        self.filetype = 'mach-o'
-    elif platform.system() == 'Windows':
-      if not len(self.osType):
-        self.osType = 'windows'
-      if not len(self.compiler):
-        i = 25 # NOTE: hopefully that covers enough VisualStudio releases
-        vcPath = 'C:/Program Files (x86)/Microsoft Visual Studio {0}.0/VC'
-        foundVc = False
-        while i > 5:
-          if os.path.exists(vcPath.format(i)):
-            foundVc = True
-            break
-          i -= 1
-        if foundVc:
-          self.compiler = 'msvc-{0:02}0'.format(i)
-        else:
-          raise Exception('can\'t find a compiler for Windows')
-      if not len(self.filetype):
-        self.filetype = 'pe'
-    else:
-      raise Exception('os does not appear to be Linux, OS X or Windows')
-    
+
+    # compiler special case: os specific compiler selection
+    if type(self.compiler) == dict:
+      compiler = []
+      self.keys = [self.osType]
+      if globalCf and 'compiler' in globalCf:
+        self._getArgsList(compiler, globalCf['compiler'])
+      if projectCf and 'compiler' in projectCf:
+        self._getArgsList(compiler, projectCf['compiler'])
+      if localCf and 'compiler' in localCf:
+        self._getArgsList(compiler, localCf['compiler'])
+      if len(compiler):
+        self.compiler = compiler[0]
+
+    # one final commandline override: the compiler
+    if '-c' in args:
+      self.compiler = args['-c']
+
+
+    # TODO: verify things like does this compiler actually exist (to prevent getting poor error messages)
+
     # currently compiler root can either be gcc, clang or msvc
     self.compilerRoot = self.compiler
     if self.compilerRoot.startswith('gcc') or self.compilerRoot.startswith('g++'):
@@ -465,14 +483,14 @@ class BuildElements:
       recursivley parses args and appends it to argsList if it has any of the keys
       args can be a dict, str (space-deliminated) or list
     '''    
-    if type(args).__name__ == 'dict':
+    if type(args) == dict:
       for key in self.keys:
         if key in args:
           self._getArgsList(argsList, args[key])
     else:
-      if type(args).__name__ == 'str' or type(args).__name__ == 'unicode':
+      if type(args) == str or type(args) == unicode:
         argsList.append(os.path.expandvars(args))
-      elif type(args).__name__ == 'list':
+      elif type(args) == list:
         for arg in args:
           argsList.append(os.path.expandvars(arg))
 

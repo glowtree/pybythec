@@ -187,8 +187,7 @@ def build(argv):
   allUpToDate = True
   for buildStatusDep in buildStatusDeps:
     if buildStatusDep.status == 'failed':
-      # buildStatus.writeError('{0} ({1} {2} {3}) failed because {4} failed because...\n\n{5}\n...determined in seconds\n\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, buildStatusDep.name, buildStatusDep.description.encode('ascii', 'ignore'), str(int(time.time() - startTime))))
-      buildStatus.writeError('{0} ({1} {2} {3}) failed because {4} failed because...\n\n{5}\n...determined in seconds\n\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, buildStatusDep.name, buildStatusDep.description, str(int(time.time() - startTime))))
+      buildStatus.writeError('{0} ({1} {2} {3}) failed because {4} failed because...\n\n{5}\n...determined in seconds\n\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, buildStatusDep.name, buildStatusDep.description.encode('ascii', 'ignore'), str(int(time.time() - startTime))))
       return False
     elif buildStatusDep.status == 'built':
       allUpToDate = False
@@ -253,7 +252,7 @@ def build(argv):
       linked = True
   
   if linked:
-    log.info('linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.binaryFormat, be.compiler))
+    log.info('linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
   else:
     buildStatus.writeError('linking failed because ' + buildStatus.description)
     return False
@@ -275,7 +274,7 @@ def build(argv):
     # # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
     # buildStatus.description = utils.runCmd(['mt', '-nologo', '-manifest', be.targetInstallPath + '.manifest', '-outputresource:', be.targetInstallPath + ';#2'])      
   
-  buildStatus.writeInfo('built', '{0} ({1} {2} {3}) built {4}\ncompleted in {5} seconds\n'.format(be.target, be.buildType, be.binaryFormat, be.compiler,  be.targetInstallPath, str(int(time.time() - startTime))))
+  buildStatus.writeInfo('built', '{0} ({1} {2} {3}) built {4}\ncompleted in {5} seconds\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, be.targetInstallPath, str(int(time.time() - startTime))))
   
   sys.stdout.flush()
 
