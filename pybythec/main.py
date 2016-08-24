@@ -80,6 +80,10 @@ def build(argv):
   incPathList = []
   for incPath in be.incPaths:
     incPathList += ['-I', incPath]
+
+  for extIncPath in be.extIncPaths: # external include libs (for cases where 3rd party header includes are using "" instead of <> ie Unreal)
+    incPathList += ['-I', extIncPath]
+
   
   definesList = []
   for define in be.defines:

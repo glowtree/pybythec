@@ -51,6 +51,7 @@ class BuildElements:
     self.linkFlags = []
     
     self.incPaths = []
+    self.extIncPaths = [] # these will not be checked for timestamps
     self.libPaths = []
     self.libSrcPaths = []
     self.keys = []
@@ -361,6 +362,7 @@ class BuildElements:
     self.installPath = utils.makePathAbsolute(self.cwDir, self.installPath)
     self._resolvePaths(self.cwDir, self.sources)
     self._resolvePaths(self.cwDir, self.incPaths)
+    self._resolvePaths(self.cwDir, self.extIncPaths)
     self._resolvePaths(self.cwDir, self.libPaths)
     self._resolvePaths(self.cwDir, self.libSrcPaths)
 
@@ -448,6 +450,9 @@ class BuildElements:
       
     if 'incPaths' in configObj:
       self._getArgsList(self.incPaths, configObj['incPaths'])
+
+    if 'extIncPaths' in configObj:
+      self._getArgsList(self.extIncPaths, configObj['extIncPaths'])      
       
     if 'libPaths' in configObj:
       self._getArgsList(self.libPaths, configObj['libPaths'])
