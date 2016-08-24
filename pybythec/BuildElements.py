@@ -39,10 +39,10 @@ class BuildElements:
     self.showCompilerCmds = False
     self.showLinkerCmds = False
     
-    self.buildDir = 'pybythecBuild'
+    self.buildDir = 'pybythec'
     self.hideBuildDirs = False
     
-    self.installPath = self.buildDir 
+    self.installPath = '.'#self.buildDir 
     
     self.sources = []
     self.libs    = []

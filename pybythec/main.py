@@ -84,7 +84,6 @@ def build(argv):
   for extIncPath in be.extIncPaths: # external include libs (for cases where 3rd party header includes are using "" instead of <> ie Unreal)
     incPathList += ['-I', extIncPath]
 
-  
   definesList = []
   for define in be.defines:
     definesList += ['-D', define]
@@ -395,8 +394,7 @@ def _buildLib(be, libSrcDir, buildStatus):
   build(args)
   
   # read the build status
-  buildStatus.readFromFile('{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat))
-
+  buildStatus.readFromFile(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat)
 
 def _clean(be):
   '''
