@@ -21,15 +21,14 @@ class BuildStatus:
     self.status = 'failed'
     self.description = ''
   
-  
-  # def readFromFile(self, buildPath):
+
   def readFromFile(self, libSrcDir, buildDir, buildType, compiler, binaryFormat):
     '''
       buildPath (in): where to read the status.json file from
     '''
 
     buildPath = '{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir, buildType, compiler, binaryFormat)
-    if not os.path.exists(buildPath): # try without the buildDir being hidden
+    if not os.path.exists(buildPath): # try the non-hidden version
       buildPath = '{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir.lstrip('.'), buildType, compiler, binaryFormat) 
 
     contents = utils.loadJsonFile(buildPath + '/status.json')
