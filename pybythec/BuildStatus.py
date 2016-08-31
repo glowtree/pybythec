@@ -28,13 +28,17 @@ class BuildStatus:
     '''
 
     buildPath = '{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir, buildType, compiler, binaryFormat)
-    if not os.path.exists(buildPath): # try the non-hidden version
-      buildPath = '{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir.lstrip('.'), buildType, compiler, binaryFormat) 
+    if not os.path.exists(buildPath):
+      # try the other hidden / non-hidden version
+      if buildDir[0] == '.':
+        buildPath = '{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir.lstrip('.'), buildType, compiler, binaryFormat)
+      else:
+        buildPath = '{0}/.{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir, buildType, compiler, binaryFormat)
 
     contents = utils.loadJsonFile(buildPath + '/status.json')
     if not contents:
       self.description = 'couldn\'t find contents in ' + buildPath
-      log.error('couldn\'t find contents in ' + buildPath)
+      log.error('couldn\'t find contents in ' + buildPath)   
       return
     if 'status' in contents:
       self.status = contents['status']
