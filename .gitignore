@@ -21,7 +21,6 @@ var/
 .installed.cfg
 *.egg
 
-
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
@@ -42,9 +41,9 @@ coverage.xml
 #*#
 *.marks
 
-# pybythec
+#pybythec/
 .pybythec/
-pybythecBuild/
+
 
 # C / C++
 *.o
@@ -58,7 +57,6 @@ pybythecBuild/
 *.pkg
 *.msi
 
-# os x
+# OS X
 .DS_Store
 
-.vscode/

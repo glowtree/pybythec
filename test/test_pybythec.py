@@ -21,7 +21,7 @@ class TestPybythec(unittest.TestCase):
       typical setup for building with pybythc
     '''
     # setup the environment variables...
-    # normally you would probably set these in your .bashrc (linux / osx) or profile.ps1 (windows) file
+    # normally you would probably set these in your .bashrc (linux / os x) or profile.ps1 (windows) file
     os.environ['SHARED'] = '../../../shared'
     
     
@@ -30,14 +30,14 @@ class TestPybythec(unittest.TestCase):
       build
     '''
     print('\n')
-    
+
     # build Plugin
     os.chdir('./example/projects/Plugin/src')
-    pybythec.build(['']) # TODO: shouldn't have to enter an empty list
+    pybythec.build()
     
     # build Main (along with it's library dependencies)
     os.chdir('../../Main/src')
-    pybythec.build([''])
+    pybythec.build()
 
     exePath = '../Main'
     if platform.system() == 'Windows':
@@ -60,9 +60,9 @@ class TestPybythec(unittest.TestCase):
     '''
       clean the builds
     '''
-    pybythec.cleanall(['']) # TODO: shouldn't have to enter an empty list
+    pybythec.cleanall()
     os.chdir('../../Plugin/src')
-    pybythec.cleanall([''])
+    pybythec.cleanall()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "main",
+      "type": "python",
+      "request": "launch",
+      "stopOnEntry": false,
+      "pythonPath": "${config.python.pythonPath}",
+      "program": "${workspaceRoot}/test/test_pybythec.py",
+      "cwd": "${workspaceRoot}",
+      "console": "externalTerminal", //"integratedTerminal",
+      "debugOptions": [
+        "WaitOnAbnormalExit",
+        "WaitOnNormalExit",
+        "RedirectOutput"
+      ]
+    }
+  ]
+}

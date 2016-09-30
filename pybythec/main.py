@@ -36,7 +36,7 @@ from threading import Thread
 log = logging.getLogger('pybythec')
 
 
-def build(argv):
+def build(argv = []):
   '''
     the main function, does the heavy lifting
   
@@ -69,7 +69,7 @@ def build(argv):
   
   threading = True
   
-  log.info('building {0} ({1} {2} {3})'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
+  log.info('building ' + be.infoStr)
 
   if not os.path.exists(be.installPath):
     utils.createDirs(be.installPath)
@@ -255,7 +255,8 @@ def build(argv):
       linked = True
   
   if linked:
-    log.info('linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
+    # log.info('linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
+    log.info('linked ' + be.infoStr)
   else:
     buildStatus.writeError('linking failed because ' + buildStatus.description)
     return False
@@ -416,7 +417,8 @@ def _clean(be):
         os.remove(be.installPath + '/' + f)
 
   if not os.path.exists(be.buildPath): # canary in the coal mine
-    log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
+    # log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
+    log.info(be.infoStr + ' already clean')
     return True
   
   for f in os.listdir(be.buildPath):
@@ -430,7 +432,8 @@ def _clean(be):
   except:
     pass
 
-  log.info('{0} ({1} {2} {3}) all clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
+  # log.info('{0} ({1} {2} {3}) all clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
+  log.info(be.infoStr + ' all clean')
   return True
 
 
