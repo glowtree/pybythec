@@ -33,6 +33,9 @@ import time
 import logging
 from threading import Thread
 
+
+from distutils import file_util, dir_util # TODO: use this more
+
 log = logging.getLogger('pybythec')
 
 
@@ -56,6 +59,8 @@ def build(argv = []):
   except Exception as e:
     print(e.args[0])
     return False
+
+  buildStatus = BuildStatus(be.target, be.buildPath) # final build status
 
   # lock - early return
   if be.locked and os.path.exists(be.targetInstallPath):
@@ -88,7 +93,7 @@ def build(argv = []):
   for define in be.defines:
     definesList += ['-D', define]
   
-  buildStatus = BuildStatus(be.target, be.buildPath) # final build status
+  # buildStatus = BuildStatus(be.target, be.buildPath) # final build status
 
   #
   # qt moc file compilation
@@ -190,7 +195,7 @@ def build(argv = []):
   allUpToDate = True
   for buildStatusDep in buildStatusDeps:
     if buildStatusDep.status == 'failed':
-      buildStatus.writeError('{0} ({1} {2} {3}) failed because {4} failed because...\n\n{5}\n...determined in seconds\n\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, buildStatusDep.name, buildStatusDep.description.encode('ascii', 'ignore'), str(int(time.time() - startTime))))
+      buildStatus.writeError('{0} failed because {1} failed because...\n\n{2}\n...determined in seconds\n\n'.format(be.infoStr, buildStatusDep.name, buildStatusDep.description.encode('ascii', 'ignore'), str(int(time.time() - startTime))))
       return False
     elif buildStatusDep.status == 'built':
       allUpToDate = False
@@ -207,7 +212,7 @@ def build(argv = []):
   linkCmd = []
   
   if allUpToDate and os.path.exists(be.targetInstallPath):
-    buildStatus.writeInfo('up to date', '{0} ({1} {2} {3}) is up to date, determined in {4} seconds\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, str(int(time.time() - startTime))))
+    buildStatus.writeInfo('up to date', '{0} is up to date, determined in {1} seconds\n'.format(be.infoStr, str(int(time.time() - startTime))))
     return True
   
   # microsoft's compiler / linker can only handle so many characters on the command line
@@ -255,7 +260,6 @@ def build(argv = []):
       linked = True
   
   if linked:
-    # log.info('linked {0} ({1} {2} {3})'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
     log.info('linked ' + be.infoStr)
   else:
     buildStatus.writeError('linking failed because ' + buildStatus.description)
@@ -278,8 +282,8 @@ def build(argv = []):
     # # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
     # buildStatus.description = utils.runCmd(['mt', '-nologo', '-manifest', be.targetInstallPath + '.manifest', '-outputresource:', be.targetInstallPath + ';#2'])      
   
-  buildStatus.writeInfo('built', '{0} ({1} {2} {3}) built {4}\ncompleted in {5} seconds\n'.format(be.target, be.buildType, be.compiler, be.binaryFormat, be.targetInstallPath, str(int(time.time() - startTime))))
-  
+  buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n'.format(be.infoStr, be.targetInstallPath, str(int(time.time() - startTime))))
+
   sys.stdout.flush()
 
   # run a post-build script if it exists
@@ -417,13 +421,10 @@ def _clean(be):
         os.remove(be.installPath + '/' + f)
 
   if not os.path.exists(be.buildPath): # canary in the coal mine
-    # log.info('{0} ({1} {2} {3}) already clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
     log.info(be.infoStr + ' already clean')
     return True
   
-  for f in os.listdir(be.buildPath):
-    os.remove(be.buildPath + '/' + f)
-  os.removedirs(be.buildPath)
+  dir_util.remove_tree(be.buildPath, verbose = True)
 
   if os.path.exists(be.targetInstallPath):
     os.remove(be.targetInstallPath)
@@ -432,7 +433,6 @@ def _clean(be):
   except:
     pass
 
-  # log.info('{0} ({1} {2} {3}) all clean'.format(be.target, be.buildType, be.compiler, be.binaryFormat))
   log.info(be.infoStr + ' all clean')
   return True
 

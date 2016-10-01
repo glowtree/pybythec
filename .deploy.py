@@ -17,4 +17,3 @@ else:
 subprocess.call(['git', 'add', '-A'])
 subprocess.call(['git', 'commit', '-a', '-m', sys.argv[1]])
 subprocess.call(['git', 'push'])
-

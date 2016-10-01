@@ -369,10 +369,14 @@ class BuildElements:
 
     self.binaryRelPath = '/{0}/{1}/{2}'.format(self.buildType, self.compiler, self.binaryFormat)
 
-    self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + self.binaryRelPath)
+    binRelPath = self.binaryRelPath 
+    for ck in self.customKeys:
+      binRelPath += '/' + ck.encode('ascii')
+
+    self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + binRelPath)
 
     if self.libInstallPathAppend and (self.binaryType == 'static' or self.binaryType == 'dynamic'):
-      self.installPath += self.binaryRelPath
+      self.installPath += binRelPath
 
     self.targetInstallPath = os.path.join(self.installPath, self.target)
 
@@ -381,6 +385,7 @@ class BuildElements:
       for ck in self.customKeys:
         self.infoStr += ' ' + ck.encode('ascii')
     self.infoStr += ')'
+
 
   def _getBuildElements(self, configObj):
     '''
@@ -426,6 +431,7 @@ class BuildElements:
 
     if 'customKeys' in configObj:
       self.configKeys = configObj['customKeys']
+
 
   def _getBuildElements2(self, configObj):
     '''
