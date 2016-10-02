@@ -103,7 +103,7 @@ class BuildElements:
     argKey = str()
     keyFound = False
 
-    for arg in argv[1:]:
+    for arg in argv:
       if keyFound:
         args[argKey] = arg
         keyFound = False
@@ -228,8 +228,12 @@ class BuildElements:
     if '-ck' in args:
       cmdLineKeys = args['-ck']
       for ck in self.configKeys:
-        if ck in cmdLineKeys:
-          self.customKeys.append(ck)
+        if type(cmdLineKeys) == str:
+          if ck == cmdLineKeys:
+            self.customKeys.append(ck)
+        else: # assume list
+          if ck in cmdLineKeys:
+            self.customKeys.append(ck)
       self.keys += self.customKeys
 
     if self.multithread:

@@ -1,17 +1,28 @@
-
-{  
+{
   "target": "Main",
   "binaryType": "exe",
-  
   "sources": "main.cpp",
-  "libs": ["StaticLib", "DynamicLib"],
-    
+  "libs": [
+    "StaticLib",
+    "DynamicLib"
+  ],
   // paths
-  "incPaths":   ["${SHARED}/include", "../include"],
-  "libPaths":    "${SHARED}/lib",
+  "incPaths": [
+    "${SHARED}/include",
+    "../include"
+  ],
+  "libPaths": "${SHARED}/lib",
   "libSrcPaths": "${SHARED}/src",
-  "installPath": ".."
-  
+  // "installPath": ".",
+  "installPath": {
+    "2015": "./2015",
+    "2016": "./2016"
+  },
+  "customKeys": [
+    "2015",
+    "2016",
+    "2017"
+  ]
   /// defaults: you can also supply / override this information as arguments on the command line
   // "compiler":  "g++",      /// -c g++     (on the command line)
   // "osType":    "linux",    /// -os linux  (on the command line)

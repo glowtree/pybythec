@@ -8,5 +8,5 @@
   },
   
   "incPaths": "${SHARED}/include",
-  "installPath": ".."
+  "installPath": "."
 }

@@ -28,13 +28,9 @@ from pybythec.BuildElements import *
 
 import os
 import sys
-import shutil
 import time
 import logging
 from threading import Thread
-
-
-from distutils import file_util, dir_util # TODO: use this more
 
 log = logging.getLogger('pybythec')
 
@@ -57,7 +53,7 @@ def build(argv = []):
   try:
     be = BuildElements(argv)
   except Exception as e:
-    print(e.args[0])
+    log.info(e.args[0])
     return False
 
   buildStatus = BuildStatus(be.target, be.buildPath) # final build status
@@ -387,7 +383,7 @@ def _buildLib(be, libSrcDir, buildStatus):
     return
   
   # build
-  args = ['', '-d', libSrcDir, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat]
+  args = ['-d', libSrcDir, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat]
   
   projectCf = be.cwDir + '/pybythecProject.json'
   projectCfHidden = be.cwDir + '/.pybythecProject.json'
@@ -424,7 +420,16 @@ def _clean(be):
     log.info(be.infoStr + ' already clean')
     return True
   
-  dir_util.remove_tree(be.buildPath, verbose = True)
+  dirCleared = True
+  for f in os.listdir(be.buildPath):
+    p = be.buildPath + '/' + f
+    try:
+      os.remove(p)
+    except Exception as e:
+      dirCleared = False
+      log.info('failed to remove {0}'.format(p))
+  if dirCleared:
+    os.removedirs(be.buildPath) 
 
   if os.path.exists(be.targetInstallPath):
     os.remove(be.targetInstallPath)
@@ -455,6 +460,6 @@ def _cleanall(be):
     for libSrcPath in be.libSrcPaths:
       libPath = os.path.join(libSrcPath, lib)
       if os.path.exists(libPath):
-        clean(['', '-d', libPath, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat] + projArgs)
+        clean(['-d', libPath, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat] + projArgs)
 
 

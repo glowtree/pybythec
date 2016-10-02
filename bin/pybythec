@@ -6,4 +6,4 @@ import sys
 from pybythec import main
 
 if __name__ == "__main__" :
-  sys.exit(main.build(sys.argv))
+  sys.exit(main.build(sys.argv[1:]))

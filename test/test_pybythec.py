@@ -22,7 +22,7 @@ class TestPybythec(unittest.TestCase):
     '''
     # setup the environment variables...
     # normally you would probably set these in your .bashrc (linux / os x) or profile.ps1 (windows) file
-    os.environ['SHARED'] = '../../../shared'
+    os.environ['SHARED'] = '../../shared'
     
     
   def test_000_something(self):
@@ -32,14 +32,16 @@ class TestPybythec(unittest.TestCase):
     print('\n')
 
     # build Plugin
-    os.chdir('./example/projects/Plugin/src')
+    os.chdir('./example/projects/Plugin')
     pybythec.build()
     
     # build Main (along with it's library dependencies)
-    os.chdir('../../Main/src')
-    pybythec.build()
-
-    exePath = '../Main'
+    os.chdir('../Main')
+    # pybythec.build()
+    pybythec.build(['-ck', '2016'])
+    
+    # exePath = './Main'
+    exePath = './2016/Main'
     if platform.system() == 'Windows':
       exePath += '.exe'
     
@@ -60,8 +62,10 @@ class TestPybythec(unittest.TestCase):
     '''
       clean the builds
     '''
-    pybythec.cleanall()
-    os.chdir('../../Plugin/src')
+    # pybythec.cleanall()
+    pybythec.cleanall(['-ck', '2016'])
+    
+    os.chdir('../Plugin')
     pybythec.cleanall()
 
 
