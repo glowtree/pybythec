@@ -375,7 +375,7 @@ class BuildElements:
 
     binRelPath = self.binaryRelPath 
     for ck in self.customKeys:
-      binRelPath += '/' + ck.encode('ascii')
+      binRelPath += '/' + ck
 
     self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + binRelPath)
 
@@ -387,7 +387,7 @@ class BuildElements:
     self.infoStr = '{0} ({1} {2} {3}'.format(self.target, self.buildType, self.compiler, self.binaryFormat)
     if len(self.customKeys):
       for ck in self.customKeys:
-        self.infoStr += ' ' + ck.encode('ascii')
+        self.infoStr += ' ' + ck
     self.infoStr += ')'
 
 
