@@ -7,7 +7,7 @@ import subprocess
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.9'
+__version__ = '0.9.10'
 
 log = logging.getLogger('pybythec')
 

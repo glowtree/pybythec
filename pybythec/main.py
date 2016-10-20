@@ -35,7 +35,7 @@ from threading import Thread
 log = logging.getLogger('pybythec')
 
 
-def build(argv = []):
+def build(argv = [], buildingLib = False):
   '''
     the main function, does the heavy lifting
   
@@ -80,17 +80,21 @@ def build(argv = []):
 
   incPathList = []
   for incPath in be.incPaths:
-    incPathList += ['-I', incPath]
+    if os.path.exists(incPath):
+        incPathList += ['-I', incPath]
+    else:
+        log.warning('incPath {0} doesn\'t exist'.format(incPath))
 
   for extIncPath in be.extIncPaths: # external include libs (for cases where 3rd party header includes are using "" instead of <> ie Unreal)
-    incPathList += ['-I', extIncPath]
+    if os.path.exists(incPath):
+        incPathList += ['-I', extIncPath]
+    else:
+        log.warning('extIncPath {0} doesn\'t exist'.format(extIncPath))  
 
   definesList = []
   for define in be.defines:
     definesList += ['-D', define]
   
-  # buildStatus = BuildStatus(be.target, be.buildPath) # final build status
-
   #
   # qt moc file compilation
   #
@@ -175,6 +179,9 @@ def build(argv = []):
             break
       else:
         for libSrcPath in be.libSrcPaths:
+          if not os.path.exists('libSrcPath'):
+            log.warning('libSrcPath {0} doesn\'t exist'.format(libSrcPath))
+            continue
           libSrcPath = os.path.join(libSrcPath, lib)
           if os.path.exists(libSrcPath):
             libsBuilding.append(lib)
@@ -209,6 +216,8 @@ def build(argv = []):
   
   if allUpToDate and os.path.exists(be.targetInstallPath):
     buildStatus.writeInfo('up to date', '{0} is up to date, determined in {1} seconds\n'.format(be.infoStr, str(int(time.time() - startTime))))
+    if not buildingLib:
+      _runPostScript()
     return True
   
   # microsoft's compiler / linker can only handle so many characters on the command line
@@ -230,6 +239,9 @@ def build(argv = []):
   if be.binaryType == 'exe' or be.binaryType == 'plugin' or (be.compilerRoot == 'msvc' and be.binaryType == 'dynamic'):
           
     for libPath in be.libPaths:
+      if not os.path.exists(libPath):
+        log.warning('libPath {0} doesn\'t exist'.format(libPath))
+        continue
       if be.compiler.startswith('msvc'):
         linkCmd += [be.libPathFlag + os.path.normpath(libPath)]
       else:
@@ -283,13 +295,8 @@ def build(argv = []):
   sys.stdout.flush()
 
   # run a post-build script if it exists
-  postScript = './pybythecPost.py'
-  if not os.path.exists(postScript):
-    postScript = './.pybythecPost.py'
-
-  if os.path.exists(postScript):
-    with open(postScript) as pf:
-      exec(pf.read())
+  if not buildingLib:
+    _runPostScript()
 
   return True
 
@@ -392,7 +399,7 @@ def _buildLib(be, libSrcDir, buildStatus):
   elif os.path.exists(projectCfHidden):
     args += ['-p', projectCfHidden]
   
-  build(args)
+  build(args, True)
   
   # read the build status
   buildStatus.readFromFile(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat)
@@ -463,3 +470,9 @@ def _cleanall(be):
         clean(['-d', libPath, '-os', be.osType, '-b', be.buildType, '-c', be.compiler, '-bf', be.binaryFormat] + projArgs)
 
 
+def _runPostScript():
+  postScript = './pybythecPost.py'
+  if not os.path.exists(postScript):
+    postScript = './.pybythecPost.py'
+  if os.path.exists(postScript):
+    execfile(postScript)

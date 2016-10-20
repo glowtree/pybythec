@@ -24,7 +24,7 @@ class BuildElements:
     self.binaryFormat = '64bit'  # 32bit, 64bit etc
     self.buildType = 'debug'  # debug, release etc
 
-    self.hiddenFiles = False  # if pybythec files are "hidden files" TODO: implement this
+    self.hiddenFiles = False  # if pybythec files are "hidden files"
 
     self.filetype = ''  # elf, mach-o, pe
 
@@ -116,7 +116,7 @@ class BuildElements:
       elif arg == '-v':
         raise Exception('version: {0}'.format(utils.__version__))
       else:
-        raise Exception('\nvalid arguments:\n\n'
+        raise Exception('\valid arguments:\n\n'
                         '-c   compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110\n'
                         '-os  operating system: currently linux, osx, or windows\n'
                         '-b   build type: debug release etc \n'
@@ -395,22 +395,22 @@ class BuildElements:
     '''
     '''
     if 'target' in configObj:
-      self.target = configObj['target']
+      self.target = os.path.expandvars(configObj['target'])
 
     if 'binaryType' in configObj:
-      self.binaryType = configObj['binaryType']
+      self.binaryType = os.path.expandvars(configObj['binaryType'])
 
     if 'compiler' in configObj:
-      self.compiler = configObj['compiler']
+      self.compiler = os.path.expandvars(configObj['compiler'])
 
     if 'osType' in configObj:
-      self.osType = configObj['osType']
+      self.osType = os.path.expandvars(configObj['osType'])
 
     if 'buildType' in configObj:
-      self.buildType = configObj['buildType']
+      self.buildType = os.path.expandvars(configObj['buildType'])
 
     if 'binaryFormat' in configObj:
-      self.binaryFormat = configObj['binaryFormat']
+      self.binaryFormat = os.path.expandvars(configObj['binaryFormat'])
 
     if 'libInstallPathAppend' in configObj:
       self.libInstallPathAppend = configObj['libInstallPathAppend']

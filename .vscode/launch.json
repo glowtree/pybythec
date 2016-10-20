@@ -9,8 +9,7 @@
       "pythonPath": "${config.python.pythonPath}",
       "program": "${workspaceRoot}/test/test_pybythec.py",
       "cwd": "${workspaceRoot}",
-      "console": "integratedTerminal",
-      // "console": "externalTerminal",
+      "env": {"PYTHONPATH": "${workspaceRoot}"},
       "debugOptions": [
         "WaitOnAbnormalExit",
         "WaitOnNormalExit",
