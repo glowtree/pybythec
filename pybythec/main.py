@@ -284,12 +284,6 @@ def build(argv = [], buildingLib = False):
         if os.path.exists(dynamicPath):
           utils.copyfile(dynamicPath, be.installPath)
   
-  
-  # TODO ?
-  # if be.compiler.startswith('msvc') and be.multithread and (be.binaryType == 'exe' or be.binaryType == 'dynamic' or be.binaryType == 'plugin'):
-    # # TODO: figure out what this #2 shit is, took 4 hours of bullshit to find out it's needed for maya plugins
-    # buildStatus.description = utils.runCmd(['mt', '-nologo', '-manifest', be.targetInstallPath + '.manifest', '-outputresource:', be.targetInstallPath + ';#2'])      
-  
   buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n'.format(be.infoStr, be.targetInstallPath, str(int(time.time() - startTime))))
 
   sys.stdout.flush()
@@ -419,9 +413,17 @@ def _clean(be):
           libName = libName.lstrip('lib')
         for lib in be.libs:
           if lib == libName:
-            os.remove(be.installPath + '/' + f)
+            p = be.installPath + '/' + f
+            try:
+              os.remove(p)
+            except:
+              log.warning('failed to remove ' + p)
       elif ext == '.exp' or ext == '.ilk' or ext == '.lib' or ext == '.pdb': # msvc files
-        os.remove(be.installPath + '/' + f)
+        p = be.installPath + '/' + f
+        try:
+          os.remove(p)
+        except:
+          log.warning('failed to remove ' + p)
 
   if not os.path.exists(be.buildPath): # canary in the coal mine
     log.info(be.infoStr + ' already clean')
@@ -434,7 +436,7 @@ def _clean(be):
       os.remove(p)
     except Exception as e:
       dirCleared = False
-      log.info('failed to remove {0}'.format(p))
+      log.warning('failed to remove {0}'.format(p))
   if dirCleared:
     os.removedirs(be.buildPath) 
 
@@ -471,8 +473,9 @@ def _cleanall(be):
 
 
 def _runPostScript():
-  postScript = './pybythecPost.py'
-  if not os.path.exists(postScript):
-    postScript = './.pybythecPost.py'
-  if os.path.exists(postScript):
-    execfile(postScript)
+  postScriptPath = './pybythecPost.py'
+  if not os.path.exists(postScriptPath):
+    postScriptPath = './.pybythecPost.py'
+  if os.path.exists(postScriptPath):
+    with open(postScriptPath, 'r') as rf:
+      exec(rf.read())

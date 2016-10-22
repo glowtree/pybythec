@@ -116,7 +116,7 @@ class BuildElements:
       elif arg == '-v':
         raise Exception('version: {0}'.format(utils.__version__))
       else:
-        raise Exception('\valid arguments:\n\n'
+        raise Exception('{0} is not a valid argumnet\nvalid arguments:\n\n'
                         '-c   compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110\n'
                         '-os  operating system: currently linux, osx, or windows\n'
                         '-b   build type: debug release etc \n'
@@ -126,7 +126,7 @@ class BuildElements:
                         '-cla clean the build and the builds of all library dependencies\n'
                         '-v   version\n'
                         '-ck  custom keys that you want this build to use (comma delineated, no spaces ie foo,bar)\n'
-                        '-d   directory of the library being built, likely only used when building a library as a dependency (ie from a project)\n')
+                        '-d   directory of the library being built, likely only used when building a library as a dependency (ie from a project)\n'.format(arg))
 
     self.cwDir = os.getcwd()
     if '-d' in args:
@@ -145,10 +145,14 @@ class BuildElements:
     if not globalCf:
       globalCf = utils.loadJsonFile('.pybythecGlobals.json')
     if not globalCf:
-      if platform.system() == 'Linux' or platform.system() == 'Darwin':
-        globalCf = utils.loadJsonFile(os.environ['HOME'] + '/.pybythecGlobals.json')
-      elif platform.system() == 'Windows':
-        globalCf = utils.loadJsonFile(os.environ['USERPROFILE'] + '/.pybythecGlobals.json')
+      globalCf = utils.loadJsonFile('pybythecGlobals.json')  
+    if not globalCf:
+      homeDirPath = os.environ['HOME']
+      if platform.system() == 'Windows':
+        homeDirPath = os.environ['USERPROFILE']
+        globalCf = utils.loadJsonFile(homeDirPath + '/.pybythecGlobals.json')
+      if not globalCf:
+        globalCf = utils.loadJsonFile(homeDirPath + '/pybythecGlobals.json')
     if not globalCf:
       log.warning('no global pybythec json file found')
 
