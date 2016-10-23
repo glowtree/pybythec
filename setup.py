@@ -196,9 +196,9 @@ pybythecGlobals = '''
     ],
     "msvc-140": [
       "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/shared",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/um",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt"
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/ucrt",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/um",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/shared"
     ]
   },
   "libPaths": {
@@ -235,13 +235,13 @@ pybythecGlobals = '''
     "msvc-140": {
       "32bit": [
         "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x86",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/um/x86"
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/ucrt/x86",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/um/x86"
       ],
       "64bit": [
         "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib/amd64",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x64",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/um/x64"
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/ucrt/x64",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/um/x64"
       ]
     }
   }
@@ -277,7 +277,7 @@ description = 'A lightweight cross-platform build system for c/c++, written in p
 
 setup(
   name = 'pybythec',
-  version = '0.9.11',
+  version = '0.9.12',
   author = 'glowtree',
   author_email = 'tom@glowtree.com',
   url = 'https://github.com/glowtree/pybythec',

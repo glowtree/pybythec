@@ -7,10 +7,7 @@
     "DynamicLib"
   ],
   // paths
-  "incPaths": [
-    "${SHARED}/include",
-    "../include"
-  ],
+  "incPaths": "${SHARED}/include",
   "libPaths": "${SHARED}/lib",
   "libSrcPaths": "${SHARED}/src",
   // "installPath": ".",

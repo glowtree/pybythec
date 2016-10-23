@@ -150,7 +150,7 @@ class BuildElements:
       homeDirPath = os.environ['HOME']
       if platform.system() == 'Windows':
         homeDirPath = os.environ['USERPROFILE']
-        globalCf = utils.loadJsonFile(homeDirPath + '/.pybythecGlobals.json')
+      globalCf = utils.loadJsonFile(homeDirPath + '/.pybythecGlobals.json')
       if not globalCf:
         globalCf = utils.loadJsonFile(homeDirPath + '/pybythecGlobals.json')
     if not globalCf:
