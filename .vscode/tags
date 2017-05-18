@@ -1,0 +1,122 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+.deploy.py	../.deploy.py	1;"	kind:file	line:1
+BuildElements	../pybythec/BuildElements.py	/^class BuildElements:$/;"	kind:class	line:9
+BuildElements	../pybythec/__init__.py	/^from pybythec.BuildElements import BuildElements$/;"	kind:namespace	line:6
+BuildElements.py	../pybythec/BuildElements.py	1;"	kind:file	line:1
+BuildStatus	../pybythec/BuildStatus.py	/^class BuildStatus:$/;"	kind:class	line:9
+BuildStatus	../pybythec/__init__.py	/^from pybythec.BuildStatus import BuildStatus$/;"	kind:namespace	line:5
+BuildStatus.py	../pybythec/BuildStatus.py	1;"	kind:file	line:1
+TestPybythec	../test/test_pybythec.py	/^class TestPybythec(unittest.TestCase):$/;"	kind:class	line:17
+Thread	../pybythec/__init__.py	/^from threading import Thread$/;"	kind:namespace	line:11
+Thread	../pybythec/main.py	/^from threading import Thread$/;"	kind:namespace	line:33
+__author__	../pybythec/__init__.py	/^__author__ = 'glowtree'$/;"	kind:variable	line:17
+__email__	../pybythec/__init__.py	/^__email__ = 'tom@glowtree.com'$/;"	kind:variable	line:18
+__init__	../pybythec/BuildElements.py	/^  def __init__(self,$/;"	kind:member	line:11
+__init__	../pybythec/BuildStatus.py	/^  def __init__(self, name, path = ''):$/;"	kind:member	line:18
+__init__.py	../pybythec/__init__.py	1;"	kind:file	line:1
+__init__.py	../test/__init__.py	1;"	kind:file	line:1
+__version__	../pybythec/__init__.py	/^__version__ = '0.9.13'$/;"	kind:variable	line:19
+_buildLib	../pybythec/__init__.py	/^def _buildLib(be, libSrcDir, buildStatus):$/;"	kind:function	line:372
+_buildLib	../pybythec/main.py	/^def _buildLib(be, libSrcDir, buildStatus):$/;"	kind:function	line:377
+_clean	../pybythec/__init__.py	/^def _clean(be):$/;"	kind:function	line:429
+_clean	../pybythec/main.py	/^def _clean(be):$/;"	kind:function	line:401
+_cleanall	../pybythec/__init__.py	/^def _cleanall(be):$/;"	kind:function	line:498
+_cleanall	../pybythec/main.py	/^def _cleanall(be):$/;"	kind:function	line:454
+_compileSrc	../pybythec/__init__.py	/^def _compileSrc(be, compileCmd, source, objPaths, buildStatus):$/;"	kind:function	line:324
+_compileSrc	../pybythec/main.py	/^def _compileSrc(be, compileCmd, source, objPaths, buildStatus):$/;"	kind:function	line:329
+_getArgsList	../pybythec/BuildElements.py	/^  def _getArgsList(self, argsList, args):$/;"	kind:member	line:480
+_getBuildElements	../pybythec/BuildElements.py	/^  def _getBuildElements(self, configObj):$/;"	kind:member	line:373
+_getBuildElements2	../pybythec/BuildElements.py	/^  def _getBuildElements2(self, configObj):$/;"	kind:member	line:418
+_resolvePaths	../pybythec/BuildElements.py	/^  def _resolvePaths(self, absPath, paths):$/;"	kind:member	line:474
+_runPostScript	../pybythec/__init__.py	/^def _runPostScript():$/;"	kind:function	line:524
+_runPostScript	../pybythec/main.py	/^def _runPostScript():$/;"	kind:function	line:475
+_writeToFile	../pybythec/BuildStatus.py	/^  def _writeToFile(self):$/;"	kind:member	line:68
+author	../setup.py	/^  author = 'glowtree',$/;"	kind:variable	line:281
+author_email	../setup.py	/^  author_email = 'tom@glowtree.com',$/;"	kind:variable	line:282
+baseInstall	../setup.py	/^from setuptools.command.install import install as baseInstall$/;"	kind:namespace	line:9
+build	../pybythec/__init__.py	/^def build($/;"	kind:function	line:22
+build	../pybythec/main.py	/^def build(argv = [], buildingLib = False):$/;"	kind:function	line:38
+checkTimestamps	../pybythec/utils.py	/^def checkTimestamps(incPaths, src, timestamp):$/;"	kind:function	line:15
+clean	../pybythec/__init__.py	/^def clean(compiler = None,$/;"	kind:function	line:402
+clean	../pybythec/main.py	/^def clean(argv):$/;"	kind:function	line:298
+cleanAll	../pybythec/__init__.py	/^def cleanAll(compiler = None, osType = None, buildType = None, binaryFormat = None, projectConfig = None, globalConfig = None, customKeys = None):$/;"	kind:function	line:481
+cleanall	../pybythec/main.py	/^def cleanall(argv):$/;"	kind:function	line:312
+cmdclass	../setup.py	/^  cmdclass = {'install': installer}$/;"	kind:variable	line:290
+copyfile	../pybythec/utils.py	/^def copyfile(srcPath, dstDir):$/;"	kind:function	line:105
+createDirs	../pybythec/utils.py	/^def createDirs(path):$/;"	kind:function	line:78
+description	../setup.py	/^  description = description,$/;"	kind:variable	line:284
+description	../setup.py	/^description = 'A lightweight cross-platform build system for c\/c++, written in python'$/;"	kind:variable	line:276
+getLibPath	../pybythec/utils.py	/^def getLibPath(libName, libPath, compiler, libExt):$/;"	kind:function	line:58
+installer	../setup.py	/^class installer(baseInstall):$/;"	kind:class	line:251
+json	../pybythec/BuildStatus.py	/^import json$/;"	kind:namespace	line:3
+json	../pybythec/utils.py	/^import json$/;"	kind:namespace	line:2
+license	../setup.py	/^  license = 'LICENSE',$/;"	kind:variable	line:288
+loadJsonFile	../pybythec/utils.py	/^def loadJsonFile(jsonPath):$/;"	kind:function	line:132
+log	../pybythec/BuildElements.py	/^log = logging.getLogger('pybythec')$/;"	kind:variable	line:6
+log	../pybythec/BuildStatus.py	/^log = logging.getLogger('pybythec')$/;"	kind:variable	line:7
+log	../pybythec/__init__.py	/^log = logging.getLogger('pybythec')$/;"	kind:variable	line:15
+log	../pybythec/main.py	/^log = logging.getLogger('pybythec')$/;"	kind:variable	line:35
+log	../pybythec/utils.py	/^log = logging.getLogger('pybythec')$/;"	kind:variable	line:6
+logging	../pybythec/BuildElements.py	/^import logging$/;"	kind:namespace	line:2
+logging	../pybythec/BuildStatus.py	/^import logging$/;"	kind:namespace	line:4
+logging	../pybythec/__init__.py	/^import logging$/;"	kind:namespace	line:13
+logging	../pybythec/main.py	/^import logging$/;"	kind:namespace	line:32
+logging	../pybythec/utils.py	/^import logging$/;"	kind:namespace	line:5
+long_description	../setup.py	/^  long_description = str(open('README.rst', 'r').read()).replace(description, ''),$/;"	kind:variable	line:285
+main.py	../pybythec/main.py	1;"	kind:file	line:1
+makePathAbsolute	../pybythec/utils.py	/^def makePathAbsolute(absPath, path):$/;"	kind:function	line:69
+name	../setup.py	/^  name = 'pybythec',$/;"	kind:variable	line:279
+os	../pybythec/BuildElements.py	/^import os$/;"	kind:namespace	line:1
+os	../pybythec/BuildStatus.py	/^import os$/;"	kind:namespace	line:2
+os	../pybythec/__init__.py	/^import os$/;"	kind:namespace	line:8
+os	../pybythec/main.py	/^import os$/;"	kind:namespace	line:29
+os	../pybythec/utils.py	/^import os$/;"	kind:namespace	line:1
+os	../setup.py	/^import os$/;"	kind:namespace	line:5
+os	../test/test_pybythec.py	/^import os$/;"	kind:namespace	line:11
+packages	../setup.py	/^  packages = ['pybythec'],$/;"	kind:variable	line:286
+platform	../.deploy.py	/^import platform$/;"	kind:namespace	line:3
+platform	../pybythec/BuildElements.py	/^import platform$/;"	kind:namespace	line:3
+platform	../setup.py	/^import platform$/;"	kind:namespace	line:7
+platform	../test/test_pybythec.py	/^import platform$/;"	kind:namespace	line:12
+pybythec	../test/test_pybythec.py	/^import pybythec$/;"	kind:namespace	line:15
+re	../setup.py	/^import re$/;"	kind:namespace	line:4
+readFromFile	../pybythec/BuildStatus.py	/^  def readFromFile(self, libSrcDir, buildDir, buildType, compiler, binaryFormat):$/;"	kind:member	line:25
+removeComments	../pybythec/utils.py	/^def removeComments(f):$/;"	kind:function	line:152
+run	../setup.py	/^  def run(self):$/;"	kind:member	line:252
+runCmd	../pybythec/utils.py	/^def runCmd(cmd):$/;"	kind:function	line:171
+scripts	../setup.py	/^  scripts = ['bin\/pybythec'],$/;"	kind:variable	line:287
+setUp	../test/test_pybythec.py	/^  def setUp(self):$/;"	kind:member	line:19
+setup	../setup.py	/^from setuptools import setup$/;"	kind:namespace	line:8
+setup.py	../setup.py	1;"	kind:file	line:1
+shutil	../pybythec/utils.py	/^import shutil$/;"	kind:namespace	line:3
+sourceNeedsBuilding	../pybythec/utils.py	/^def sourceNeedsBuilding(incPaths, src, objTimestamp):$/;"	kind:function	line:45
+srcNewer	../pybythec/utils.py	/^def srcNewer(srcPath, dstPath):$/;"	kind:function	line:9
+subprocess	../.deploy.py	/^import subprocess$/;"	kind:namespace	line:4
+subprocess	../pybythec/utils.py	/^import subprocess$/;"	kind:namespace	line:4
+subprocess	../test/test_pybythec.py	/^import subprocess$/;"	kind:namespace	line:14
+sys	../.deploy.py	/^import sys$/;"	kind:namespace	line:2
+sys	../pybythec/__init__.py	/^import sys$/;"	kind:namespace	line:9
+sys	../pybythec/main.py	/^import sys$/;"	kind:namespace	line:30
+sys	../setup.py	/^import sys$/;"	kind:namespace	line:6
+sys	../test/test_pybythec.py	/^  import sys$/;"	kind:namespace	line:73
+tearDown	../test/test_pybythec.py	/^  def tearDown(self):$/;"	kind:member	line:61
+test_000_something	../test/test_pybythec.py	/^  def test_000_something(self):$/;"	kind:member	line:28
+test_pybythec.py	../test/test_pybythec.py	1;"	kind:file	line:1
+test_suite	../setup.py	/^  test_suite = 'test',$/;"	kind:variable	line:289
+time	../pybythec/__init__.py	/^import time$/;"	kind:namespace	line:10
+time	../pybythec/main.py	/^import time$/;"	kind:namespace	line:31
+unittest	../test/test_pybythec.py	/^import unittest$/;"	kind:namespace	line:13
+url	../setup.py	/^  url = 'https:\/\/github.com\/glowtree\/pybythec',$/;"	kind:variable	line:283
+utils	../pybythec/BuildElements.py	/^from pybythec import utils$/;"	kind:namespace	line:4
+utils	../pybythec/BuildStatus.py	/^from pybythec import utils$/;"	kind:namespace	line:5
+utils	../pybythec/__init__.py	/^from pybythec import utils$/;"	kind:namespace	line:2
+utils	../pybythec/main.py	/^from pybythec import utils$/;"	kind:namespace	line:25
+utils.py	../pybythec/utils.py	1;"	kind:file	line:1
+version	../setup.py	/^  version = '0.9.13',$/;"	kind:variable	line:280
+writeError	../pybythec/BuildStatus.py	/^  def writeError(self, msg):$/;"	kind:member	line:62
+writeInfo	../pybythec/BuildStatus.py	/^  def writeInfo(self, status, msg):$/;"	kind:member	line:55

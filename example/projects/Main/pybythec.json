@@ -7,9 +7,9 @@
     "DynamicLib"
   ],
   // paths
-  "incPaths": "${SHARED}/include",
-  "libPaths": "${SHARED}/lib",
-  "libSrcPaths": "${SHARED}/src",
+  "incPaths": "${PYBYTHEC_EXAMPLE_SHARED}/include",
+  "libPaths": "${PYBYTHEC_EXAMPLE_SHARED}/lib",
+  "libSrcPaths": "${PYBYTHEC_EXAMPLE_SHARED}/src",
   // "installPath": ".",
   "installPath": {
     "2015": "./2015",
@@ -20,8 +20,4 @@
     "2016",
     "2017"
   ]
-  /// defaults: you can also supply / override this information as arguments on the command line
-  // "compiler":  "g++",      /// -c g++     (on the command line)
-  // "osType":    "linux",    /// -os linux  (on the command line)
-  // "buildType": "release"   /// -b release (on the command line)
 }

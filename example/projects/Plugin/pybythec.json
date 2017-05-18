@@ -7,6 +7,6 @@
     "msvc": ["/export:loadPlugin", "/export:unloadPlugin"]
   },
   
-  "incPaths": "${SHARED}/include",
+  "incPaths": ".",
   "installPath": "."
 }

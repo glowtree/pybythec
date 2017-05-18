@@ -1,14 +1,8 @@
-
 import os
 import json
 import shutil
-import logging
 import subprocess
-
-__author__ = 'glowtree'
-__email__ = 'tom@glowtree.com'
-__version__ = '0.9.13'
-
+import logging
 log = logging.getLogger('pybythec')
 
 
@@ -35,31 +29,31 @@ def checkTimestamps(incPaths, src, timestamp):
   for line in srcFile:
     fileCopy += line
   srcFile.close()
-  
+
   for line in fileCopy.split('\n'):
     if line.startswith('#include'):
       filename = line.lstrip('#include')
       filename = filename.strip()
-      if(filename[0] == '"'):
+      if (filename[0] == '"'):
         filename = filename.strip('"')
         for dir in incPaths:
           filepath = os.path.join(dir, filename)
           if os.path.exists(filepath):
             checkTimestamps(incPaths, filepath, timestamp)
-     
-     
+
+
 def sourceNeedsBuilding(incPaths, src, objTimestamp):
   '''
     determines whether a source file needs to be built or not
   '''
-  timestamp = [0] # [] so it's passed as a reference
+  timestamp = [0]  # [] so it's passed as a reference
   checkTimestamps(incPaths, src, timestamp)
-  
+
   if timestamp[0] > objTimestamp:
     return True
-    
+
   return False
-  
+
 
 def getLibPath(libName, libPath, compiler, libExt):
   '''
@@ -79,7 +73,7 @@ def makePathAbsolute(absPath, path):
   if os.path.isabs(path):
     return path
   return os.path.normpath(os.path.join(absPath, './' + path))
-    
+
 
 def createDirs(path):
   '''
@@ -89,13 +83,13 @@ def createDirs(path):
   if path is None or not len(path):
     log.warning('createDirs: empty path')
     return
-  
+
   # in case path ends with a '/'
   path = path.rstrip('/')
-  
+
   if os.path.exists(path):
     return
-  
+
   # if the path above the current one doesn't exist, create it
   abovePath = os.path.dirname(path)
   if not os.path.exists(abovePath):
@@ -106,7 +100,7 @@ def createDirs(path):
   except OSError as e:
     # log.warning('failed to make {0} because {1}'.format(path, str(e)))
     pass
-  
+
 
 def copyfile(srcPath, dstDir):
   '''
@@ -114,7 +108,7 @@ def copyfile(srcPath, dstDir):
     srcPath: absolute file path
     dstDir:  absolute directory path
   '''
-  
+
   if not os.path.exists(srcPath):
     return False
 
@@ -131,25 +125,21 @@ def copyfile(srcPath, dstDir):
   shutil.copy2(srcPath, dstDir)
 
   log.debug('{0} copied to {1}'.format(srcPath, dstPath))
-      
+
   return True
-  
+
 
 def loadJsonFile(jsonPath):
-  ''' 
+  '''
     load a json config file
   '''
-  
-  if not os.path.exists(jsonPath):
-    return None
   if os.path.splitext(jsonPath)[1] != '.json':
     log.warning('{0} is not json'.format(jsonPath))
     return None
-
   try:
     with open(jsonPath) as f:
       return json.loads(removeComments(f))
-  except ValueError as e: # Exception as e:
+  except Exception as e: # ValueError as e:
     log.warning('failed to read {0} because {1}'.format(jsonPath, str(e)))
   return None
 
@@ -171,14 +161,14 @@ def removeComments(f):
       i += 1
       sansComments += c
   return sansComments
-  
+
 
 def runCmd(cmd):
   ''' 
     runs a command and blocks until it's done, returns the output
   '''
   try:
-    compileProcess = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE) 
+    compileProcess = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
   except OSError as e:
     return str(e)
   stdout, stderr = compileProcess.communicate()

@@ -1,4 +1,9 @@
 {
   "editor.tabSize": 2,
-  "editor.insertSpaces": true
+  "python.linting.flake8Enabled": true,
+  "python.formatting.provider": "yapf",
+  "python.autoComplete.extraPaths": [
+    ".", 
+    "./pybythec"
+  ]
 }

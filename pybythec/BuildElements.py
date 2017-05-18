@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 import platform
 from pybythec import utils
@@ -8,25 +7,31 @@ log = logging.getLogger('pybythec')
 
 
 class BuildElements:
-  def __init__(self, argv):
+
+  def __init__(self,
+               compiler = None,
+               osType = None,
+               buildType = None,
+               binaryFormat = None,
+               projConfig = None,
+               projConfigPath = None,
+               globalConfig = None,
+               globalConfigPath = None,
+               customKeys = None,
+               libDir = None):
     '''
-      argv (input): a list of arguments with a flag, value pairing ie ['-c', 'gcc'] (where -c is the flag and gcc is the value)
     '''
 
-    # get any arguments passed in
-    if type(argv) is not list:
-      raise Exception('args must be a list, not a {0}'.format(argv))
+    # set by the config files first
+    self.target = None
+    self.binaryType = None  # exe, static, dynamic, plugin
+    self.compiler = None  # g++-4.4 g++ clang++ msvc110 etc
+    self.osType = None  # linux, osx, windows
+    self.binaryFormat = None  # 32bit, 64bit etc
+    self.buildType = None  # debug, release etc
+    self.filetype = None  # elf, mach-o, pe
 
-    self.target = ''
-    self.binaryType = ''  # exe, static, dynamic, plugin
-    self.compiler = ''  # g++-4.4 g++ clang++ msvc110 etc
-    self.osType = ''  # linux, osx, windows
-    self.binaryFormat = '64bit'  # 32bit, 64bit etc
-    self.buildType = 'debug'  # debug, release etc
-
-    self.hiddenFiles = False  # if pybythec files are "hidden files"
-
-    self.filetype = ''  # elf, mach-o, pe
+    self.hiddenFiles = False  # if pybythec files are "hidden files" - start with .
 
     self.multithread = True
 
@@ -38,10 +43,10 @@ class BuildElements:
     self.buildDir = 'pybythec'
     self.hideBuildDirs = False
 
-    self.installPath = '.'  #self.buildDir
+    self.installPath = '.'
 
-    self.configKeys = [] # can be declared in the config files
-    self.customKeys = [] # custom keys that are both declared on the command line and found in the config file(s)
+    self.configKeys = []  # can be declared in the config files
+    self.customKeys = []  # custom keys that are both declared on the command line and found in the config file(s)
 
     self.sources = []
     self.libs = []
@@ -62,23 +67,23 @@ class BuildElements:
 
     # defaults
     if platform.system() == 'Linux':
-      if not len(self.osType):
+      if not self.osType:
         self.osType = 'linux'
-      if not len(self.compiler):
+      if not self.compiler:
         self.compiler = 'g++'
-      if not len(self.filetype):
+      if not self.filetype:
         self.filetype = 'elf'
     elif platform.system() == 'Darwin':
-      if not len(self.osType):
+      if not self.osType:
         self.osType = 'osx'
-      if not len(self.compiler):
+      if not self.compiler:
         self.compiler = 'clang++'
-      if not len(self.filetype):
+      if not self.filetype:
         self.filetype = 'mach-o'
     elif platform.system() == 'Windows':
-      if not len(self.osType):
+      if not self.osType:
         self.osType = 'windows'
-      if not len(self.compiler):
+      if not self.compiler:  # find the latest visual studio verison
         i = 25  # NOTE: hopefully that covers enough VisualStudio releases
         vcPath = 'C:/Program Files (x86)/Microsoft Visual Studio {0}.0/VC'
         foundVc = False
@@ -91,125 +96,114 @@ class BuildElements:
           self.compiler = 'msvc-{0:02}0'.format(i)
         else:
           raise Exception('can\'t find a compiler for Windows')
-      if not len(self.filetype):
+      if not self.filetype:
         self.filetype = 'pe'
     else:
-      raise Exception('os does not appear to be Linux, OS X or Windows')
-
-    #
-    # parse the args
-    #
-    args = dict()
-    argKey = str()
-    keyFound = False
-
-    for arg in argv:
-      if keyFound:
-        args[argKey] = arg
-        keyFound = False
-        continue
-      if arg == '-cl' or arg == '-cla':  # cleaning
-        args[arg] = ''
-      elif arg == '-c' or arg == '-os' or arg == '-b' or arg == '-bf' or arg == '-d' or arg == '-p' or arg == '-ck':
-        argKey = arg
-        keyFound = True
-      elif arg == '-v':
-        raise Exception('version: {0}'.format(utils.__version__))
-      else:
-        raise Exception('{0} is not a valid argumnet\nvalid arguments:\n\n'
-                        '-c   compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110\n'
-                        '-os  operating system: currently linux, osx, or windows\n'
-                        '-b   build type: debug release etc \n'
-                        '-bf  binary format: 32bit, 64bit etc\n'
-                        '-p   path to a pybythec project config file (json format)\n'
-                        '-cl  clean the build\n'
-                        '-cla clean the build and the builds of all library dependencies\n'
-                        '-v   version\n'
-                        '-ck  custom keys that you want this build to use (comma delineated, no spaces ie foo,bar)\n'
-                        '-d   directory of the library being built, likely only used when building a library as a dependency (ie from a project)\n'.format(arg))
+      raise Exception('os needs to be Linux, OS X or Windows')
 
     self.cwDir = os.getcwd()
-    if '-d' in args:
-      self.cwDir = args['-d']
+    if libDir:
+      self.cwDir = libDir
+    
+    #
+    # config files
+    #
+    if not libDir: # libDir means this is a dependency build, so skip the global and project config finding
+      # global config
+      if not globalConfig:
+        if globalConfigPath:
+          if not os.path.exists(globalConfigPath):
+            log.warning('{0} doesn\'t exist'.format(globalConfigPath))
+          globalConfig = utils.loadJsonFile(globalConfigPath)
+        elif 'PYBYTHEC_GLOBALS' in os.environ:
+          globalConfigPath = os.environ['PYBYTHEC_GLOBALS']
+          if os.path.exists(globalConfigPath):
+            globalConfig = utils.loadJsonFile(globalConfigPath)
+          else:
+            log.warning('PYBYTHEC_GLOBALS points to {0}, which doesn\'t exist'.format(globalConfigPath))
+        elif os.path.exists('.pybythecGlobals.json'):
+          globalConfig = utils.loadJsonFile('.pybythecGlobals.json')
+        elif os.path.exists('pybythecGlobals.json'):
+          globalConfig = utils.loadJsonFile('pybythecGlobals.json')
+        else: # check the home directory
+          homeDirPath = ''
+          if platform.system() == 'Windows':
+            homeDirPath = os.environ['USERPROFILE']
+          else:
+            homeDirPath = os.environ['HOME']
+          if os.path.exists(homeDirPath + '/.pybythecGlobals.json'):
+            globalConfig = utils.loadJsonFile(homeDirPath + '/.pybythecGlobals.json')
+          elif os.path.exists(homeDirPath + '/pybythecGlobals.json'):
+            globalConfig = utils.loadJsonFile(homeDirPath + '/pybythecGlobals.json')
+          else: # end of the line
+            log.warning('no pybythecGlobals.json found in the home directory (hidden or otherwise)')
+      if not globalConfig:
+        log.warning('not using a global configuration')
+      
+      # project config
+      if not projConfig:
+        if projConfigPath:
+          if not os.path.exists(projConfigPath):
+            log.warning('{0} doesn\'t exist'.format(projConfigPath))
+          projConfig = utils.loadJsonFile(projConfigPath)
+        elif 'PYBYTHEC_PROJECT' in os.environ:
+          projConfPath = os.environ['PYBYTHEC_PROJECT']
+          if os.path.exists(projConfPath):
+            projConfig = utils.loadJsonFile(projConfPath)
+          else:
+            log.warning('PYBYTHEC_PROJECT points to {0}, which doesn\'t exist'.format(projConfPath))
+        else:
+          if os.path.exists(self.cwDir + '/pybythecProject.json'):
+            projConfig = utils.loadJsonFile(self.cwDir + '/pybythecProject.json')
+          elif os.path.exists(self.cwDir + '/.pybythecProject.json'):
+            projConfig = utils.loadJsonFile(self.cwDir + '/.pybythecProject.json')
+      # if not projConfig:
+        # log.warning('not using a project pybythec configuration')
 
-  # json config files
-    globalCf = None
-    projectCf = None
-    localCf = None
+    self.globalConfig = globalConfig  
+    self.projConfig = projConfig
+      
 
-    # global config
-    if not globalCf and '-g' in args:
-      globalCf = utils.loadJsonFile(args['-g'])
-    if 'PYBYTHEC_GLOBALS' in os.environ:
-      globalCf = utils.loadJsonFile(os.environ['PYBYTHEC_GLOBALS'])
-    if not globalCf:
-      globalCf = utils.loadJsonFile('.pybythecGlobals.json')
-    if not globalCf:
-      globalCf = utils.loadJsonFile('pybythecGlobals.json')  
-    if not globalCf:
-      homeDirPath = ''
-      if platform.system() == 'Windows':
-        homeDirPath = os.environ['USERPROFILE']
-      else:
-        homeDirPath = os.environ['HOME']
-      globalCf = utils.loadJsonFile(homeDirPath + '/.pybythecGlobals.json')
-      if not globalCf:
-        globalCf = utils.loadJsonFile(homeDirPath + '/pybythecGlobals.json')
-    if not globalCf:
-      log.warning('no global pybythec json file found')
-
-  # project config
-    if 'PYBYTHEC_PROJECT' in os.environ:
-      projectCf = os.environ['PYBYTHEC_PROJECT']
-    if not projectCf and '-p' in args:
-      projectCf = utils.loadJsonFile(args['-p'])
-    if not projectCf:
-      projectCf = utils.loadJsonFile(self.cwDir + '/pybythecProject.json')
-    if not projectCf:
-      projectCf = utils.loadJsonFile(self.cwDir + '/.pybythecProject.json')
-
-  # local config, expected to be in the current working directory
+    # local config, expected to be in the current working directory
+    localConfig = None
     localConfigPath = self.cwDir + '/pybythec.json'
     if not os.path.exists(localConfigPath):
       localConfigPath = self.cwDir + '/.pybythec.json'
     if os.path.exists(localConfigPath):
-      localCf = utils.loadJsonFile(localConfigPath)
+      localConfig = utils.loadJsonFile(localConfigPath)
 
-    if globalCf is not None:
-      self._getBuildElements(globalCf)
-    if projectCf is not None:
-      self._getBuildElements(projectCf)
-    if localCf is not None:
-      self._getBuildElements(localCf)
+    if globalConfig is not None:
+      self._getBuildElements(globalConfig)
+    if projConfig is not None:
+      self._getBuildElements(projConfig)
+    if localConfig is not None:
+      self._getBuildElements(localConfig)
 
     # command line overrides
-    if '-os' in args:
-      self.osType = args['-os']
+    if osType:
+      self.osType = osType
 
-    if '-b' in args:
-      self.buildType = args['-b']
+    if buildType:
+      self.buildType = buildType
 
-    if '-bf' in args:
-      self.binaryFormat = args['-bf']
+    if binaryFormat:
+      self.binaryFormat = binaryFormat
 
     # compiler special case: os specific compiler selection
     if type(self.compiler) == dict:
-      compiler = []
+      compilerList = []
       self.keys = [self.osType]
-      if globalCf and 'compiler' in globalCf:
-        self._getArgsList(compiler, globalCf['compiler'])
-      if projectCf and 'compiler' in projectCf:
-        self._getArgsList(compiler, projectCf['compiler'])
-      if localCf and 'compiler' in localCf:
-        self._getArgsList(compiler, localCf['compiler'])
-      if len(compiler):
-        self.compiler = compiler[0]
+      if globalConfig and 'compiler' in globalConfig:
+        self._getArgsList(compilerList, globalConfig['compiler'])
+      if projConfig and 'compiler' in projConfig:
+        self._getArgsList(compilerList, projConfig['compiler'])
+      if localConfig and 'compiler' in localConfig:
+        self._getArgsList(compilerList, localConfig['compiler'])
+      if len(compilerList):
+        self.compiler = compilerList[0]
 
-    # one final commandline override: the compiler
-    if '-c' in args:
-      self.compiler = args['-c']
-
-    # TODO: verify things like does this compiler actually exist (to prevent getting poor error messages)
+    if compiler:
+      self.compiler = compiler
 
     # currently compiler root can either be gcc, clang or msvc
     self.compilerRoot = self.compiler
@@ -231,37 +225,32 @@ class BuildElements:
     self.keys = ['all', self.compilerRoot, self.compiler, self.osType, self.binaryType, self.buildType, self.binaryFormat]
 
     # custom keys
-    if '-ck' in args:
-      cmdLineKeys = args['-ck']
+    if customKeys:
       for ck in self.configKeys:
-        if type(cmdLineKeys) == str:
-          if ck == cmdLineKeys:
-            self.customKeys.append(ck)
-        else: # assume list
-          if ck in cmdLineKeys:
-            self.customKeys.append(ck)
+        if ck in customKeys:
+          self.customKeys.append(ck)
       self.keys += self.customKeys
 
     if self.multithread:
       self.keys.append('multithread')
 
-    if globalCf is not None:
-      self._getBuildElements2(globalCf)
-    if projectCf is not None:
-      self._getBuildElements2(projectCf)
-    if localCf is not None:
-      self._getBuildElements2(localCf)
+    if globalConfig is not None:
+      self._getBuildElements2(globalConfig)
+    if projConfig is not None:
+      self._getBuildElements2(projConfig)
+    if localConfig is not None:
+      self._getBuildElements2(localConfig)
 
     # deal breakers
-    if not len(self.target):
+    if not self.target:
       raise Exception('no target specified')
-    elif not len(self.binaryType):
+    if not self.binaryType:
       raise Exception('no binary type specified')
-    elif not len(self.binaryFormat):
+    if not self.binaryFormat:
       raise Exception('no binary format specified')
-    elif not len(self.buildType):
+    if not self.buildType:
       raise Exception('no build type specified')
-    elif not len(self.sources):
+    if not self.sources:
       raise Exception('no source files specified')
 
     if not (self.binaryType == 'exe' or self.binaryType == 'static' or self.binaryType == 'dynamic' or self.binaryType == 'plugin'):
@@ -295,6 +284,8 @@ class BuildElements:
           self.compilerCmd = self.compilerCmd.replace('g++', 'gcc')
         elif self.compilerRoot == 'clang':
           self.compilerCmd = self.compilerCmd.replace('clang++', 'clang')
+
+      # TODO: verify that the compiler exists
 
       self.objFlag = '-c'
       self.objExt = '.o'
@@ -379,7 +370,7 @@ class BuildElements:
 
     self.binaryRelPath = '/{0}/{1}/{2}'.format(self.buildType, self.compiler, self.binaryFormat)
 
-    binRelPath = self.binaryRelPath 
+    binRelPath = self.binaryRelPath
     for ck in self.customKeys:
       binRelPath += '/' + ck
 
@@ -395,7 +386,6 @@ class BuildElements:
       for ck in self.customKeys:
         self.infoStr += ' ' + ck
     self.infoStr += ')'
-
 
   def _getBuildElements(self, configObj):
     '''
@@ -441,7 +431,6 @@ class BuildElements:
 
     if 'customKeys' in configObj:
       self.configKeys = configObj['customKeys']
-
 
   def _getBuildElements2(self, configObj):
     '''

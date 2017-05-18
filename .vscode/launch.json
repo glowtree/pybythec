@@ -6,8 +6,11 @@
       "type": "python",
       "request": "launch",
       "stopOnEntry": false,
-      "pythonPath": "${config.python.pythonPath}",
-      "program": "${workspaceRoot}/test/test_pybythec.py",
+      "pythonPath": "${config:python.pythonPath}",
+      "program": "${workspaceRoot}/setup.py",
+      "args": [
+        "test"
+      ],
       "cwd": "${workspaceRoot}",
       "env": {"PYTHONPATH": "${workspaceRoot}"},
       "debugOptions": [
