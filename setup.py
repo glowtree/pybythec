@@ -15,11 +15,6 @@ pybythecGlobals = '''
 {
   "binaryFormat": "64bit",
   "buildType": "release",
-  "fileType": {
-    "linux": "elf",
-    "osx": "mach-o",
-    "windows": "pe"
-  },
   "defines": {
     "msvc": [
       "NOMINMAX",

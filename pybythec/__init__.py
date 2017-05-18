@@ -240,7 +240,7 @@ def build(version = None,
   if allUpToDate and os.path.exists(be.targetInstallPath):
     buildStatus.writeInfo('up to date', '{0} is up to date, determined in {1} seconds\n'.format(be.infoStr, str(int(time.time() - startTime))))
     if not buildingLib:
-      _runPostScript()
+      _runPostScript(be)
     return True
 
   # microsoft's compiler / linker can only handle so many characters on the command line
@@ -314,7 +314,7 @@ def build(version = None,
 
   # run a post-build script if it exists
   if not buildingLib:
-    _runPostScript()
+    _runPostScript(be)
 
   return True
 
@@ -532,13 +532,15 @@ def _cleanAll(be):
             libDir = libPath)
 
 
-def _runPostScript():
+def _runPostScript(be):
   '''
-    TODO: load it as a module and call an expected function
+    looks for a post-build script and loads it as a module
   '''
   postScriptPath = './pybythecPost.py'
   if not os.path.exists(postScriptPath):
     postScriptPath = './.pybythecPost.py'
   if os.path.exists(postScriptPath):
-    with open(postScriptPath, 'r') as rf:
-      exec (rf.read())
+    import imp
+    m = imp.load_source('', postScriptPath)
+    m.run(be)
+    
