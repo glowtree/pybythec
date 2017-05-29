@@ -46,7 +46,7 @@ coverage.xml
 .pybythec/
 
 # vscode
-vscode/tags
+.vscode/tags
 
 # C / C++
 *.o
