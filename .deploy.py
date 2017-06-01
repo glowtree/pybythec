@@ -10,7 +10,7 @@ if len(sys.argv) < 2:
 subprocess.call(['bumpversion', 'patch', '--allow-dirty'])
 
 if platform.system() == 'Linux' or platform.system() == 'Darwin':
-  subprocess.call(['sudo', 'python', 'setup.py', 'sdist', 'upload'])
+  subprocess.call(['sudo', 'python', 'setup.py', 'sdist']) # 'bdist_wheel')
 else:
   subprocess.call(['python', 'setup.py', 'sdist']) # 'bdist_wheel')
 
