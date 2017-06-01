@@ -14,7 +14,7 @@ log = logging.getLogger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.18'
+__version__ = '0.9.19'
 
 
 def build(version = None,
@@ -473,19 +473,19 @@ def cleanAll(osType = None, compiler = None, buildType = None, binaryFormat = No
     be.configBuild(compiler = compiler, buildType = buildType, binaryFormat = binaryFormat, buildName = buildName)
     _clean(be)
 
-  # clean library dependencies
-  for lib in be.libs:
-    for libSrcPath in be.libSrcPaths:
-      libPath = os.path.join(libSrcPath, lib)
-      if os.path.exists(libPath):
-        clean(
-            osType = be.osType,
-            compiler = be.compiler,
-            buildType = be.buildType,
-            binaryFormat = be.binaryFormat,
-            projConfig = be.projConfig,
-            globalConfig = be.globalConfig,
-            libDir = libPath)
+    # clean library dependencies
+    for lib in be.libs:
+      for libSrcPath in be.libSrcPaths:
+        libPath = os.path.join(libSrcPath, lib)
+        if os.path.exists(libPath):
+          clean(
+              osType = be.osType,
+              compiler = be.compiler,
+              buildType = be.buildType,
+              binaryFormat = be.binaryFormat,
+              projConfig = be.projConfig,
+              globalConfig = be.globalConfig,
+              libDir = libPath)
 
 
 def _runPostScript(be):

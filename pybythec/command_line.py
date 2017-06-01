@@ -26,7 +26,7 @@ def main():
         binaryFormat = args.binaryFormat,
         projConfigPath = args.projectConfig,
         globalConfigPath = args.globalConfig,
-        builds = args.customKeys.split(',') if args.customKeys else None)
+        builds = args.builds.split(',') if args.builds else None)
   elif args.clean:
     return pybythec.clean(
         version = args.version,
@@ -36,7 +36,7 @@ def main():
         binaryFormat = args.binaryFormat,
         projConfigPath = args.projectConfig,
         globalConfigPath = args.globalConfig,
-        builds = args.customKeys.split(',') if args.customKeys else None)
+        builds = args.builds.split(',') if args.builds else None)
   else:
     return pybythec.build(
         version = args.version,
@@ -46,4 +46,4 @@ def main():
         binaryFormat = args.binaryFormat,
         projConfigPath = args.projectConfig,
         globalConfigPath = args.globalConfig,
-        builds = args.customKeys.split(',') if args.customKeys else None)
+        builds = args.builds.split(',') if args.builds else None)
