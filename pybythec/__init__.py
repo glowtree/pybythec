@@ -22,27 +22,23 @@ def build(version = None,
           osType = None,
           buildType = None,
           binaryFormat = None,
-          projConfig = None,
           projConfigPath = None,
-          globalConfig = None,
           globalConfigPath = None,
-          customKeys = None,
-          clean = None,
-          cleanAll = None,
+          builds = None,
+          projConfig = None,
+          globalConfig = None,
           libDir = None):
   '''
     version: just log the current version number
     compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110
-    osType: operating system: currently linux, osx, or windows
+    osType: operating system: currently linux, macOs, or windows
     buildType: debug release etc
     binaryFormat: 32bit, 64bit etc
-    projConfig: dict of the project config
     projConfigPath: path to a pybythec project config file (json)
-    globalConfig: dict of the global config
     globalConfigPath: path to a pybythec global config file (json)
-    customKeys: list of custom keys that you want this build to use
-    clean: if not none clean the build
-    cleanAll: clean the build and the builds of all library dependencies
+    builds: list of build variations
+    projConfig: dict of the project config
+    globalConfig: dict of the global config
     libDir: directory path of the library being built, likely only used when building a library as a dependency (ie from a project)
   '''
 
@@ -50,33 +46,24 @@ def build(version = None,
     log.info('version: ' + __version__)
     return 0
 
-  try:
-    be = BuildElements(
-        compiler = compiler,
-        osType = osType,
-        buildType = buildType,
-        binaryFormat = binaryFormat,
-        projConfig = projConfig,
-        projConfigPath = projConfigPath,
-        globalConfig = globalConfig,
-        globalConfigPath = globalConfigPath,
-        customKeys = customKeys,
-        libDir = libDir)
-  except Exception as e:
-    log.error(e)
-    return 1
+  be = BuildElements(
+      osType = osType,
+      projConfig = projConfig,
+      projConfigPath = projConfigPath,
+      builds = builds,
+      globalConfig = globalConfig,
+      globalConfigPath = globalConfigPath,
+      libDir = libDir)
 
-  #
-  # cleaning
-  #
-  if clean:
-    return _clean(be)
-  elif cleanAll:
-    return _cleanAll(be)
+  # iterate through the builds
+  for buildName in be.builds:
+    be.configBuild(compiler = compiler, buildType = buildType, binaryFormat = binaryFormat, buildName = buildName)
+    _build(be)
 
-  #
-  # building
-  #
+
+def _build(be):
+  '''
+  '''
   buildStatus = BuildStatus(be.target, be.buildPath)
 
   # lock - early return
@@ -91,7 +78,7 @@ def build(version = None,
   log.info('building ' + be.infoStr)
 
   buildingLib = False
-  if libDir:
+  if be.libDir:
     buildingLib = True
 
   if not os.path.exists(be.installPath):
@@ -393,33 +380,29 @@ def _buildLib(be, libSrcDir, buildStatus):
   buildStatus.readFromFile(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat)
 
 
-def clean(compiler = None,
-          osType = None,
+def clean(osType = None,
+          compiler = None,
           buildType = None,
           binaryFormat = None,
-          projConfig = None,
           projConfigPath = None,
-          globalConfig = None,
           globalConfigPath = None,
-          customKeys = None,
+          builds = None,
+          projConfig = None,
+          globalConfig = None,
           libDir = None):
   '''
   '''
-  try:
-    be = BuildElements(
-        compiler = compiler,
-        osType = osType,
-        buildType = buildType,
-        binaryFormat = binaryFormat,
-        projConfig = projConfig,
-        projConfigPath = projConfigPath,
-        globalConfig = globalConfig,
-        globalConfigPath = globalConfigPath,
-        customKeys = customKeys,
-        libDir = libDir)
+  be = BuildElements(
+      osType = osType,
+      projConfigPath = projConfigPath,
+      globalConfigPath = globalConfigPath,
+      builds = builds,
+      projConfig = projConfig,
+      globalConfig = globalConfig,
+      libDir = libDir)
+  for buildName in be.builds:
+    be.configBuild(compiler = compiler, buildType = buildType, binaryFormat = binaryFormat, buildName = buildName)
     _clean(be)
-  except Exception as e:
-    log.error(e)
 
 
 def _clean(be):
@@ -472,12 +455,6 @@ def _clean(be):
       os.remove(target + '.lib')
     except:
       pass
-  #   msvcPath = os.path.splitext(be.targetInstallPath)[0] + '.exp'
-  # if os.path.exists(msvcPath):
-  #   os.remove(msvcPath)
-  # msvcPath = os.path.splitext(be.targetInstallPath)[0] + '.lib'
-  # if os.path.exists(msvcPath):
-  #   os.remove(msvcPath)    
   try:
     os.removedirs(be.installPath)
   except:
@@ -487,44 +464,23 @@ def _clean(be):
   return True
 
 
-def cleanAll(compiler = None, osType = None, buildType = None, binaryFormat = None, projConfigPath = None, globalConfigPath = None,
-             customKeys = None):
-  '''
-  '''
-  try:
-    be = BuildElements(
-        compiler = compiler,
-        osType = osType,
-        buildType = buildType,
-        binaryFormat = binaryFormat,
-        projConfigPath = projConfigPath,
-        globalConfigPath = globalConfigPath,
-        customKeys = customKeys)
-    _cleanAll(be)
-  except Exception as e:
-    log.error(e)
-
-
-def _cleanAll(be):
+def cleanAll(osType = None, compiler = None, buildType = None, binaryFormat = None, projConfigPath = None, globalConfigPath = None, builds = None):
   '''
     cleans both the current project and also the dependencies
-    be (input): BuildElements object
   '''
-  _clean(be)
+  be = BuildElements(osType = osType, projConfigPath = projConfigPath, globalConfigPath = globalConfigPath, builds = builds)
+  for buildName in be.builds:
+    be.configBuild(compiler = compiler, buildType = buildType, binaryFormat = binaryFormat, buildName = buildName)
+    _clean(be)
 
-  projConfigPath = be.cwDir + '/pybythecProject.json'
-  if not os.path.exists(projConfigPath):
-    projConfigPath = be.cwDir + '/.pybythecProject.json'
-    if not os.path.exists(projConfigPath):
-      projConfigPath = None
-
+  # clean library dependencies
   for lib in be.libs:
     for libSrcPath in be.libSrcPaths:
       libPath = os.path.join(libSrcPath, lib)
       if os.path.exists(libPath):
         clean(
-            compiler = be.compiler,
             osType = be.osType,
+            compiler = be.compiler,
             buildType = be.buildType,
             binaryFormat = be.binaryFormat,
             projConfig = be.projConfig,
@@ -543,4 +499,3 @@ def _runPostScript(be):
     import imp
     m = imp.load_source('', postScriptPath)
     m.run(be)
-    

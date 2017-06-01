@@ -11,7 +11,7 @@ A lightweight cross-platform build system for c/c++, written in python
   :target: https://travis-ci.org/glowtree/pybythec
 
 .. image:: https://ci.appveyor.com/api/projects/status/fd265t0poyfynm0n?svg=true
-  :target: https://ci.appveyor.com/project/Tom/pybythec
+  :target: https://ci.appveyor.com/project/glowtree/pybythec
 
 Install
 ============
@@ -82,7 +82,7 @@ following to my project level config file::
 
   "defines":
   {
-    "osx": {
+    "macOs": {
       "gcc" : "SOME_DEFINE"
     }
   }

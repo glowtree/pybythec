@@ -13,13 +13,25 @@ pybythecGlobals = '''
 {
   "binaryFormat": "64bit",
   "buildType": "release",
+  "installPath": ".",
+  "buildDir": ".pybythec",
+  "compiler": {
+    "linux": "g++",
+    "macOs": "clang++",
+    "windows": "msvc-140"
+  },
+  "filetype": {
+    "linux": "elf",
+    "macOs": "mach-o",
+    "windows": "pe"
+  },
   "defines": {
     "msvc": [
       "NOMINMAX",
       "VC_EXTRALEAN",
       "WIN32_LEAN_AND_MEAN"
     ],
-    "osx": "__APPLE__"
+    "macOs": "__APPLE__"
   },
   "flags": {
     "gcc": {
@@ -50,7 +62,7 @@ pybythecGlobals = '''
         "plugin": "-fPIC"
       }
     },
-    "osx": {
+    "macOs": {
       "dynamic": "-fno-common",
       "plugin": "-fno-common"
     },
@@ -65,17 +77,17 @@ pybythecGlobals = '''
         "all": [
           "/W1",
           "/RTC1",
-          "/Z7"
-        ],
-        "multithread": "/MDd"
+          "/Z7",
+          "/MDd"
+        ]
       },
       "release": {
         "all": [
           "/DNDEBUG",
           "/O2",
-          "/GL"
-        ],
-        "multithread": "/MD"
+          "/GL",
+          "/MD"
+        ]
       },
       "dynamic": "/LD",
       "plugin": "/LD"
@@ -107,7 +119,7 @@ pybythecGlobals = '''
           "-fPIC"
         ]
       },
-      "osx": {
+      "macOs": {
         "dynamic": "-dynamiclib",
         "plugin": "-bundle"
       }
@@ -128,15 +140,8 @@ pybythecGlobals = '''
     }
   },
   "libs": {
-    "gcc": {
-      "multithread": "pthread"
-    } //,
+    "gcc": "pthread"
     // "msvc": ["user32", "gdi32", "Shell32"]
-  },
-  "filetype": {
-    "linux": "elf",
-    "osx": "mach-o",
-    "windows": "pe"
   },
   "bins": {
     "msvc-090": {

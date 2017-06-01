@@ -24,6 +24,8 @@ class TestPybythec(unittest.TestCase):
     # normally you would probably set these in your .bashrc (linux / os x) or profile.ps1 (windows) file
     os.environ['PYBYTHEC_EXAMPLE_SHARED'] = '../../shared'
     
+    self.builds = ['2015', '2017'] # corresponds to what was declared in example/projects/Main/pybythec.json
+
     
   def test_000_something(self):
     '''
@@ -37,31 +39,33 @@ class TestPybythec(unittest.TestCase):
     
     # build Main (along with it's library dependencies)
     os.chdir('../Main')
-    pybythec.build(customKeys = ['2016'])
+    pybythec.build()
+    # pybythec.build(builds = self.builds)
     
-    # exePath = './Main'
-    exePath = './2016/Main'
-    if platform.system() == 'Windows':
-      exePath += '.exe'
-    
-    self.assertTrue(os.path.exists(exePath))
-    
-    p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    stdout = stdout.decode('utf-8')
-    print(stdout)
-    
-    if len(stderr):
-      raise Exception(stderr)
-    
-    self.assertTrue(stdout.startswith('running an executable and a statically linked library and a dynamically linked library'))# and a plugin'))
+    for b in self.builds:
+      # exePath = './Main'
+      exePath = './{0}/Main'.format(b)
+      if platform.system() == 'Windows':
+        exePath += '.exe'
+      
+      self.assertTrue(os.path.exists(exePath))
+      
+      p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+      stdout, stderr = p.communicate()
+      stdout = stdout.decode('utf-8')
+      print(stdout)
+      
+      if len(stderr):
+        raise Exception(stderr)
+      
+      self.assertTrue(stdout.startswith('running an executable and a statically linked library and a dynamically linked library'))# and a plugin'))
 
 
   def tearDown(self):
     '''
       clean the builds
     '''
-    pybythec.cleanAll(customKeys = ['2016'])
+    pybythec.cleanAll(builds = self.builds)
     
     os.chdir('../Plugin')
     pybythec.cleanAll()

@@ -97,7 +97,7 @@ def createDirs(path):
 
   try:
     os.mkdir(path)
-  except OSError as e:
+  except:# OSError as e:
     # log.warning('failed to make {0} because {1}'.format(path, str(e)))
     pass
 
@@ -119,7 +119,7 @@ def copyfile(srcPath, dstDir):
       return
 
   # in case the path doesn't already exist
-  # NOTE: os.mkdirs throws the same exception whether it couldn't create the directory or it was already there, therefor not ideal
+  # NOTE: os.mkdirs throws the same exception whether it couldn't create the directory or it was already there, therefore not ideal
   createDirs(dstDir)
 
   shutil.copy2(srcPath, dstDir)
@@ -132,16 +132,13 @@ def copyfile(srcPath, dstDir):
 def loadJsonFile(jsonPath):
   '''
     load a json config file
+    NOTE: no check for existence of the path so that logging warnings can be controlled elsewhere
   '''
   if os.path.splitext(jsonPath)[1] != '.json':
     log.warning('{0} is not json'.format(jsonPath))
     return None
-  try:
-    with open(jsonPath) as f:
-      return json.loads(removeComments(f))
-  except Exception as e: # ValueError as e:
-    log.warning('failed to read {0} because {1}'.format(jsonPath, str(e)))
-  return None
+  with open(jsonPath) as f:
+    return json.loads(removeComments(f))
 
 
 def removeComments(f):
@@ -164,7 +161,7 @@ def removeComments(f):
 
 
 def runCmd(cmd):
-  ''' 
+  '''
     runs a command and blocks until it's done, returns the output
   '''
   try:
