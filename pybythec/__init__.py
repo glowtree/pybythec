@@ -14,7 +14,7 @@ log = logging.getLogger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.21'
+__version__ = '0.9.22'
 
 
 def build(version = None,
@@ -233,7 +233,7 @@ def _build(be):
   # microsoft's compiler / linker can only handle so many characters on the command line
   msvcLinkCmdFilePath = be.buildPath + '/linkCmd'
   if be.compiler.startswith('msvc'):
-    msvcLinkCmd = '{0}"{1}" "{2}" {3}'.format(be.targetFlag, be.targetInstallPath, '" '.join(objPaths), ' '.join(libCmds))
+    msvcLinkCmd = '{0}"{1}" "{2}" {3}'.format(be.targetFlag, be.targetInstallPath, '" "'.join(objPaths), ' '.join(libCmds))
     msvcLinkCmdFp = open(msvcLinkCmdFilePath, 'w')
     msvcLinkCmdFp.write(msvcLinkCmd)
     msvcLinkCmdFp.close()
