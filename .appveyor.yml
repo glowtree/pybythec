@@ -3,14 +3,12 @@
 environment:
 
   matrix:
-    - PYTHON: C:\Python27
     - PYTHON: C:\Python27-x64
-    - PYTHON: C:\Python36
     - PYTHON: C:\Python36-x64
 
 install:
   - "%PYTHON%\\python.exe --version"
-  - "%PYTHON%\\python.exe -c \"import struct; print(struct.calcsize('P') * 8)\""
+  - "%PYTHON%\\python.exe -c \"import struct; print('python says it\'s a {0}bit machine'.format(struct.calcsize('P') * 8))\""
   - "%PYTHON%\\python.exe setup.py install"
 
 build: off

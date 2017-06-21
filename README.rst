@@ -7,10 +7,10 @@ A lightweight cross-platform build system for c/c++, written in python
 .. image:: https://img.shields.io/pypi/v/pybythec.svg
   :target: https://pypi.python.org/pypi/pybythec
 
-.. image:: https://img.shields.io/travis/glowtree/pybythec.svg
+.. image:: https://img.shields.io/travis/glowtree/pybythec.svg?label=linux_macOs
   :target: https://travis-ci.org/glowtree/pybythec
 
-.. image:: https://ci.appveyor.com/api/projects/status/fd265t0poyfynm0n?svg=true
+.. image:: https://img.shields.io/appveyor/ci/glowtree/pybythec.svg?label=windows
   :target: https://ci.appveyor.com/project/glowtree/pybythec
 
 Install
