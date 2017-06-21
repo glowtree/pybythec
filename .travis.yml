@@ -10,10 +10,10 @@ matrix:
       python: '3.6'
       env: pyver=python
     - os: osx
-      python: '2.7'
+      language: generic
       env: pyver=python
     - os: osx
-      python: '3.6'
+      language: generic
       env: pyver=python3   
 
 before-install:

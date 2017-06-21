@@ -8,7 +8,7 @@ environment:
 
 install:
   - "%PYTHON%\\python.exe --version"
-  - "%PYTHON%\\python.exe -c \"import struct; print('python says it\'s a {0}bit machine'.format(struct.calcsize('P') * 8))\""
+  - "%PYTHON%\\python.exe -c \"import struct; print('python says it\\'s a {0}bit machine'.format(struct.calcsize('P') * 8))\""
   - "%PYTHON%\\python.exe setup.py install"
 
 build: off
