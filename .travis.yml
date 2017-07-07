@@ -20,6 +20,6 @@ install:
   - if [[ ("$TRAVIS_OS_NAME" == "osx") && ("$pyver" == "python3") ]]; then brew install $pyver; fi
 
 script:
-  - $pyver -c "import sys,struct; print('python v{0}.{1}.{2} says it\'s a {3}bit machine'.format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro, struct.calcsize('P') * 8))"
+  - $pyver -c "import sys,struct; print('\npython v{0}.{1}.{2} says it\'s a {3}bit machine'.format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro, struct.calcsize('P') * 8))"
   - $pyver setup.py install
   - $pyver setup.py test

@@ -19,7 +19,6 @@ def main():
 
   if args.cleanAll:
     return pybythec.cleanAll(
-        version = args.version,
         compiler = args.compiler,
         osType = args.osType,
         buildType = args.buildType,
@@ -29,7 +28,6 @@ def main():
         builds = args.builds.split(',') if args.builds else None)
   elif args.clean:
     return pybythec.clean(
-        version = args.version,
         compiler = args.compiler,
         osType = args.osType,
         buildType = args.buildType,
