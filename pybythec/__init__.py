@@ -14,7 +14,7 @@ log = logging.getLogger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.26'
+__version__ = '0.9.27'
 
 
 def build(version = None,
@@ -207,8 +207,9 @@ def _build(be):
   allUpToDate = True
   for buildStatusDep in buildStatusDeps:
     if buildStatusDep.status == 'failed':
+      # NOTE: changed from buildStatusDep.description.encode('ascii', 'ignore') which fixed issue on macOs
       buildStatus.writeError('{0} failed because {1} failed because...\n\n{2}\n...determined in seconds\n\n'.format(
-          be.infoStr, buildStatusDep.name, buildStatusDep.description.encode('ascii', 'ignore'), str(int(time.time() - startTime))))
+          be.infoStr, buildStatusDep.name, buildStatusDep.description, str(int(time.time() - startTime))))
       return False
     elif buildStatusDep.status == 'built':
       allUpToDate = False
