@@ -17,31 +17,23 @@ def main():
   parser.add_argument('-cla', '--cleanAll', action = 'store_true', help = 'clean the build and the builds of all library dependencies')
   args = parser.parse_args()
 
+  if args.version:
+    print('version: ' + pybythec.__version__)
+    return
+
+  be = pybythec.getBuildElements(
+      osType = args.osType,
+      compiler = args.compiler,
+      buildType = args.buildType,
+      binaryFormat = args.binaryFormat,
+      projConfigPath = args.projectConfig,
+      globalConfigPath = args.globalConfig)
+  
+  builds = args.builds.split(',') if args.builds else None
+
   if args.cleanAll:
-    return pybythec.cleanAll(
-        compiler = args.compiler,
-        osType = args.osType,
-        buildType = args.buildType,
-        binaryFormat = args.binaryFormat,
-        projConfigPath = args.projectConfig,
-        globalConfigPath = args.globalConfig,
-        builds = args.builds.split(',') if args.builds else None)
+    return pybythec.cleanAll(be, builds)
   elif args.clean:
-    return pybythec.clean(
-        compiler = args.compiler,
-        osType = args.osType,
-        buildType = args.buildType,
-        binaryFormat = args.binaryFormat,
-        projConfigPath = args.projectConfig,
-        globalConfigPath = args.globalConfig,
-        builds = args.builds.split(',') if args.builds else None)
+    return pybythec.clean(be, builds)
   else:
-    return pybythec.build(
-        version = args.version,
-        compiler = args.compiler,
-        osType = args.osType,
-        buildType = args.buildType,
-        binaryFormat = args.binaryFormat,
-        projConfigPath = args.projectConfig,
-        globalConfigPath = args.globalConfig,
-        builds = args.builds.split(',') if args.builds else None)
+    return pybythec.build(be, builds)

@@ -17,47 +17,54 @@ __email__ = 'tom@glowtree.com'
 __version__ = '0.9.27'
 
 
-def build(version = None,
-          compiler = None,
-          osType = None,
-          buildType = None,
-          binaryFormat = None,
-          projConfigPath = None,
-          globalConfigPath = None,
-          builds = None,
-          projConfig = None,
-          globalConfig = None,
-          libDir = None):
+def getBuildElements(osType = None,
+                     compiler = None,
+                     buildType = None,
+                     binaryFormat = None,
+                     projConfigPath = None,
+                     globalConfigPath = None,
+                     projConfig = None,
+                     globalConfig = None,
+                     libDir = None):
   '''
-    version: just log the current version number
-    compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110
+    
     osType: operating system: currently linux, macOs, or windows
+    builds: list of build variations
+    compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110
     buildType: debug release etc
     binaryFormat: 32bit, 64bit etc
     projConfigPath: path to a pybythec project config file (json)
     globalConfigPath: path to a pybythec global config file (json)
-    builds: list of build variations
     projConfig: dict of the project config
     globalConfig: dict of the global config
     libDir: directory path of the library being built, likely only used when building a library as a dependency (ie from a project)
   '''
 
-  if version:
-    log.info('version: ' + __version__)
-    return 0
-
-  be = BuildElements(
+  return BuildElements(
       osType = osType,
+      compiler = compiler,
+      buildType = buildType,
+      binaryFormat = binaryFormat,
       projConfig = projConfig,
       projConfigPath = projConfigPath,
-      builds = builds,
       globalConfig = globalConfig,
       globalConfigPath = globalConfigPath,
       libDir = libDir)
 
-  # iterate through the builds
-  for buildName in be.builds:
-    be.configBuild(compiler = compiler, buildType = buildType, binaryFormat = binaryFormat, buildName = buildName)
+
+def build(be, builds = None):
+  '''
+    be: BuildElements object
+    builds: list of build overrides
+  '''
+  buildsRef = builds
+  if not buildsRef:
+    buildsRef = be.builds
+  if type(buildsRef) is not list:
+    buildsRef = [buildsRef]
+
+  for build in buildsRef:
+    be.configBuild(buildName = build)
     _build(be)
 
 
@@ -368,7 +375,7 @@ def _buildLib(be, libSrcDir, buildStatus):
     buildStatus.writeError(libSrcDir + ' does not have a pybythec.json file')
     return
 
-  build(
+  libBe = BuildElements(
       osType = be.osType,
       compiler = be.compiler,
       buildType = be.buildType,
@@ -376,33 +383,23 @@ def _buildLib(be, libSrcDir, buildStatus):
       projConfig = be.projConfig,
       globalConfig = be.globalConfig,
       libDir = libSrcDir)
+  build(libBe)
 
   # read the build status
   buildStatus.readFromFile(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat)
 
 
-def clean(osType = None,
-          compiler = None,
-          buildType = None,
-          binaryFormat = None,
-          projConfigPath = None,
-          globalConfigPath = None,
-          builds = None,
-          projConfig = None,
-          globalConfig = None,
-          libDir = None):
+def clean(be, builds = None):
   '''
   '''
-  be = BuildElements(
-      osType = osType,
-      projConfigPath = projConfigPath,
-      globalConfigPath = globalConfigPath,
-      builds = builds,
-      projConfig = projConfig,
-      globalConfig = globalConfig,
-      libDir = libDir)
-  for buildName in be.builds:
-    be.configBuild(compiler = compiler, buildType = buildType, binaryFormat = binaryFormat, buildName = buildName)
+  buildsRef = builds
+  if not buildsRef:
+    buildsRef = be.builds
+  if type(buildsRef) is not list:
+    buildsRef = [buildsRef]
+
+  for build in buildsRef:
+    be.configBuild(buildName = build)
     _clean(be)
 
 
@@ -465,21 +462,26 @@ def _clean(be):
   return True
 
 
-def cleanAll(osType = None, compiler = None, buildType = None, binaryFormat = None, projConfigPath = None, globalConfigPath = None, builds = None):
+# def cleanAll(osType = None, compiler = None, buildType = None, binaryFormat = None, projConfigPath = None, globalConfigPath = None, builds = None):
+def cleanAll(be, builds = None):
   '''
     cleans both the current project and also the dependencies
   '''
-  be = BuildElements(osType = osType, projConfigPath = projConfigPath, globalConfigPath = globalConfigPath, builds = builds)
-  for buildName in be.builds:
-    be.configBuild(compiler = compiler, buildType = buildType, binaryFormat = binaryFormat, buildName = buildName)
+  buildsRef = builds
+  if not buildsRef:
+    buildsRef = be.builds
+  if type(buildsRef) is not list:
+    buildsRef = [buildsRef]
+  
+  for build in buildsRef:
+    be.configBuild(buildName = build)
     _clean(be)
-
     # clean library dependencies
     for lib in be.libs:
       for libSrcPath in be.libSrcPaths:
         libPath = os.path.join(libSrcPath, lib)
         if os.path.exists(libPath):
-          clean(
+          libBe = BuildElements(
               osType = be.osType,
               compiler = be.compiler,
               buildType = be.buildType,
@@ -487,6 +489,7 @@ def cleanAll(osType = None, compiler = None, buildType = None, binaryFormat = No
               projConfig = be.projConfig,
               globalConfig = be.globalConfig,
               libDir = libPath)
+          clean(libBe, build = [build])
 
 
 def _runPostScript(be):

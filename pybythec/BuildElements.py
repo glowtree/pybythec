@@ -12,9 +12,11 @@ class BuildElements:
 
   def __init__(self,
                osType = None,
+               compiler = None,
+               buildType = None,
+               binaryFormat = None,
                projConfigPath = None,
                globalConfigPath = None,
-               builds = None,
                projConfig = None,
                globalConfig = None,
                libDir = None):
@@ -32,8 +34,27 @@ class BuildElements:
     self.globalConfig = globalConfig
     self.libDir = libDir
 
+    # overrides
+    self.osTypeOverride = osType
+    self.compilerOverride = compiler
+    self.buildTypeOverride = buildType
+    self.binaryFormatOverride = binaryFormat
+    
+    self.buildType = None
+    self.version = None
+    self.target = None
+    self.builds = None
     self.osType = None  # linux, macOs, windows
-    self.builds = None # build variations
+    self.binaryType = None  # exe, static, dynamic, plugin
+    
+    self.version = 0
+    self.binaryFormat = None # 32bit, 64bit etc
+    self.libInstallPathAppend = True
+    self.plusplus = True
+    self.locked = False
+    self.buildDir = '.'
+    self.showCompilerCmds = False
+    self.showLinkerCmds = False
 
     self.cwDir = os.getcwd()
     if self.libDir:
@@ -110,9 +131,11 @@ class BuildElements:
     if self.localConfig is not None:
       self._getBuildElements1(self.localConfig)
 
-    # osType
-    if osType: # command line override
-      self.osType = osType
+    self.targetName = self.target
+
+    if self.osTypeOverride:
+      self.osType = self.osTypeOverride
+
     if self.osType:
       if self.osType not in ['linux', 'macOs', 'windows']: # validate
         log.warning('{0} invalid osType, defaulting to the native os'.format(self.osType))
@@ -127,31 +150,17 @@ class BuildElements:
       else:
         raise PybythecError('os needs to be linux, macOs or windows')
 
-    # builds
-    if builds: # command line override
-      self.builds = builds
-    if not self.builds:
-      self.builds = [None]
 
 
-  def configBuild(self, compiler = None, buildType = None, binaryFormat = None, buildName = None):
+  # def configBuild(self, compiler = None, buildType = None, binaryFormat = None, buildName = None):
+  def configBuild(self, buildName = None):
     '''
     '''
-    # set by the config files first
-    self.target = None
-    self.binaryType = None  # exe, static, dynamic, plugin
+    # set by the config files first    
     self.compiler = None  # g++-4.4 g++ clang++ msvc110 etc
-    self.binaryFormat = None  # 32bit, 64bit etc
-    self.buildType = None  # debug, release etc
     self.filetype = None  # elf, mach-o, pe
-    self.buildDir = None
     self.installPath = None
   
-    self.locked = False
-
-    self.showCompilerCmds = False
-    self.showLinkerCmds = False
-
     self.sources = []
     self.libs = []
     self.defines = []
@@ -165,8 +174,6 @@ class BuildElements:
 
     self.qtClasses = []
 
-    self.libInstallPathAppend = True
-    self.plusplus = True
 
     # 2 keys at this point for a potentially nested compiler: osType and buildName
     keys = [self.osType]
@@ -184,8 +191,8 @@ class BuildElements:
       self._getBuildElements2(self.localConfig, keys)
 
     # compiler stuff
-    if compiler: # command line override
-      self.compiler = compiler
+    if self.compilerOverride:
+      self.compiler = self.compilerOverride
 
     if not self.compiler:
       raise PybythecError('compiler not found')
@@ -203,11 +210,11 @@ class BuildElements:
 
     # TODO: verify that the compiler exists / runs
 
-    if buildType: # command line override
-      self.buildType = buildType
+    if self.buildTypeOverride: 
+      self.buildType = self.buildTypeOverride
 
-    if binaryFormat: # command line override
-      self.binaryFormat = binaryFormat
+    if self.binaryFormatOverride: 
+      self.binaryFormat = self.binaryFormatOverride
 
     keys += ['all', self.compilerRoot, self.compiler, self.binaryType, self.buildType, self.binaryFormat]
 
@@ -227,6 +234,7 @@ class BuildElements:
       raise PybythecError('unrecognized binary type: ' + self.binaryType)
     if not self.sources:
       raise PybythecError('no source files specified')
+
 
     #
     # compiler config
@@ -339,6 +347,8 @@ class BuildElements:
     if buildName:
       binRelPath += '/' + buildName
 
+    print(self.cwDir, self.buildDir, binRelPath)
+
     self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + binRelPath)
 
     # if self.libInstallPathAppend and (self.binaryType == 'static' or self.binaryType == 'dynamic'):
@@ -354,36 +364,27 @@ class BuildElements:
 
 
 
-  def _getBuildElements1(self, configObj, keys = []):
+  def _getBuildElements1(self, configObj):
     '''
+      elements that aren't nested
     '''
-    if 'osType' in configObj:
-      self.osType = os.path.expandvars(configObj['osType'])
+    if 'buildType' in configObj:
+      self.buildType = os.path.expandvars(configObj['buildType'])
+
+    if 'version' in configObj:
+      self.version =  os.path.expandvars(configObj['version'])
+
+    if 'target' in configObj:
+      self.target = os.path.expandvars(configObj['target'])
 
     if 'builds' in configObj:
       self.builds = configObj['builds']
 
-
-  def _getBuildElements2(self, configObj, keys = []):
-    '''
-    '''
-    if 'target' in configObj:
-      self.target = os.path.expandvars(configObj['target'])
+    if 'osType' in configObj:
+      self.osType = os.path.expandvars(configObj['osType'])
 
     if 'binaryType' in configObj:
       self.binaryType = os.path.expandvars(configObj['binaryType'])
-
-    # special case: compiler can be nested in a dict with 2 valid key types: osType and a build name
-    if 'compiler' in configObj:
-      compilerList = []
-      self._getArgsList(compilerList, configObj['compiler'], keys)
-      if len(compilerList):
-        self.compiler = compilerList[0]
-        if len(compilerList) > 1:
-          log.warning('couldn\'t resolve to single compiler, compiler options: {0}, selecting {1}'.format(compilerList, self.compiler))
-
-    if 'buildType' in configObj:
-      self.buildType = os.path.expandvars(configObj['buildType'])
 
     if 'binaryFormat' in configObj:
       self.binaryFormat = os.path.expandvars(configObj['binaryFormat'])
@@ -404,11 +405,26 @@ class BuildElements:
       self.showCompilerCmds = configObj['showCompilerCmds']
 
     if 'showLinkerCmds' in configObj:
-      self.showLinkerCmds = configObj['showLinkerCmds']
+      self.showLinkerCmds = configObj['showLinkerCmds']      
+
+
+  def _getBuildElements2(self, configObj, keys = []):
+    '''
+      elements that are nested in finite / special case way, currently just the compiler
+    '''
+    # special case: compiler can be nested in a dict with 2 valid key types: osType and a build name
+    if 'compiler' in configObj:
+      compilerList = []
+      self._getArgsList(compilerList, configObj['compiler'], keys)
+      if len(compilerList):
+        self.compiler = compilerList[0]
+        if len(compilerList) > 1:
+          log.warning('couldn\'t resolve to single compiler, compiler options: {0}, selecting {1}'.format(compilerList, self.compiler))
 
 
   def _getBuildElements3(self, configObj, keys = []):
     '''
+      elements that are potentially nested in any which way
     '''
     separartor = ':'
     if platform.system() == 'Windows':
