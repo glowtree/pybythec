@@ -34,7 +34,7 @@ class BuildElements:
     self.globalConfig = globalConfig
     self.libDir = libDir
 
-    # overrides
+    # overrides config files
     self.osTypeOverride = osType
     self.compilerOverride = compiler
     self.buildTypeOverride = buildType
@@ -42,8 +42,8 @@ class BuildElements:
     
     self.buildType = None
     self.version = None
-    self.target = None
-    self.builds = None
+    self.target = None  
+    self.builds = None  # a list of custom build keys
     self.osType = None  # linux, macOs, windows
     self.binaryType = None  # exe, static, dynamic, plugin
     
@@ -124,9 +124,9 @@ class BuildElements:
     #
     # first iteration to get osType and custom keys (right now just for the compiler)
     #
-    if globalConfig is not None:
+    if self.globalConfig is not None:
       self._getBuildElements1(self.globalConfig)
-    if projConfig is not None:
+    if self.projConfig is not None:
       self._getBuildElements1(self.projConfig)
     if self.localConfig is not None:
       self._getBuildElements1(self.localConfig)
@@ -151,8 +151,6 @@ class BuildElements:
         raise PybythecError('os needs to be linux, macOs or windows')
 
 
-
-  # def configBuild(self, compiler = None, buildType = None, binaryFormat = None, buildName = None):
   def configBuild(self, buildName = None):
     '''
     '''
@@ -347,8 +345,6 @@ class BuildElements:
     if buildName:
       binRelPath += '/' + buildName
 
-    print(self.cwDir, self.buildDir, binRelPath)
-
     self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + binRelPath)
 
     # if self.libInstallPathAppend and (self.binaryType == 'static' or self.binaryType == 'dynamic'):
@@ -372,7 +368,7 @@ class BuildElements:
       self.buildType = os.path.expandvars(configObj['buildType'])
 
     if 'version' in configObj:
-      self.version =  os.path.expandvars(configObj['version'])
+      self.version = os.path.expandvars(configObj['version'])
 
     if 'target' in configObj:
       self.target = os.path.expandvars(configObj['target'])
@@ -410,9 +406,9 @@ class BuildElements:
 
   def _getBuildElements2(self, configObj, keys = []):
     '''
-      elements that are nested in finite / special case way, currently just the compiler
+      elements that are nested in a finite / special case way, currently just the compiler
     '''
-    # special case: compiler can be nested in a dict with 2 valid key types: osType and a build name
+    # compiler can be nested in a dict with 2 valid key types: osType and a build name
     if 'compiler' in configObj:
       compilerList = []
       self._getArgsList(compilerList, configObj['compiler'], keys)

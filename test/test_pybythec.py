@@ -21,7 +21,7 @@ class TestPybythec(unittest.TestCase):
       typical setup for building with pybythc
     '''
     # setup the environment variables...
-    # normally you would probably set these in your .bashrc (linux / os x) or profile.ps1 (windows) file
+    # normally you would probably set these in your .bashrc (linux / macOs), profile.ps1 (windows) file etc
     os.environ['PYBYTHEC_EXAMPLE_SHARED'] = '../../shared'
     
     self.builds = ['2015', '2017'] # corresponds to what was declared in example/projects/Main/pybythec.json
@@ -39,8 +39,9 @@ class TestPybythec(unittest.TestCase):
     
     # build Main (along with it's library dependencies)
     os.chdir('../Main')
+
     pybythec.build()
-    # pybythec.build(builds = self.builds)
+    # pybythec.build(be = None, builds = self.builds)
     
     for b in self.builds:
       # exePath = './Main'
@@ -65,7 +66,7 @@ class TestPybythec(unittest.TestCase):
     '''
       clean the builds
     '''
-    pybythec.cleanAll(builds = self.builds)
+    pybythec.cleanAll()
     
     os.chdir('../Plugin')
     pybythec.cleanAll()

@@ -27,7 +27,6 @@ def getBuildElements(osType = None,
                      globalConfig = None,
                      libDir = None):
   '''
-    
     osType: operating system: currently linux, macOs, or windows
     builds: list of build variations
     compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110
@@ -39,7 +38,6 @@ def getBuildElements(osType = None,
     globalConfig: dict of the global config
     libDir: directory path of the library being built, likely only used when building a library as a dependency (ie from a project)
   '''
-
   return BuildElements(
       osType = osType,
       compiler = compiler,
@@ -52,11 +50,15 @@ def getBuildElements(osType = None,
       libDir = libDir)
 
 
-def build(be, builds = None):
+def build(be = None, builds = None):
   '''
     be: BuildElements object
     builds: list of build overrides
   '''
+
+  if not be:
+    be = getBuildElements()
+
   buildsRef = builds
   if not buildsRef:
     buildsRef = be.builds
@@ -389,9 +391,12 @@ def _buildLib(be, libSrcDir, buildStatus):
   buildStatus.readFromFile(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat)
 
 
-def clean(be, builds = None):
+def clean(be = None, builds = None):
   '''
   '''
+  if not be:
+    be = getBuildElements()
+
   buildsRef = builds
   if not buildsRef:
     buildsRef = be.builds
@@ -403,11 +408,12 @@ def clean(be, builds = None):
     _clean(be)
 
 
-def _clean(be):
+def _clean(be = None):
   '''
     cleans the current project
     be (in): BuildElements object
   '''
+  
   # remove any dynamic libs that are sitting next to the exe
   if os.path.exists(be.installPath) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
     for f in os.listdir(be.installPath):
@@ -462,11 +468,13 @@ def _clean(be):
   return True
 
 
-# def cleanAll(osType = None, compiler = None, buildType = None, binaryFormat = None, projConfigPath = None, globalConfigPath = None, builds = None):
-def cleanAll(be, builds = None):
+def cleanAll(be = None, builds = None):
   '''
     cleans both the current project and also the dependencies
   '''
+  if not be:
+    be = getBuildElements()
+
   buildsRef = builds
   if not buildsRef:
     buildsRef = be.builds
@@ -489,7 +497,7 @@ def cleanAll(be, builds = None):
               projConfig = be.projConfig,
               globalConfig = be.globalConfig,
               libDir = libPath)
-          clean(libBe, build = [build])
+          clean(libBe, builds = build)
 
 
 def _runPostScript(be):

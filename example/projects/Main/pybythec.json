@@ -1,14 +1,14 @@
 {
   "target": "Main",
+  "builds": [
+    "2015",
+    "2017"
+  ],
   "binaryType": "exe",
   "sources": "main.cpp",
   "libs": [
     "StaticLib",
     "DynamicLib"
-  ],
-  "builds": [
-    "2015",
-    "2017"
   ],
 
   // paths
