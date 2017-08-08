@@ -14,7 +14,7 @@ log = logging.getLogger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.27'
+__version__ = '0.9.28'
 
 
 def getBuildElements(osType = None,
@@ -73,11 +73,11 @@ def build(be = None, builds = None):
 def _build(be):
   '''
   '''
-  buildStatus = BuildStatus(be.target, be.buildPath)
+  buildStatus = BuildStatus(be.targetFilename, be.buildPath)
 
   # lock - early return
   if be.locked and os.path.exists(be.targetInstallPath):
-    buildStatus.writeInfo('locked', be.target + ' is locked')
+    buildStatus.writeInfo('locked', be.targetName + ' is locked')
     return True
 
   startTime = time.time()

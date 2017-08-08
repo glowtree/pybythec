@@ -42,7 +42,9 @@ class BuildElements:
     
     self.buildType = None
     self.version = None
-    self.target = None  
+    self.targetName = None # name of the target
+    self.targetFilename = None # name of the target + extension
+
     self.builds = None  # a list of custom build keys
     self.osType = None  # linux, macOs, windows
     self.binaryType = None  # exe, static, dynamic, plugin
@@ -131,7 +133,8 @@ class BuildElements:
     if self.localConfig is not None:
       self._getBuildElements1(self.localConfig)
 
-    self.targetName = self.target
+    # self.targetName = self.target
+    self.targetFilename = self.targetName
 
     if self.osTypeOverride:
       self.osType = self.osTypeOverride
@@ -224,7 +227,7 @@ class BuildElements:
       self._getBuildElements3(self.localConfig, keys)
 
     # deal breakers (that don't appear in the default pybythecGlobals.json)
-    if not self.target:
+    if not self.targetName:
       raise PybythecError('no target specified')
     if not self.binaryType:
       raise PybythecError('no binary type specified')
@@ -279,18 +282,18 @@ class BuildElements:
         self.pluginExt = '.bundle'
 
       if self.binaryType == 'static' or self.binaryType == 'dynamic':
-        self.target = 'lib' + self.target
+        self.targetFilename = 'lib' + self.targetName
 
       if self.binaryType == 'exe':
         pass
       elif self.binaryType == 'static':
-        self.target = self.target + '.a'
+        self.targetFilename = self.targetName + '.a'
         self.linker = 'ar'
         self.targetFlag = 'r'
       elif self.binaryType == 'dynamic':
-        self.target = self.target + self.dynamicExt
+        self.targetFilename = self.targetName + self.dynamicExt
       elif self.binaryType == 'plugin':
-        self.target = self.target + self.pluginExt
+        self.targetFilename = self.targetName + self.pluginExt
 
     #
     # msvc / msvc
@@ -314,12 +317,12 @@ class BuildElements:
         self.linkFlags.append('/MACHINE:X64')
 
       if self.binaryType == 'exe':
-        self.target += '.exe'
+        self.targetFilename = self.targetName + '.exe'
       elif self.binaryType == 'static':
-        self.target += self.staticExt
+        self.targetFilename = self.targetName + self.staticExt
         self.linker = 'lib'
       elif self.binaryType == 'dynamic' or self.binaryType == 'plugin':
-        self.target += self.dynamicExt
+        self.targetFilename = self.targetName + self.dynamicExt
         self.linkFlags.append('/DLL')
 
       # make sure the compiler is in PATH
@@ -351,9 +354,9 @@ class BuildElements:
     if self.libInstallPathAppend and (self.binaryType in ['static', 'dynamic']):
       self.installPath += binRelPath
 
-    self.targetInstallPath = os.path.join(self.installPath, self.target)
+    self.targetInstallPath = os.path.join(self.installPath, self.targetFilename)
 
-    self.infoStr = '{0} ({1} {2} {3}'.format(self.target, self.buildType, self.compiler, self.binaryFormat)
+    self.infoStr = '{0} ({1} {2} {3}'.format(self.targetName, self.buildType, self.compiler, self.binaryFormat)
     if buildName:
       self.infoStr += ' ' + buildName
     self.infoStr += ')'
@@ -371,7 +374,7 @@ class BuildElements:
       self.version = os.path.expandvars(configObj['version'])
 
     if 'target' in configObj:
-      self.target = os.path.expandvars(configObj['target'])
+      self.targetName = os.path.expandvars(configObj['target'])
 
     if 'builds' in configObj:
       self.builds = configObj['builds']
