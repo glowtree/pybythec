@@ -14,7 +14,7 @@ log = logging.getLogger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.28'
+__version__ = '0.9.30'
 
 
 def getBuildElements(osType = None,
@@ -497,7 +497,7 @@ def cleanAll(be = None, builds = None):
               projConfig = be.projConfig,
               globalConfig = be.globalConfig,
               libDir = libPath)
-          clean(libBe, builds = build)
+          clean(libBe) #, builds = build)
 
 
 def _runPostScript(be):

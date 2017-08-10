@@ -287,13 +287,13 @@ class BuildElements:
       if self.binaryType == 'exe':
         pass
       elif self.binaryType == 'static':
-        self.targetFilename = self.targetName + '.a'
+        self.targetFilename = self.targetFilename + '.a'
         self.linker = 'ar'
         self.targetFlag = 'r'
       elif self.binaryType == 'dynamic':
-        self.targetFilename = self.targetName + self.dynamicExt
+        self.targetFilename = self.targetFilename + self.dynamicExt
       elif self.binaryType == 'plugin':
-        self.targetFilename = self.targetName + self.pluginExt
+        self.targetFilename = self.targetFilename + self.pluginExt
 
     #
     # msvc / msvc
