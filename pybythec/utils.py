@@ -1,9 +1,97 @@
+from __future__ import print_function
 import os
+import sys
 import json
 import shutil
 import subprocess
-import logging
-log = logging.getLogger('pybythec')
+
+
+class PybythecError(Exception):
+  pass
+
+
+def f(s, *args):
+  return s.format(*args)
+
+
+class Logger():
+
+  wf = None  # static
+
+  def __init__(self, name = None, debug = False):
+    self.name = name
+    if self.name:
+      self.name += ': '
+    else:
+      self.name = ''
+    self._debug = debug
+
+  def setDebug(self, v):
+    self._debug = v
+
+  @classmethod
+  def setFilepath(cls, filepath):
+    if filepath:
+      cls.wf = open(filepath, 'w')
+
+  def _getStr(self, s, *args):
+    if type(s) is not str:
+      s = f('{0}', s)
+    if len(args):
+      return self.name + f(s, *args)
+    else:
+      return self.name + s
+
+  def debug(self, s, *args):
+    if self._debug:
+      print('debug: ' + self._getStr(s, *args), file = Logger.wf)
+      if Logger.wf:
+        Logger.wf.flush()  # necessary for running as a systemd service for some reason
+
+  def info(self, s, *args):
+    print(self._getStr(s, *args), file = Logger.wf)
+    if Logger.wf:
+      Logger.wf.flush()
+
+  def warning(self, s, *args):
+    print('warning: ' + self._getStr(s, *args), file = Logger.wf)
+    if Logger.wf:
+      Logger.wf.flush()
+
+  def error(self, s, *args):
+    lwf = Logger.wf
+    if not lwf:
+      lwf = sys.stderr
+    print('error: ' + self._getStr(s, *args), file = lwf)
+    if Logger.wf:
+      Logger.wf.flush()
+
+  def raw(self, s, *args):  # no adding the name
+    if type(s) is not str:
+      s = f('{0}', s)
+    if len(args):
+      print(f(s, *args))
+    else:
+      print(s)
+
+  # shorthands
+  def d(self, s, *args):
+    self.debug(s, *args)
+
+  def i(self, s, *args):
+    self.info(s, *args)
+
+  def w(self, s, *args):
+    self.warning(s, *args)
+
+  def e(self, s, *args):
+    self.error(s, *args)
+
+  def r(self, s, *args):
+    self.raw(s, *args)
+
+
+log = Logger('pybythec')
 
 
 def srcNewer(srcPath, dstPath):
@@ -17,7 +105,7 @@ def checkTimestamps(incPaths, src, timestamp):
     finds the newest timestamp of everything upstream of the src file, including the src file
   '''
   if not os.path.exists(src):
-    log.warning('checkTimestamps: {0} doesn\'t exist'.format(src))
+    log.warning('checkTimestamps: {0} doesn\'t exist', src)
     return
 
   srcTimeStamp = float(os.stat(src).st_mtime)
@@ -78,8 +166,9 @@ def makePathAbsolute(absPath, path):
 def createDirs(path):
   '''
    recursively goes up the path heiarchy creating the necessary directories along the way
+   similar to os.makedirs except doesn't throw an exception if a directory's already exists
+   also os.makedirs throws the same exception whether the directory already exists or it couldn't create it, not ideal
   '''
-  # if path == None or not len(path):
   if path is None or not len(path):
     log.warning('createDirs: empty path')
     return
@@ -97,8 +186,8 @@ def createDirs(path):
 
   try:
     os.mkdir(path)
-  except:# OSError as e:
-    # log.warning('failed to make {0} because {1}'.format(path, str(e)))
+  except:  # OSError as e:
+    # log.warning('failed to make {0} because {1}', path, e)
     pass
 
 
@@ -119,12 +208,11 @@ def copyfile(srcPath, dstDir):
       return
 
   # in case the path doesn't already exist
-  # NOTE: os.mkdirs throws the same exception whether it couldn't create the directory or it was already there, therefore not ideal
   createDirs(dstDir)
 
   shutil.copy2(srcPath, dstDir)
 
-  log.debug('{0} copied to {1}'.format(srcPath, dstPath))
+  log.debug('{0} copied to {1}', srcPath, dstPath)
 
   return True
 
@@ -135,7 +223,7 @@ def loadJsonFile(jsonPath):
     NOTE: no check for existence of the path so that logging warnings can be controlled elsewhere
   '''
   if os.path.splitext(jsonPath)[1] != '.json':
-    log.warning('{0} is not json'.format(jsonPath))
+    log.warning('{0} is not json', jsonPath)
     return None
   with open(jsonPath) as f:
     return json.loads(removeComments(f))
@@ -165,14 +253,15 @@ def runCmd(cmd):
     runs a command and blocks until it's done, returns the output
   '''
   try:
-    compileProcess = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-  except OSError as e:
-    return str(e)
-  stdout, stderr = compileProcess.communicate()
+    p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+  except subprocess.CalledProcessError as e:
+    return f('cmd failed: {0} because: {1}', ' '.join(cmd), e.output)
+  except Exception:
+    return f('cmd failed: {0}', ' '.join(cmd))
+  stdout, stderr = p.communicate()
   output = ''
   if len(stderr):
     output += stderr.decode('utf-8')
   if len(stdout):
     output += stdout.decode('utf-8')
-
   return output

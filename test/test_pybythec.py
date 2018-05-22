@@ -13,6 +13,9 @@ import platform
 import unittest
 import subprocess
 import pybythec
+from pybythec.utils import f
+
+log = pybythec.utils.Logger('pybythecTest')
 
 class TestPybythec(unittest.TestCase):
   
@@ -24,9 +27,18 @@ class TestPybythec(unittest.TestCase):
     # normally you would probably set these in your .bashrc (linux / macOs), profile.ps1 (windows) file etc
     os.environ['PYBYTHEC_EXAMPLE_SHARED'] = '../../shared'
     
-    self.builds = ['2015', '2017'] # corresponds to what was declared in example/projects/Main/pybythec.json
+    self.builds = ['buildVar1', 'buildVar3'] # corresponds to build vartions declared in example/projects/Main/pybythec.json
 
-    
+    # make sure we have a .pybythecGlobals.json in the home directory
+    globalsPath = os.path.expanduser('~') + '/.pybythecGlobals.json'
+    if not os.path.exists(globalsPath):
+      log.info('creating {0}', globalsPath)
+      with open(globalsPath, 'w') as wf:
+        with open('./globals.json') as rf:
+          wf.write(rf.read())
+    self.assertTrue(os.path.exists(os.path.expanduser('~') + '/.pybythecGlobals.json'))
+
+
   def test_000_something(self):
     '''
       build
@@ -41,21 +53,18 @@ class TestPybythec(unittest.TestCase):
     os.chdir('../Main')
 
     pybythec.build()
-    # pybythec.build(be = None, builds = self.builds)
     
     for b in self.builds:
-      # exePath = './Main'
-      exePath = './{0}/Main'.format(b)
+      exePath = f('./{0}/Main', b)
       if platform.system() == 'Windows':
         exePath += '.exe'
       
-      print('asserting {0} exists'.format(exePath))
       self.assertTrue(os.path.exists(exePath))
       
       p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
       stdout, stderr = p.communicate()
       stdout = stdout.decode('utf-8')
-      print(stdout)
+      log.info(stdout)
       
       if len(stderr):
         raise Exception(stderr)

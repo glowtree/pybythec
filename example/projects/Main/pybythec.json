@@ -1,8 +1,10 @@
 {
   "target": "Main",
-  "builds": [
-    "2015",
-    "2017"
+
+  // build variations
+  "builds": [ 
+    "buildVar1", 
+    "buildVar3"
   ],
   "binaryType": "exe",
   "sources": "main.cpp",
@@ -16,8 +18,8 @@
   "libPaths": "${PYBYTHEC_EXAMPLE_SHARED}/lib",
   "libSrcPaths": "${PYBYTHEC_EXAMPLE_SHARED}/src",
   "installPath": {
-    "2015": "./2015",
-    "2016": "./2016",
-    "2017": "./2017"
+    "buildVar1": "./buildVar1",
+    "buildVar2": "./buildVar2",
+    "buildVar3": "./buildVar3"
   }
 }

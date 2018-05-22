@@ -1,9 +1,3 @@
-
-import os
-from setuptools import setup
-from setuptools.command.install import install as baseInstall
-
-pybythecGlobals = '''
 {
   "binaryFormat": "64bit",
   "buildType": "release",
@@ -245,33 +239,3 @@ pybythecGlobals = '''
     }
   }
 }
-'''
-
-class installer(baseInstall):
-
-  def run(self):
-    globalsPath = os.path.expanduser('~') + '/.pybythecGlobals.json'
-    print('installing ' + globalsPath)
-    with open(globalsPath, 'w') as f:
-      f.write(pybythecGlobals)
-    baseInstall.run(self)
-
-
-description = 'A lightweight cross-platform build system for c/c++, written in python'
-
-setup(
-    name = 'pybythec',
-    version = '0.9.31',
-    author = 'glowtree',
-    author_email = 'tom@glowtree.com',
-    url = 'https://github.com/glowtree/pybythec',
-    description = description,
-    long_description = str(open('README.rst', 'r').read()).replace(description, ''),
-    packages = ['pybythec'],
-    entry_points = {
-        'console_scripts': ['pybythec=pybythec.command_line:main'],
-    },
-    license = 'LICENSE',
-    test_suite = 'test',
-    cmdclass = {'install': installer}
-)

@@ -1,10 +1,10 @@
 
 import os
 import json
-import logging
 from pybythec import utils
+from pybythec.utils import f
 
-log = logging.getLogger('pybythec')
+log = utils.Logger('pybythec')
 
 class BuildStatus:
   '''
@@ -27,13 +27,13 @@ class BuildStatus:
       buildPath (in): where to read the status.json file from
     '''
 
-    buildPath = '{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir, buildType, compiler, binaryFormat)
+    buildPath = f('{0}/{1}/{2}/{3}/{4}', libSrcDir, buildDir, buildType, compiler, binaryFormat)
     if not os.path.exists(buildPath):
       # try the other hidden / non-hidden version
       if buildDir[0] == '.':
-        buildPath = '{0}/{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir.lstrip('.'), buildType, compiler, binaryFormat)
+        buildPath = f('{0}/{1}/{2}/{3}/{4}', libSrcDir, buildDir.lstrip('.'), buildType, compiler, binaryFormat)
       else:
-        buildPath = '{0}/.{1}/{2}/{3}/{4}'.format(libSrcDir, buildDir, buildType, compiler, binaryFormat)
+        buildPath = f('{0}/.{1}/{2}/{3}/{4}', libSrcDir, buildDir, buildType, compiler, binaryFormat)
 
     contents = utils.loadJsonFile(buildPath + '/status.json')
     if not contents:
@@ -52,14 +52,16 @@ class BuildStatus:
       log.warning(self.description)
 
 
-  def writeInfo(self, status, msg):
+  def writeInfo(self, status, msg, *args):
+    msg = f(msg, *args)
     log.info(msg)
     self.status = status
     self.description = msg
     self._writeToFile()
 
 
-  def writeError(self, msg):
+  def writeError(self, msg, *args):
+    msg = f(msg, *args)
     log.error(msg)
     self.description = msg
     self._writeToFile()

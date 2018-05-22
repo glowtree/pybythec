@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from pybythec import utils
+from pybythec.utils import f
+from pybythec.utils import PybythecError
 from pybythec.BuildStatus import BuildStatus
 from pybythec.BuildElements import BuildElements
 
@@ -8,13 +10,11 @@ import sys
 import time
 from threading import Thread
 
-import logging
-logging.basicConfig(level = logging.INFO, format = '%(levelname)s: %(name)s: %(message)s')
-log = logging.getLogger('pybythec')
+log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.30'
+__version__ = '0.9.31'
 
 
 def getBuildElements(osType = None,
@@ -27,27 +27,25 @@ def getBuildElements(osType = None,
                      globalConfig = None,
                      libDir = None):
   '''
-    osType: operating system: currently linux, macOs, or windows
-    builds: list of build variations
-    compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110
-    buildType: debug release etc
-    binaryFormat: 32bit, 64bit etc
-    projConfigPath: path to a pybythec project config file (json)
-    globalConfigPath: path to a pybythec global config file (json)
-    projConfig: dict of the project config
-    globalConfig: dict of the global config
-    libDir: directory path of the library being built, likely only used when building a library as a dependency (ie from a project)
+    passthrough function that catches and reports exceptions
   '''
-  return BuildElements(
-      osType = osType,
-      compiler = compiler,
-      buildType = buildType,
-      binaryFormat = binaryFormat,
-      projConfig = projConfig,
-      projConfigPath = projConfigPath,
-      globalConfig = globalConfig,
-      globalConfigPath = globalConfigPath,
-      libDir = libDir)
+  try:
+    return BuildElements(
+        osType = osType,
+        compiler = compiler,
+        buildType = buildType,
+        binaryFormat = binaryFormat,
+        projConfig = projConfig,
+        projConfigPath = projConfigPath,
+        globalConfig = globalConfig,
+        globalConfigPath = globalConfigPath,
+        libDir = libDir)
+  except PybythecError as e:
+    log.error(e)
+    return None
+  except Exception as e:
+    log.error('unknown exception: {0}', e)
+    return None
 
 
 def build(be = None, builds = None):
@@ -55,9 +53,10 @@ def build(be = None, builds = None):
     be: BuildElements object
     builds: list of build overrides
   '''
-
   if not be:
     be = getBuildElements()
+    if not be:
+      return
 
   buildsRef = builds
   if not buildsRef:
@@ -66,23 +65,31 @@ def build(be = None, builds = None):
     buildsRef = [buildsRef]
 
   for build in buildsRef:
-    be.configBuild(buildName = build)
+    try:
+      be.configBuild(buildName = build)
+    except PybythecError as e:
+      log.error(e)
+      continue
+    except Exception as e:
+      log.error('unknown exception: {0}', e)
+      continue
     _build(be)
 
 
 def _build(be):
   '''
+    does the dirty work of compiling and linking based on the state setup in the BuildElements object be
   '''
+  threading = True # NOTE: perhaps this could be an function argument
+
   buildStatus = BuildStatus(be.targetFilename, be.buildPath)
 
   # lock - early return
   if be.locked and os.path.exists(be.targetInstallPath):
-    buildStatus.writeInfo('locked', be.targetName + ' is locked')
+    buildStatus.writeInfo('locked', '{0} is locked', be.targetName)
     return True
 
   startTime = time.time()
-
-  threading = True
 
   log.info('building ' + be.infoStr)
 
@@ -101,13 +108,13 @@ def _build(be):
     if os.path.exists(incPath):
       incPathList += ['-I', incPath]
     else:
-      log.warning('incPath {0} doesn\'t exist'.format(incPath))
+      log.warning('incPath {0} doesn\'t exist', incPath)
 
   for extIncPath in be.extIncPaths:  # external include libs (for cases where 3rd party header includes are using "" instead of <> ie Unreal)
     if os.path.exists(incPath):
       incPathList += ['-I', extIncPath]
     else:
-      log.warning('extIncPath {0} doesn\'t exist'.format(extIncPath))
+      log.warning('extIncPath {0} doesn\'t exist', extIncPath)
 
   definesList = []
   for define in be.defines:
@@ -119,7 +126,7 @@ def _build(be):
   mocPaths = []
   for qtClass in be.qtClasses:
     found = False
-    mocPath = '{0}/moc_{1}.cpp'.format(be.buildPath, qtClass)
+    mocPath = f('{0}/moc_{1}.cpp', be.buildPath, qtClass)
     qtClassHeader = qtClass + '.h'
 
     for incPath in be.incPaths:  # find the header file, # TODO: should there be a separate list of headers ie be.mocIncPaths?
@@ -138,7 +145,7 @@ def _build(be):
       found = True
 
     if not found:
-      buildStatus.writeError('can\'t find {0} for qt moc compilation'.format(qtClassHeader))
+      buildStatus.writeError('can\'t find {0} for qt moc compilation', qtClassHeader)
       return False
 
   for mocPath in mocPaths:
@@ -198,7 +205,7 @@ def _build(be):
       else:
         for libSrcPath in be.libSrcPaths:
           if not os.path.exists('libSrcPath'):
-            log.warning('libSrcPath {0} doesn\'t exist'.format(libSrcPath))
+            log.warning('libSrcPath {0} doesn\'t exist', libSrcPath)
             continue
           libSrcPath = os.path.join(libSrcPath, lib)
           if os.path.exists(libSrcPath):
@@ -217,8 +224,8 @@ def _build(be):
   for buildStatusDep in buildStatusDeps:
     if buildStatusDep.status == 'failed':
       # NOTE: changed from buildStatusDep.description.encode('ascii', 'ignore') which fixed issue on macOs
-      buildStatus.writeError('{0} failed because {1} failed because...\n\n{2}\n...determined in seconds\n\n'.format(
-          be.infoStr, buildStatusDep.name, buildStatusDep.description, str(int(time.time() - startTime))))
+      buildStatus.writeError('{0} failed because {1} failed because...\n\n{2}\n...determined in seconds\n\n', be.infoStr, buildStatusDep.name,
+                             buildStatusDep.description, str(int(time.time() - startTime)))
       return False
     elif buildStatusDep.status == 'built':
       allUpToDate = False
@@ -235,7 +242,7 @@ def _build(be):
   linkCmd = []
 
   if allUpToDate and os.path.exists(be.targetInstallPath):
-    buildStatus.writeInfo('up to date', '{0} is up to date, determined in {1} seconds\n'.format(be.infoStr, str(int(time.time() - startTime))))
+    buildStatus.writeInfo('up to date', '{0} is up to date, determined in {1} seconds\n', be.infoStr, str(int(time.time() - startTime)))
     if not buildingLib:
       _runPostScript(be)
     return True
@@ -243,13 +250,13 @@ def _build(be):
   # microsoft's compiler / linker can only handle so many characters on the command line
   msvcLinkCmdFilePath = be.buildPath + '/linkCmd'
   if be.compiler.startswith('msvc'):
-    msvcLinkCmd = '{0}"{1}" "{2}" {3}'.format(be.targetFlag, be.targetInstallPath, '" "'.join(objPaths), ' '.join(libCmds))
+    msvcLinkCmd = f('{0}"{1}" "{2}" {3}', be.targetFlag, be.targetInstallPath, '" "'.join(objPaths), ' '.join(libCmds))
     msvcLinkCmdFp = open(msvcLinkCmdFilePath, 'w')
     msvcLinkCmdFp.write(msvcLinkCmd)
     msvcLinkCmdFp.close()
     linkCmd += [be.linker, '@' + msvcLinkCmdFilePath]
     if be.showLinkerCmds:
-      log.info('\nmsvcLinkCmd: {0}\n'.format(msvcLinkCmd))
+      log.info('\nmsvcLinkCmd: {0}\n', msvcLinkCmd)
   else:
     linkCmd += [be.linker, be.targetFlag, be.targetInstallPath] + objPaths + libCmds
 
@@ -260,7 +267,7 @@ def _build(be):
 
     for libPath in be.libPaths:
       if not os.path.exists(libPath):
-        log.warning('libPath {0} doesn\'t exist'.format(libPath))
+        log.warning('libPath {0} doesn\'t exist', libPath)
         continue
       if be.compiler.startswith('msvc'):
         linkCmd += [be.libPathFlag + os.path.normpath(libPath)]
@@ -276,7 +283,7 @@ def _build(be):
     targetExisted = True
 
   if be.showLinkerCmds:
-    log.info('\n{0}\n'.format(' '.join(linkCmd)))
+    log.info('\n{0}\n', ' '.join(linkCmd))
 
   buildStatus.description = utils.runCmd(linkCmd)
 
@@ -290,10 +297,10 @@ def _build(be):
   if linked:
     log.info('linked ' + be.infoStr)
   else:
-    buildStatus.writeError('linking failed because ' + buildStatus.description)
+    buildStatus.writeError('linking failed because {0}', buildStatus.description)
     return False
 
-  # copy dynamic library dependencies (built by this build) to the install path   
+  # copy dynamic library dependencies (built by this build) to the install path
   if be.binaryType == 'exe' or be.binaryType == 'plugin':
     for lib in libsBuilding:
       for libPath in be.libPaths:
@@ -304,8 +311,7 @@ def _build(be):
         if os.path.exists(dynamicPath):
           utils.copyfile(dynamicPath, be.installPath)
 
-  buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n'.format(be.infoStr, be.targetInstallPath,
-                                                                                    str(int(time.time() - startTime))))
+  buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n', be.infoStr, be.targetInstallPath, str(int(time.time() - startTime)))
 
   sys.stdout.flush()
 
@@ -325,11 +331,11 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
     compileCmd (in): the compile command so far 
     source (in): the c or cpp source file to compile (every source file gets it's own object file)
     objPaths (out): list of all object paths that will be passed to the linker
-    buildStatus (out): build status for this particular compile
+    buildStatus (out): build status for this particular compile, defaults to failed
   '''
 
   if not os.path.exists(source):
-    buildStatus.writeError(source + ' is missing, exiting build')
+    buildStatus.writeError('{0} is missing, exiting build', source)
     return
 
   objFile = os.path.basename(source)
@@ -365,6 +371,8 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
 
   if buildStatus.status == 'built':
     buildStatus.description = 'compiled ' + os.path.basename(source)
+  else:
+    log.error('{0} failed to build', objPath)
 
 
 def _buildLib(be, libSrcDir, buildStatus):
@@ -374,10 +382,10 @@ def _buildLib(be, libSrcDir, buildStatus):
   if not os.path.exists(jsonPath):
     jsonPath = os.path.join(libSrcDir, '.pybythec.json')
   if not os.path.exists(jsonPath):
-    buildStatus.writeError(libSrcDir + ' does not have a pybythec.json file')
+    buildStatus.writeError('{0} does not have a pybythec.json file', libSrcDir)
     return
 
-  libBe = BuildElements(
+  libBe = getBuildElements(
       osType = be.osType,
       compiler = be.compiler,
       buildType = be.buildType,
@@ -385,6 +393,8 @@ def _buildLib(be, libSrcDir, buildStatus):
       projConfig = be.projConfig,
       globalConfig = be.globalConfig,
       libDir = libSrcDir)
+  if not libBe:
+    return
   build(libBe)
 
   # read the build status
@@ -396,6 +406,8 @@ def clean(be = None, builds = None):
   '''
   if not be:
     be = getBuildElements()
+    if not be:
+      return
 
   buildsRef = builds
   if not buildsRef:
@@ -404,7 +416,14 @@ def clean(be = None, builds = None):
     buildsRef = [buildsRef]
 
   for build in buildsRef:
-    be.configBuild(buildName = build)
+    try:
+      be.configBuild(buildName = build)
+    except PybythecError as e:
+      log.error(e)
+      return
+    except Exception as e:
+      log.error('unknown exception: {0}', e)
+      return
     _clean(be)
 
 
@@ -413,7 +432,7 @@ def _clean(be = None):
     cleans the current project
     be (in): BuildElements object
   '''
-  
+
   # remove any dynamic libs that are sitting next to the exe
   if os.path.exists(be.installPath) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
     for f in os.listdir(be.installPath):
@@ -446,7 +465,7 @@ def _clean(be = None):
       os.remove(p)
     except:
       dirCleared = False
-      log.warning('failed to remove {0}'.format(p))
+      log.warning('failed to remove {0}', p)
   if dirCleared:
     os.removedirs(be.buildPath)
 
@@ -474,22 +493,31 @@ def cleanAll(be = None, builds = None):
   '''
   if not be:
     be = getBuildElements()
+    if not be:
+      return
 
   buildsRef = builds
   if not buildsRef:
     buildsRef = be.builds
   if type(buildsRef) is not list:
     buildsRef = [buildsRef]
-  
+
   for build in buildsRef:
-    be.configBuild(buildName = build)
+    try:
+      be.configBuild(buildName = build)
+    except PybythecError as e:
+      log.error(e)
+      continue
+    except Exception as e:
+      log.error('unknown exception: {0}', e)
+      continue
     _clean(be)
     # clean library dependencies
     for lib in be.libs:
       for libSrcPath in be.libSrcPaths:
         libPath = os.path.join(libSrcPath, lib)
         if os.path.exists(libPath):
-          libBe = BuildElements(
+          libBe = getBuildElements(
               osType = be.osType,
               compiler = be.compiler,
               buildType = be.buildType,
@@ -497,7 +525,9 @@ def cleanAll(be = None, builds = None):
               projConfig = be.projConfig,
               globalConfig = be.globalConfig,
               libDir = libPath)
-          clean(libBe) #, builds = build)
+          if not libBe:
+            return
+          clean(libBe)  #, builds = build)
 
 
 def _runPostScript(be):

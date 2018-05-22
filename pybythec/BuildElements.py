@@ -1,12 +1,12 @@
 import os
-import logging
 import platform
+import subprocess
 from pybythec import utils
+from pybythec.utils import f
+from pybythec.utils import PybythecError
 
-log = logging.getLogger('pybythec')
+log = utils.Logger('pybythec')
 
-class PybythecError(Exception):
-  pass
 
 class BuildElements:
 
@@ -21,12 +21,18 @@ class BuildElements:
                globalConfig = None,
                libDir = None):
     '''
-      osType: the operating system, currently linux, macOs or windows
-      projConfigPath:
-      globalConfigPath:
-      builds:
+      osType: operating system: currently linux, macOs, or windows
+      builds: list of build variations
+      compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110
+      buildType: debug release etc
+      binaryFormat: 32bit, 64bit etc
+      projConfigPath: path to a pybythec project config file (json)
+      globalConfigPath: path to a pybythec global config file (json)
+      projConfig: dict of the project config
+      globalConfig: dict of the global config
+      libDir: directory path of the library being built, likely only used when building a library as a dependency (ie from a project)
 
-      preliminary setup, parses config files if they exist
+      parses config files: global, project, local if they exist to determine build elements (state), uses function arguments as overrides
     '''
 
     self.localConfig = None
@@ -68,13 +74,13 @@ class BuildElements:
         if os.path.exists(globalConfigPath):
           self.globalConfig = utils.loadJsonFile(globalConfigPath)
         else:
-          log.warning('{0} doesn\'t exist'.format(globalConfigPath))
+          log.warning('{0} doesn\'t exist', globalConfigPath)
       elif 'PYBYTHEC_GLOBALS' in os.environ:
         globalConfigPath = os.environ['PYBYTHEC_GLOBALS']
         if os.path.exists(globalConfigPath):
           self.globalConfig = utils.loadJsonFile(globalConfigPath)
         else:
-          log.warning('PYBYTHEC_GLOBALS points to {0}, which doesn\'t exist'.format(globalConfigPath))
+          log.warning('PYBYTHEC_GLOBALS points to {0}, which doesn\'t exist', globalConfigPath)
       elif os.path.exists('.pybythecGlobals.json'):
         self.globalConfig = utils.loadJsonFile('.pybythecGlobals.json')
       elif os.path.exists('pybythecGlobals.json'):
@@ -100,13 +106,13 @@ class BuildElements:
         if os.path.exists(projConfigPath):
           self.projConfig = utils.loadJsonFile(projConfigPath)
         else:
-          log.warning('{0} doesn\'t exist'.format(projConfigPath))
+          log.warning('{0} doesn\'t exist', projConfigPath)
       elif 'PYBYTHEC_PROJECT' in os.environ:
         projConfPath = os.environ['PYBYTHEC_PROJECT']
         if os.path.exists(projConfPath):
           self.projConfig = utils.loadJsonFile(projConfPath)
         else:
-          log.warning('PYBYTHEC_PROJECT points to {0}, which doesn\'t exist'.format(projConfPath))
+          log.warning('PYBYTHEC_PROJECT points to {0}, which doesn\'t exist', projConfPath)
       else:
         if os.path.exists(self.cwDir + '/pybythecProject.json'):
           self.projConfig = utils.loadJsonFile(self.cwDir + '/pybythecProject.json')
@@ -141,7 +147,7 @@ class BuildElements:
 
     if self.osType:
       if self.osType not in ['linux', 'macOs', 'windows']: # validate
-        log.warning('{0} invalid osType, defaulting to the native os'.format(self.osType))
+        log.warning('{0} invalid osType, defaulting to the native os', self.osType)
         self.osType = None
     if not self.osType: # use the native os
       if platform.system() == 'Linux':
@@ -207,9 +213,13 @@ class BuildElements:
     elif self.compiler.startswith('msvc'):
       self.compilerRoot = 'msvc'
     else:
-      raise PybythecError('unrecognized compiler {0}, using the default based on osType'.format(self.compiler))
+      raise PybythecError('unrecognized compiler {0}, using the default based on osType', self.compiler)
 
-    # TODO: verify that the compiler exists / runs
+    try:
+      subprocess.call(self.compiler, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    except OSError:
+      raise PybythecError('compiler {0} is not found in PATH', self.compiler)
+
 
     if self.buildTypeOverride: 
       self.buildType = self.buildTypeOverride
@@ -330,7 +340,7 @@ class BuildElements:
         raise PybythecError('compiler not found, check the paths set in bins')
 
     else:
-      raise PybythecError('unrecognized compiler root: {0}'.format(self.compilerRoot))
+      raise PybythecError('unrecognized compiler root: {0}', self.compilerRoot)
 
     #
     # determine paths
@@ -342,7 +352,7 @@ class BuildElements:
     self._resolvePaths(self.cwDir, self.libPaths)
     self._resolvePaths(self.cwDir, self.libSrcPaths)
 
-    self.binaryRelPath = '/{0}/{1}/{2}'.format(self.buildType, self.compiler, self.binaryFormat)
+    self.binaryRelPath = f('/{0}/{1}/{2}', self.buildType, self.compiler, self.binaryFormat)
 
     binRelPath = self.binaryRelPath
     if buildName:
@@ -356,7 +366,7 @@ class BuildElements:
 
     self.targetInstallPath = os.path.join(self.installPath, self.targetFilename)
 
-    self.infoStr = '{0} ({1} {2} {3}'.format(self.targetName, self.buildType, self.compiler, self.binaryFormat)
+    self.infoStr = f('{0} ({1} {2} {3}', self.targetName, self.buildType, self.compiler, self.binaryFormat)
     if buildName:
       self.infoStr += ' ' + buildName
     self.infoStr += ')'
@@ -418,7 +428,7 @@ class BuildElements:
       if len(compilerList):
         self.compiler = compilerList[0]
         if len(compilerList) > 1:
-          log.warning('couldn\'t resolve to single compiler, compiler options: {0}, selecting {1}'.format(compilerList, self.compiler))
+          log.warning('couldn\'t resolve to single compiler, compiler options: {0}, selecting {1}', compilerList, self.compiler)
 
 
   def _getBuildElements3(self, configObj, keys = []):

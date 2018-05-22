@@ -1,6 +1,9 @@
+
 import pybythec
 import argparse
 
+
+log = pybythec.utils.Logger('pybythec')
 
 def main():
 
@@ -28,7 +31,9 @@ def main():
       binaryFormat = args.binaryFormat,
       projConfigPath = args.projectConfig,
       globalConfigPath = args.globalConfig)
-  
+  if not be:
+    return
+
   builds = args.builds.split(',') if args.builds else None
 
   if args.cleanAll:
