@@ -42,8 +42,10 @@ coverage.xml
 #*#
 *.marks
 
-#pybythec/
+# pybythec/
 .pybythec/
+pybythec-*/
+
 
 # vscode
 .vscode/tags

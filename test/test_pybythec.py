@@ -21,7 +21,7 @@ class TestPybythec(unittest.TestCase):
   
   def setUp(self):
     '''
-      typical setup for building with pybythc
+      typical setup for building with pybythec
     '''
     # setup the environment variables...
     # normally you would probably set these in your .bashrc (linux / macOs), profile.ps1 (windows) file etc
