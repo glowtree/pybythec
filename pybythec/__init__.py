@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.36'
+__version__ = '0.9.37'
 
 
 def getBuildElements(osType = None,
@@ -302,7 +302,7 @@ def _build(be):
 
   # copy dynamic library dependencies (built by this build) to the install path
   if be.binaryType == 'exe' or be.binaryType == 'plugin':
-    for lib in libsBuilding:
+    for lib in be.libs:
       for libPath in be.libPaths:
         dynamicPath = libPath + '/'
         if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
