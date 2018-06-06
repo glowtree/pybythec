@@ -23,7 +23,7 @@ class BuildElements:
     '''
       osType: operating system: currently linux, macOs, or windows
       builds: list of build variations
-      compiler: any variation of gcc, clang, or msvc ie g++-4.4, msvc110
+      compiler: any variation of gcc, clang, or msvc ie gcc-4.4, msvc110, if plusplus is true gcc, clang will become g++, clang++
       buildType: debug release etc
       binaryFormat: 32bit, 64bit etc
       projConfigPath: path to a pybythec project config file (json)
@@ -164,7 +164,7 @@ class BuildElements:
     '''
     '''
     # set by the config files first
-    self.compiler = None  # g++-4.4 g++ clang++ msvc110 etc
+    self.compiler = None  # g++-4.4 g++ clang++ msvc-110 etc
     self.filetype = None  # elf, mach-o, pe
     self.installPath = None
   
@@ -212,6 +212,19 @@ class BuildElements:
       self.compilerRoot = 'clang'
     elif self.compiler.startswith('msvc'):
       self.compilerRoot = 'msvc'
+      if self.compiler == 'msvc': # needs a version ie msvc-110 for pathing
+        versionFound = False
+        # NOTE: currently doesn't look for decimal versions
+        # TODO: newer version directories looks like...
+        # C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.13.26128/bin/Hostx64/x64
+        for i in range(15, 1, -1): 
+          if os.path.exists(f('C:/Program Files (x86)/Microsoft Visual Studio {0}.0/VC', i)):
+            self.compiler = f('msvc-{0}0', i)
+            versionFound = True
+            break
+        if not versionFound:
+          raise PybythecError('couldn\'t find a version for msvc')
+        log.i('using {0}', self.compiler)
     else:
       raise PybythecError('unrecognized compiler {0}, using the default based on osType', self.compiler)
 
@@ -261,12 +274,11 @@ class BuildElements:
     # gcc / clang
     #
     if self.compilerRoot == 'gcc' or self.compilerRoot == 'clang':
-
-      if not self.plusplus:  # if forcing plain old C (ie when a library is being built as a dependency that is only C compatible)
-        if self.compilerRoot == 'gcc':
-          self.compilerCmd = self.compilerCmd.replace('g++', 'gcc')
-        elif self.compilerRoot == 'clang':
-          self.compilerCmd = self.compilerCmd.replace('clang++', 'clang')
+      if self.plusplus:
+        if self.compiler.startswith('gcc'):
+          self.compiler = self.compilerCmd.replace('gcc', 'g++')
+        elif self.compiler.startswith('clang'):
+          self.compiler = self.compilerCmd.replace('clang', 'clang++')
 
       self.objFlag = '-c'
       self.objExt = '.o'

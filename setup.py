@@ -9,10 +9,11 @@ pybythecGlobals = '''
   "buildType": "release",
   "installPath": ".",
   "buildDir": ".pybythec",
+  "plusplus": true,
   "compiler": {
-    "linux": "g++",
-    "macOs": "clang++",
-    "windows": "msvc-140"
+    "linux": "gcc",
+    "macOs": "clang",
+    "windows": "msvc"
   },
   "filetype": {
     "linux": "elf",
@@ -71,16 +72,14 @@ pybythecGlobals = '''
         "all": [
           "/W1",
           "/RTC1",
-          "/Z7",
-          "/MDd"
+          "/Z7"
         ]
       },
       "release": {
         "all": [
           "/DNDEBUG",
           "/O2",
-          "/GL",
-          "/MD"
+          "/GL"
         ]
       },
       "dynamic": "/LD",
@@ -120,10 +119,9 @@ pybythecGlobals = '''
     },
     "msvc": {
       "all": [
-        "/NODEFAULTLIB:LIBCMT",
         "/NOLOGO",
         "/ERRORREPORT:PROMPT"
-      ], //:libc.lib
+      ],
       "debug": "/DEBUG",
       "release": [
         "/INCREMENTAL:NO",
@@ -135,7 +133,6 @@ pybythecGlobals = '''
   },
   "libs": {
     "gcc": "pthread"
-    // "msvc": ["user32", "gdi32", "Shell32"]
   },
   "bins": {
     "msvc-090": {
