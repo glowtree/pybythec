@@ -43,7 +43,7 @@ description = 'A lightweight cross-platform build system for c/c++, written in p
 
 setup(
     name = 'pybythec',
-    version = '0.9.40',
+    version = '0.9.41',
     author = 'glowtree',
     author_email = 'tom@glowtree.com',
     url = 'https://github.com/glowtree/pybythec',
