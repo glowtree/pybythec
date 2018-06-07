@@ -134,6 +134,7 @@ pybythecGlobals = '''
   "libs": {
     "gcc": "pthread"
   },
+  "msvc-default": "msvc-140",
   "bins": {
     "msvc-090": {
       "all": [

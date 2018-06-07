@@ -64,6 +64,8 @@ class BuildElements:
     self.showCompilerCmds = False
     self.showLinkerCmds = False
 
+    self.msvcDefault = None
+
     self.cwDir = os.getcwd()
     if self.libDir:
       self.cwDir = self.libDir
@@ -213,17 +215,10 @@ class BuildElements:
     elif self.compiler.startswith('msvc'):
       self.compilerRoot = 'msvc'
       if self.compiler == 'msvc': # needs a version ie msvc-110 for pathing
-        versionFound = False
-        # NOTE: currently doesn't look for decimal versions
-        # TODO: newer version directories looks like...
-        # C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.13.26128/bin/Hostx64/x64
-        for i in range(15, 1, -1): 
-          if os.path.exists(f('C:/Program Files (x86)/Microsoft Visual Studio {0}.0/VC', i)):
-            self.compiler = f('msvc-{0}0', i)
-            versionFound = True
-            break
-        if not versionFound:
-          raise PybythecError('couldn\'t find a version for msvc')
+        if self.msvcDefault:
+          self.compiler = self.msvcDefault
+        else:
+          raise PybythecError('msvc has no default set, try setting the compiler to a specific version ie msvc-140')
         log.i('using {0}', self.compiler)
     else:
       raise PybythecError('unrecognized compiler {0}, using the default based on osType', self.compiler)
@@ -258,17 +253,16 @@ class BuildElements:
     #
     # compiler config
     #
-    self.compilerCmd = self.compiler
-    self.linker = ''
-    self.targetFlag = ''
-    self.libFlag = ''
-    self.libPathFlag = ''
-    self.objExt = ''
-    self.objPathFlag = ''
-
-    self.staticExt = ''
-    self.dynamicExt = ''
-    self.pluginExt = ''
+    self.compilerCmd = None
+    self.linker = None
+    self.targetFlag = None
+    self.libFlag = None
+    self.libPathFlag = None
+    self.objExt = None
+    self.objPathFlag = None
+    self.staticExt = None
+    self.dynamicExt = None
+    self.pluginExt = None
 
     #
     # gcc / clang
@@ -276,10 +270,11 @@ class BuildElements:
     if self.compilerRoot == 'gcc' or self.compilerRoot == 'clang':
       if self.plusplus:
         if self.compiler.startswith('gcc'):
-          self.compiler = self.compilerCmd.replace('gcc', 'g++')
-        elif self.compiler.startswith('clang'):
-          self.compiler = self.compilerCmd.replace('clang', 'clang++')
+          self.compiler = self.compiler.replace('gcc', 'g++')
+        elif self.compiler.startswith('clang-') or self.compiler == ('clang'):
+          self.compiler = self.compiler.replace('clang', 'clang++')
 
+      self.compilerCmd = self.compiler
       self.objFlag = '-c'
       self.objExt = '.o'
       self.objPathFlag = '-o'
@@ -431,6 +426,9 @@ class BuildElements:
 
     if 'showLinkerCmds' in configObj:
       self.showLinkerCmds = configObj['showLinkerCmds']
+
+    if 'msvc-default' in configObj:
+      self.msvcDefault = configObj['msvc-default']
 
 
   def _getBuildElements2(self, configObj, keys = []):
