@@ -65,3 +65,4 @@ pybythec-*/
 # OS X
 .DS_Store
 
+test.py
