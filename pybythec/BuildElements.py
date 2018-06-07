@@ -88,11 +88,7 @@ class BuildElements:
       elif os.path.exists('pybythecGlobals.json'):
         self.globalConfig = utils.loadJsonFile('pybythecGlobals.json')
       else: # check the home directory
-        homeDirPath = ''
-        if platform.system() == 'Windows':
-          homeDirPath = os.environ['USERPROFILE']
-        else:
-          homeDirPath = os.environ['HOME']
+        homeDirPath = os.path.expanduser('~') # os.environ['HOME']
         if os.path.exists(homeDirPath + '/.pybythecGlobals.json'):
           self.globalConfig = utils.loadJsonFile(homeDirPath + '/.pybythecGlobals.json')
         elif os.path.exists(homeDirPath + '/pybythecGlobals.json'):
