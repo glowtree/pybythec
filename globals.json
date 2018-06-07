@@ -84,7 +84,7 @@
     "gcc": {
       "all": "-Wall",
       "release": "-O3",
-      "exe": "-Wl,-rpath=$ORIGIN/", // so an exe can find shared libraries in the same directory
+      "exe": "-Wl,-rpath=$ORIGIN/",
       "dynamic": "-shared",
       "plugin": "-shared",
       "linux": {

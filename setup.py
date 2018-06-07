@@ -90,7 +90,7 @@ pybythecGlobals = '''
     "gcc": {
       "all": "-Wall",
       "release": "-O3",
-      "exe": "-Wl,-rpath=$ORIGIN/", // so an exe can find shared libraries in the same directory
+      "exe": "-Wl,-rpath=$ORIGIN/",
       "dynamic": "-shared",
       "plugin": "-shared",
       "linux": {
@@ -259,7 +259,7 @@ description = 'A lightweight cross-platform build system for c/c++, written in p
 
 setup(
     name = 'pybythec',
-    version = '0.9.42',
+    version = '0.9.43',
     author = 'glowtree',
     author_email = 'tom@glowtree.com',
     url = 'https://github.com/glowtree/pybythec',
