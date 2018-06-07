@@ -19,10 +19,11 @@ class BuildElements:
                globalConfigPath = None,
                projConfig = None,
                globalConfig = None,
-               libDir = None):
+               currentBuild = None,
+               libDir = None
+               ):
     '''
       osType: operating system: currently linux, macOs, or windows
-      builds: list of build variations
       compiler: any variation of gcc, clang, or msvc ie gcc-4.4, msvc110, if plusplus is true gcc, clang will become g++, clang++
       buildType: debug release etc
       binaryFormat: 32bit, 64bit etc
@@ -31,15 +32,16 @@ class BuildElements:
       projConfig: dict of the project config
       globalConfig: dict of the global config
       libDir: directory path of the library being built, likely only used when building a library as a dependency (ie from a project)
-
+      currentBuild: current build from a potential list of custom builds, passed in when building library dependencies
       parses config files: global, project, local if they exist to determine build elements (state), uses function arguments as overrides
     '''
 
     self.localConfig = None
     self.projConfig = projConfig
     self.globalConfig = globalConfig
+    self.currentBuild = currentBuild # current custom build if any
     self.libDir = libDir
-
+    
     # overrides config files
     self.osTypeOverride = osType
     self.compilerOverride = compiler
@@ -50,8 +52,8 @@ class BuildElements:
     self.version = None
     self.targetName = None # name of the target
     self.targetFilename = None # name of the target + extension
-
     self.builds = None  # a list of custom build keys
+    
     self.osType = None  # linux, macOs, windows
     self.binaryType = None  # exe, static, dynamic, plugin
     
@@ -158,9 +160,12 @@ class BuildElements:
         raise PybythecError('os needs to be linux, macOs or windows')
 
 
-  def configBuild(self, buildName = None):
+  def configBuild(self, currentBuild = None):
     '''
     '''
+    if currentBuild:
+      self.currentBuild = currentBuild
+
     # set by the config files first
     self.compiler = None  # g++-4.4 g++ clang++ msvc-110 etc
     self.filetype = None  # elf, mach-o, pe
@@ -180,10 +185,10 @@ class BuildElements:
     self.qtClasses = []
 
 
-    # 2 keys at this point for a potentially nested compiler: osType and buildName
+    # 2 keys at this point for a potentially nested compiler: osType and currentBuild
     keys = [self.osType]
-    if buildName:
-      keys.append(buildName)
+    if self.currentBuild:
+      keys.append(self.currentBuild)
 
     #
     # second iteration to get the other configs that can't be nested (the compiler being the exception)
@@ -215,7 +220,6 @@ class BuildElements:
           self.compiler = self.msvcDefault
         else:
           raise PybythecError('msvc has no default set, try setting the compiler to a specific version ie msvc-140')
-        log.i('using {0}', self.compiler)
     else:
       raise PybythecError('unrecognized compiler {0}, using the default based on osType', self.compiler)
 
@@ -361,21 +365,19 @@ class BuildElements:
 
     self.binaryRelPath = f('/{0}/{1}/{2}', self.buildType, self.compiler, self.binaryFormat)
 
-    binRelPath = self.binaryRelPath
-    if buildName:
-      binRelPath += '/' + buildName
+    if self.currentBuild:
+      self.binaryRelPath += '/' + self.currentBuild
 
-    self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + binRelPath)
+    self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + self.binaryRelPath)
 
-    # if self.libInstallPathAppend and (self.binaryType == 'static' or self.binaryType == 'dynamic'):
     if self.libInstallPathAppend and (self.binaryType in ['static', 'dynamic']):
-      self.installPath += binRelPath
+      self.installPath += self.binaryRelPath
 
     self.targetInstallPath = os.path.join(self.installPath, self.targetFilename)
 
     self.infoStr = f('{0} ({1} {2} {3}', self.targetName, self.buildType, self.compiler, self.binaryFormat)
-    if buildName:
-      self.infoStr += ' ' + buildName
+    if self.currentBuild:
+      self.infoStr += ' ' + self.currentBuild
     self.infoStr += ')'
 
 

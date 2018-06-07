@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.44'
+__version__ = '0.9.45'
 
 
 def getBuildElements(osType = None,
@@ -25,6 +25,7 @@ def getBuildElements(osType = None,
                      globalConfigPath = None,
                      projConfig = None,
                      globalConfig = None,
+                     currentBuild = None,
                      libDir = None):
   '''
     passthrough function that catches and reports exceptions
@@ -39,6 +40,7 @@ def getBuildElements(osType = None,
         projConfigPath = projConfigPath,
         globalConfig = globalConfig,
         globalConfigPath = globalConfigPath,
+        currentBuild = currentBuild,
         libDir = libDir)
   except PybythecError as e:
     log.error(e)
@@ -66,7 +68,7 @@ def build(be = None, builds = None):
 
   for build in buildsRef:
     try:
-      be.configBuild(buildName = build)
+      be.configBuild(currentBuild = build)
     except PybythecError as e:
       log.error(e)
       continue
@@ -121,7 +123,7 @@ def _build(be):
     definesList += ['-D', define]
 
   #
-  # qt moc file compilation
+  # qt moc file compilation, TODO: make this another compiler option, along with asm
   #
   mocPaths = []
   for qtClass in be.qtClasses:
@@ -235,6 +237,10 @@ def _build(be):
     revisedLibPath = be.libPaths[i] + be.binaryRelPath
     if os.path.exists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
+    else: # try without the currentBuild leaf dir, ie 3rd party libs likely won't have them
+      revisedLibPath = f('{0}/{1}/{2}/{3}', be.libPaths[i], be.buildType, be.compiler, be.binaryFormat)
+      if os.path.exists(revisedLibPath):
+        be.libPaths[i] = revisedLibPath
 
   # check for multiple instances of a lib: link erros due to linking to the wrong version of a lib can be a nightmare to debug
   # if you don't suspect it's the wrong version
@@ -413,13 +419,15 @@ def _buildLib(be, libSrcDir, buildStatus):
       binaryFormat = be.binaryFormat,
       projConfig = be.projConfig,
       globalConfig = be.globalConfig,
-      libDir = libSrcDir)
+      currentBuild = be.currentBuild,
+      libDir = libSrcDir
+      )
   if not libBe:
     return
   build(libBe)
 
   # read the build status
-  buildStatus.readFromFile(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat)
+  buildStatus.readFromFile(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat, be.currentBuild)
 
 
 def clean(be = None, builds = None):
@@ -438,7 +446,7 @@ def clean(be = None, builds = None):
 
   for build in buildsRef:
     try:
-      be.configBuild(buildName = build)
+      be.configBuild(currentBuild = build)
     except PybythecError as e:
       log.error(e)
       return
@@ -467,13 +475,13 @@ def _clean(be = None):
             try:
               os.remove(p)
             except Exception:
-              log.warning('failed to remove ' + p)
+              log.warning('failed to remove {0}', p)
       elif ext == '.exp' or ext == '.ilk' or ext == '.lib' or ext == '.pdb':  # msvc files
         p = be.installPath + '/' + fl
         try:
           os.remove(p)
         except Exception:
-          log.warning('failed to remove ' + p)
+          log.warning('failed to remove {0}', p)
 
   if not os.path.exists(be.buildPath):  # canary in the coal mine
     log.info(be.infoStr + ' already clean')
@@ -525,7 +533,7 @@ def cleanAll(be = None, builds = None):
 
   for build in buildsRef:
     try:
-      be.configBuild(buildName = build)
+      be.configBuild(currentBuild = build)
     except PybythecError as e:
       log.error(e)
       continue
@@ -545,6 +553,7 @@ def cleanAll(be = None, builds = None):
               binaryFormat = be.binaryFormat,
               projConfig = be.projConfig,
               globalConfig = be.globalConfig,
+              currentBuild = be.currentBuild,
               libDir = libPath)
           if not libBe:
             return

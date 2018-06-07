@@ -16,7 +16,7 @@ matrix:
       language: generic
       env: pyver=python3   
 
-sudo: required
+# sudo: required
 
 install:
   - if [[ ("$TRAVIS_OS_NAME" == "osx") && ("$pyver" == "python3") ]]; then brew upgrade python; fi
