@@ -165,6 +165,7 @@ class BuildElements:
     '''
     if currentBuild:
       self.currentBuild = currentBuild
+      os.environ['PYBYTHEC_BUILDVAR'] = self.currentBuild
 
     # set by the config files first
     self.compiler = None  # g++-4.4 g++ clang++ msvc-110 etc
