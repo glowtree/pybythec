@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.47'
+__version__ = '0.9.48'
 
 
 def getBuildElements(osType = None,
@@ -327,16 +327,17 @@ def _build(be):
     buildStatus.writeError('linking failed because {0}', buildStatus.description)
     return False
 
-  # copy dynamic library dependencies (built by this build) to the install path
-  if be.binaryType == 'exe' or be.binaryType == 'plugin':
-    for lib in be.libs:
-      for libPath in be.libPaths:
-        dynamicPath = libPath + '/'
-        if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
-          dynamicPath += 'lib'
-        dynamicPath += lib + be.dynamicExt
-        if os.path.exists(dynamicPath):
-          utils.copyfile(dynamicPath, be.installPath)
+  # copy dynamic library dependencies to the install path
+  if be.copyDynamicLibs:
+    if be.binaryType == 'exe' or be.binaryType == 'plugin':
+      for lib in be.libs:
+        for libPath in be.libPaths:
+          dynamicPath = libPath + '/'
+          if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
+            dynamicPath += 'lib'
+          dynamicPath += lib + be.dynamicExt
+          if os.path.exists(dynamicPath):
+            utils.copyfile(dynamicPath, be.installPath)
 
   buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n', be.infoStr, be.targetInstallPath, str(int(time.time() - startTime)))
 

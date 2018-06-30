@@ -66,7 +66,10 @@ class BuildElements:
     self.showCompilerCmds = False
     self.showLinkerCmds = False
 
+    self.copyDynamicLibs = True
+
     self.msvcDefault = None
+
 
     self.cwDir = os.getcwd()
     if self.libDir:
@@ -208,7 +211,7 @@ class BuildElements:
     if not self.compiler:
       raise PybythecError('compiler not found')
 
-    # validate compiler and  determine root: can be gcc, clang or msvc
+    # validate compiler and determine root: can be gcc, clang or msvc
     self.compilerRoot = None
     if self.compiler.startswith('gcc') or self.compiler.startswith('g++'):
       self.compilerRoot = 'gcc'
@@ -425,6 +428,9 @@ class BuildElements:
 
     if 'showLinkerCmds' in configObj:
       self.showLinkerCmds = configObj['showLinkerCmds']
+
+    if 'copyDynamicLibs' in configObj:
+      self.copyDynamicLibs = configObj['copyDynamicLibs']
 
     if 'msvc-default' in configObj:
       self.msvcDefault = configObj['msvc-default']
