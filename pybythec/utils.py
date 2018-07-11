@@ -224,10 +224,15 @@ def loadJsonFile(jsonPath):
     NOTE: no check for existence of the path so that logging warnings can be controlled elsewhere
   '''
   if os.path.splitext(jsonPath)[1] != '.json':
-    log.warning('{0} is not json', jsonPath)
-    return None
-  with open(jsonPath) as f:
-    return json.loads(removeComments(f))
+    raise PybythecError('{0} is not a json file', jsonPath)
+  if not os.path.exists(jsonPath):
+    raise PybythecError('{0} doesn\'t exist', jsonPath)
+  try:
+    with open(jsonPath) as f:
+      return json.loads(removeComments(f))
+  except Exception as e:
+    raise PybythecError('failed to parse {0}: {1}', jsonPath, e)
+    
 
 
 def removeComments(f):
