@@ -70,66 +70,62 @@ class BuildElements:
 
     self.msvcDefault = None
 
-
     self.cwDir = os.getcwd()
     if self.libDir:
       self.cwDir = self.libDir
-    
+
+    self.latestConfigTimestamp = 0
+
     # global config
     if not self.globalConfig:
-      if globalConfigPath:
-        if os.path.exists(globalConfigPath):
-          self.globalConfig = utils.loadJsonFile(globalConfigPath)
-        else:
-          log.warning('{0} doesn\'t exist', globalConfigPath)
-      elif 'PYBYTHEC_GLOBALS' in os.environ:
+      if 'PYBYTHEC_GLOBALS' in os.environ:
         globalConfigPath = os.environ['PYBYTHEC_GLOBALS']
-        if os.path.exists(globalConfigPath):
-          self.globalConfig = utils.loadJsonFile(globalConfigPath)
-        else:
+        if not os.path.exists(globalConfigPath):
+          globalConfigPath = None
           log.warning('PYBYTHEC_GLOBALS points to {0}, which doesn\'t exist', globalConfigPath)
       elif os.path.exists('.pybythecGlobals.json'):
-        self.globalConfig = utils.loadJsonFile('.pybythecGlobals.json')
+        globalConfigPath = '.pybythecGlobals.json'
       elif os.path.exists('pybythecGlobals.json'):
-        self.globalConfig = utils.loadJsonFile('pybythecGlobals.json')
+        globalConfigPath = 'pybythecGlobals.json'
       else: # check the home directory
-        homeDirPath = os.path.expanduser('~') # os.environ['HOME']
+        homeDirPath = os.path.expanduser('~')
         if os.path.exists(homeDirPath + '/.pybythecGlobals.json'):
-          self.globalConfig = utils.loadJsonFile(homeDirPath + '/.pybythecGlobals.json')
+          globalConfigPath = homeDirPath + '/.pybythecGlobals.json'
         elif os.path.exists(homeDirPath + '/pybythecGlobals.json'):
-          self.globalConfig = utils.loadJsonFile(homeDirPath + '/pybythecGlobals.json')
+          globalConfigPath = homeDirPath + '/pybythecGlobals.json'
         else: # end of the line
           log.warning('no pybythecGlobals.json found in the home directory (hidden or otherwise)')
-    if not self.globalConfig:
-      log.warning('not using a global configuration')
-    
+      if globalConfigPath and os.path.exists(globalConfigPath):
+        self.globalConfig = utils.loadJsonFile(globalConfigPath)
+        self.latestConfigTimestamp = float(os.stat(globalConfigPath).st_mtime)    
+
     # project config
     if not self.projConfig:
-      if projConfigPath:
-        if os.path.exists(projConfigPath):
-          self.projConfig = utils.loadJsonFile(projConfigPath)
-        else:
-          log.warning('{0} doesn\'t exist', projConfigPath)
-      elif 'PYBYTHEC_PROJECT' in os.environ:
-        projConfPath = os.environ['PYBYTHEC_PROJECT']
-        if os.path.exists(projConfPath):
-          self.projConfig = utils.loadJsonFile(projConfPath)
-        else:
-          log.warning('PYBYTHEC_PROJECT points to {0}, which doesn\'t exist', projConfPath)
+      if 'PYBYTHEC_PROJECT' in os.environ:
+        projConfigPath = os.environ['PYBYTHEC_PROJECT']
+        if not os.path.exists(projConfigPath):
+          log.warning('PYBYTHEC_PROJECT points to {0}, which doesn\'t exist', projConfigPath)
       else:
         if os.path.exists(self.cwDir + '/pybythecProject.json'):
-          self.projConfig = utils.loadJsonFile(self.cwDir + '/pybythecProject.json')
+          projConfigPath = self.cwDir + '/pybythecProject.json'
         elif os.path.exists(self.cwDir + '/.pybythecProject.json'):
-          self.projConfig = utils.loadJsonFile(self.cwDir + '/.pybythecProject.json')
-    # if not projConfig:
-      # log.warning('not using a project pybythec configuration')
+          projConfigPath = self.cwDir + '/.pybythecProject.json'
+      if projConfigPath and os.path.exists(projConfigPath):
+        self.projConfig = utils.loadJsonFile(projConfigPath)
+        projConfigTs = float(os.stat(projConfigPath).st_mtime)
+        if projConfigTs > self.latestConfigTimestamp:
+          self.latestConfigTimestamp = projConfigTs
 
     # local config, expected to be in the current working directory
     self.localConfig = None
     localConfigPath = self.cwDir + '/pybythec.json'
     if not os.path.exists(localConfigPath):
       localConfigPath = self.cwDir + '/.pybythec.json'
+    log.info(localConfigPath)
     if os.path.exists(localConfigPath):
+      localConfigTs = float(os.stat(localConfigPath).st_mtime)
+      if localConfigTs > self.latestConfigTimestamp:
+        self.latestConfigTimestamp = localConfigTs
       self.localConfig = utils.loadJsonFile(localConfigPath)
 
     #
@@ -137,12 +133,15 @@ class BuildElements:
     #
     if self.globalConfig is not None:
       self._getBuildElements1(self.globalConfig)
+    else:
+      log.warning('not using a global configuration')
     if self.projConfig is not None:
       self._getBuildElements1(self.projConfig)
     if self.localConfig is not None:
       self._getBuildElements1(self.localConfig)
+    else:
+      log.warning('not using a local pybythec configuration')
 
-    # self.targetName = self.target
     self.targetFilename = self.targetName
 
     if self.osTypeOverride:

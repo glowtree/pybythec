@@ -224,7 +224,8 @@ def loadJsonFile(jsonPath):
     NOTE: no check for existence of the path so that logging warnings can be controlled elsewhere
   '''
   if os.path.splitext(jsonPath)[1] != '.json':
-    raise PybythecError('{0} is not a json file', jsonPath)
+    # raise PybythecError('{0} is not a json file', jsonPath)
+    return None
   if not os.path.exists(jsonPath):
     raise PybythecError('{0} doesn\'t exist', jsonPath)
   try:

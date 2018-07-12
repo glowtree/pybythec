@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.49'
+__version__ = '0.9.50'
 
 
 def getBuildElements(osType = None,
@@ -59,6 +59,8 @@ def build(be = None, builds = None):
     be = getBuildElements()
     if not be:
       return
+
+  _runPreScript(be)
 
   buildsRef = builds
   if not buildsRef:
@@ -375,9 +377,13 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   objExisted = os.path.exists(objPath)
   if objExisted:
     objTimestamp = float(os.stat(objPath).st_mtime)
-    if not utils.sourceNeedsBuilding(be.incPaths, source, objTimestamp):
+    if objTimestamp > be.latestConfigTimestamp and not utils.sourceNeedsBuilding(be.incPaths, source, objTimestamp):
       buildStatus.status = 'up to date'
       return
+
+    # if not utils.sourceNeedsBuilding(be.incPaths, source, objTimestamp):
+    #   buildStatus.status = 'up to date'
+    #   return
 
   # Microsoft Visual C has to have the objPathFlag cuddled up directly next to the objPath - no space in between them (grrr)
   if be.compiler.startswith('msvc'):
@@ -559,6 +565,19 @@ def cleanAll(be = None, builds = None):
           if not libBe:
             return
           clean(libBe)  # builds = build)
+
+
+def _runPreScript(be):
+  '''
+    looks for a pre-build script and loads it as a module
+  '''
+  preScriptPath = './pybythecPre.py'
+  if not os.path.exists(preScriptPath):
+    preScriptPath = './.pybythecPre.py'
+  if os.path.exists(preScriptPath):
+    import imp
+    m = imp.load_source('', preScriptPath)
+    m.run(be)
 
 
 def _runPostScript(be):
