@@ -24,8 +24,6 @@ class TestPybythec(unittest.TestCase):
       typical setup for building with pybythec
     '''
 
-    log.info(os.getcwd())
-
     # setup the environment variables...
     # normally you would probably set these in your .bashrc (linux / macOs), profile.ps1 (windows) file etc
     os.environ['PYBYTHEC_EXAMPLE_SHARED'] = os.getcwd() + '/example/shared'
@@ -44,9 +42,10 @@ class TestPybythec(unittest.TestCase):
     # build Main (along with it's library dependencies)
     os.chdir('../Main')
 
-    pybythec.build()
-
     be = pybythec.getBuildElements()
+
+    pybythec.build(be)
+
     for b in be.builds:
       exePath = f('./{0}/Main', b)
       if platform.system() == 'Windows':

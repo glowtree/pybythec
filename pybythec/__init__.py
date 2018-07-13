@@ -84,7 +84,7 @@ def _build(be):
   '''
     does the dirty work of compiling and linking based on the state setup in the BuildElements object be
   '''
-  threading = True  # NOTE: perhaps this could be an function argument
+  threading = True  # TODO: perhaps this could be an function argument
 
   buildStatus = BuildStatus(be.targetFilename, be.buildPath)
 
@@ -412,13 +412,6 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
 def _buildLib(be, libSrcDir, buildStatus):
   '''
   '''
-  jsonPath = os.path.join(libSrcDir, 'pybythec.json')
-  if not os.path.exists(jsonPath):
-    jsonPath = os.path.join(libSrcDir, '.pybythec.json')
-  if not os.path.exists(jsonPath):
-    buildStatus.writeError('{0} does not have a pybythec.json file', libSrcDir)
-    return
-
   libBe = getBuildElements(
       osType = be.osType,
       compiler = be.compiler,
@@ -430,6 +423,7 @@ def _buildLib(be, libSrcDir, buildStatus):
       libDir = libSrcDir)
   if not libBe:
     return
+
   build(libBe)
 
   # read the build status
@@ -570,9 +564,12 @@ def _runPreScript(be):
   '''
     looks for a pre-build script and loads it as a module
   '''
-  preScriptPath = './pybythecPre.py'
+  pathRoot = '.'
+  if be.libDir:
+    pathRoot = be.libDir
+  preScriptPath = pathRoot + '/pybythecPre.py'
   if not os.path.exists(preScriptPath):
-    preScriptPath = './.pybythecPre.py'
+    preScriptPath = pathRoot + '/.pybythecPre.py'
   if os.path.exists(preScriptPath):
     import imp
     m = imp.load_source('', preScriptPath)
@@ -583,9 +580,12 @@ def _runPostScript(be):
   '''
     looks for a post-build script and loads it as a module
   '''
-  postScriptPath = './pybythecPost.py'
+  pathRoot = '.'
+  if be.libDir:
+    pathRoot = be.libDir
+  postScriptPath = pathRoot + '/pybythecPost.py'
   if not os.path.exists(postScriptPath):
-    postScriptPath = './.pybythecPost.py'
+    postScriptPath = pathRoot + '/.pybythecPost.py'
   if os.path.exists(postScriptPath):
     import imp
     m = imp.load_source('', postScriptPath)
