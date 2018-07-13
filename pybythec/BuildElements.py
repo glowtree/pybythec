@@ -121,7 +121,6 @@ class BuildElements:
     localConfigPath = self.cwDir + '/pybythec.json'
     if not os.path.exists(localConfigPath):
       localConfigPath = self.cwDir + '/.pybythec.json'
-    log.info(localConfigPath)
     if os.path.exists(localConfigPath):
       localConfigTs = float(os.stat(localConfigPath).st_mtime)
       if localConfigTs > self.latestConfigTimestamp:
