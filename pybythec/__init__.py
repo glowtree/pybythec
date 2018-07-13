@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.51'
+__version__ = '0.9.53'
 
 
 def getBuildElements(osType = None,
@@ -84,7 +84,7 @@ def _build(be):
   '''
     does the dirty work of compiling and linking based on the state setup in the BuildElements object be
   '''
-  threading = True # NOTE: perhaps this could be an function argument
+  threading = True  # NOTE: perhaps this could be an function argument
 
   buildStatus = BuildStatus(be.targetFilename, be.buildPath)
 
@@ -239,14 +239,14 @@ def _build(be):
     revisedLibPath = be.libPaths[i] + be.binaryRelPath
     if os.path.exists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
-    else: # try without the currentBuild leaf dir, ie 3rd party libs likely won't have them
+    else:  # try without the currentBuild leaf dir, ie 3rd party libs likely won't have them
       revisedLibPath = f('{0}/{1}/{2}/{3}', be.libPaths[i], be.buildType, be.compiler, be.binaryFormat)
       if os.path.exists(revisedLibPath):
         be.libPaths[i] = revisedLibPath
 
   # check for multiple instances of a lib: link erros due to linking to the wrong version of a lib can be a nightmare to debug
   # if you don't suspect it's the wrong version
-  libsFound = {} # lib name, array of paths where it was found
+  libsFound = {}  # lib name, array of paths where it was found
   for p in be.libPaths:
     for lib in be.libs:
       if be.compiler.startswith('msvc'):
@@ -427,8 +427,7 @@ def _buildLib(be, libSrcDir, buildStatus):
       projConfig = be.projConfig,
       globalConfig = be.globalConfig,
       currentBuild = be.currentBuild,
-      libDir = libSrcDir
-      )
+      libDir = libSrcDir)
   if not libBe:
     return
   build(libBe)
