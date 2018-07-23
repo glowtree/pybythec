@@ -12,7 +12,13 @@ class PybythecError(Exception):
 
 
 def f(s, *args):
-  return s.format(*args)
+  try:
+    return s.format(*args)
+  except Exception: # so far the only excepcion raside has been because of something like this u'\u2018'
+    newArgs = []
+    for a in args:
+      newArgs.append(a.encode('unicode_escape').replace('\\n', '\n'))
+    return s.format(*newArgs)
 
 
 class Logger():
