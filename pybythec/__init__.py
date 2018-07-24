@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.56'
+__version__ = '0.9.57'
 
 
 def getBuildElements(osType = None,

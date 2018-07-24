@@ -14,10 +14,10 @@ class PybythecError(Exception):
 def f(s, *args):
   try:
     return s.format(*args)
-  except Exception: # so far the only excepcion raside has been because of something like this u'\u2018'
+  except Exception: # so far the only excepcion raside has been because of unicode chars  u'\u2018' and u'\u2019'
     newArgs = []
     for a in args:
-      newArgs.append(a.encode('unicode_escape').replace('\\n', '\n'))
+      newArgs.append(a.replace(u'\u2018', '\'').replace(u'\u2019', '\''))
     return s.format(*newArgs)
 
 
