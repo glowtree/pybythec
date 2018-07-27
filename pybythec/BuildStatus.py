@@ -22,22 +22,19 @@ class BuildStatus:
     self.description = ''
   
 
-  def readFromFile(self, libSrcDir, buildDir, buildType, compiler, binaryFormat, currentBuild):
+  def readFromFile(self, libSrcDir, buildDir, binaryRelfPath):
     '''
       buildPath (in): where to read the status.json file from
     '''
 
-    buildPath = f('{0}/{1}/{2}/{3}/{4}', libSrcDir, buildDir, buildType, compiler, binaryFormat)
-
-    if currentBuild:
-      buildPath += '/' + currentBuild
+    buildPath = f('{0}/{1}/{2}', libSrcDir, buildDir, binaryRelfPath)
 
     if not os.path.exists(buildPath):
       # try the other hidden / non-hidden version
       if buildDir[0] == '.':
-        buildPath = f('{0}/{1}/{2}/{3}/{4}', libSrcDir, buildDir.lstrip('.'), buildType, compiler, binaryFormat)
+        buildPath = f('{0}/{1}/{2}', libSrcDir, buildDir.lstrip('.'), binaryRelfPath)
       else:
-        buildPath = f('{0}/.{1}/{2}/{3}/{4}', libSrcDir, buildDir, buildType, compiler, binaryFormat)
+        buildPath = f('{0}/.{1}/{2}', libSrcDir, buildDir, binaryRelfPath)
 
     contents = utils.loadJsonFile(buildPath + '/status.json')
     if not contents:

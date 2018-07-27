@@ -169,7 +169,7 @@ class BuildElements:
       os.environ['PYBYTHEC_BUILDVAR'] = self.currentBuild
 
     # set by the config files first
-    self.compiler = None  # g++-4.4 g++ clang++ msvc-110 etc
+    self.compiler = None  # g++-4.4 g++ clang++ msvc-11.0 etc
     self.filetype = None  # elf, mach-o, pe
     self.installPath = None
   
@@ -265,6 +265,7 @@ class BuildElements:
     self.staticExt = None
     self.dynamicExt = None
     self.pluginExt = None
+    self.compilerVersion = None
 
     #
     # gcc / clang
@@ -275,7 +276,7 @@ class BuildElements:
           self.compiler = self.compiler.replace('gcc', 'g++')
         elif self.compiler.startswith('clang-') or self.compiler == ('clang'):
           self.compiler = self.compiler.replace('clang', 'clang++')
-
+        
       self.compilerCmd = self.compiler
       self.objFlag = '-c'
       self.objExt = '.o'
@@ -309,6 +310,25 @@ class BuildElements:
       elif self.binaryType == 'plugin':
         self.targetFilename = self.targetFilename + self.pluginExt
 
+      # get the compiler version
+      compInfo = self.compiler.split('-')
+      if len(compInfo) > 1:
+        self.compilerVersion = self.compiler
+      else:
+        output = utils.runCmd([self.compiler, '-v'])
+        start = output.find('version') + 8
+        end = start
+        numDots = 0
+        while(True):
+          end += 1
+          c = output[end]
+          if c == '.':
+            numDots += 1
+            if numDots == 2:
+              break
+        v = output[start:end].rstrip(' ')
+        self.compilerVersion = f('{0}-{1}', self.compiler, v)
+
     #
     # msvc / msvc
     #
@@ -339,6 +359,8 @@ class BuildElements:
         self.targetFilename = self.targetName + self.dynamicExt
         self.linkFlags.append('/DLL')
 
+      self.compilerVersion = self.compiler
+
     else:
       raise PybythecError('unrecognized compiler root: {0}', self.compilerRoot)
 
@@ -365,7 +387,7 @@ class BuildElements:
     self._resolvePaths(self.cwDir, self.libPaths)
     self._resolvePaths(self.cwDir, self.libSrcPaths)
 
-    self.binaryRelPath = f('/{0}/{1}/{2}', self.buildType, self.compiler, self.binaryFormat)
+    self.binaryRelPath = f('/{0}/{1}/{2}/{3}', self.osType, self.buildType, self.compilerVersion, self.binaryFormat)
 
     if self.currentBuild:
       self.binaryRelPath += '/' + self.currentBuild
@@ -377,7 +399,7 @@ class BuildElements:
 
     self.targetInstallPath = os.path.join(self.installPath, self.targetFilename)
 
-    self.infoStr = f('{0} ({1} {2} {3}', self.targetName, self.buildType, self.compiler, self.binaryFormat)
+    self.infoStr = f('{0} ({1} {2} {3} {4}', self.targetName, self.osType, self.buildType, self.compilerVersion, self.binaryFormat)
     if self.currentBuild:
       self.infoStr += ' ' + self.currentBuild
     self.infoStr += ')'

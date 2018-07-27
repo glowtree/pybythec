@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.57'
+__version__ = '0.9.58'
 
 
 def getBuildElements(osType = None,
@@ -427,7 +427,7 @@ def _buildLib(be, libSrcDir, buildStatus):
   build(libBe)
 
   # read the build status
-  buildStatus.readFromFile(libSrcDir, be.buildDir, be.buildType, be.compiler, be.binaryFormat, be.currentBuild)
+  buildStatus.readFromFile(libSrcDir, be.buildDir, be.binaryRelPath)
 
 
 def clean(be = None, builds = None):

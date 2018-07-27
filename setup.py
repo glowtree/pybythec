@@ -138,9 +138,9 @@ pybythecGlobals = '''
   "libs": {
     "gcc": "pthread"
   },
-  "msvc-default": "msvc-140",
+  "msvc-default": "msvc-14.0",
   "bins": {
-    "msvc-090": {
+    "msvc-9.0": {
       "all": [
         "C:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE",
         "C:/Program Files/Microsoft SDKs/Windows/v6.0A/bin"
@@ -151,7 +151,7 @@ pybythecGlobals = '''
         "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin/x86_amd64"
       ]
     },
-    "msvc-100": {
+    "msvc-10.0": {
       "all": [
         "C:/Program Files (x86)/Microsoft Visual Studio 10.0/Common7/IDE",
         "C:/Program Files/Microsoft SDKs/Windows/v7.1/bin"
@@ -162,7 +162,7 @@ pybythecGlobals = '''
         "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/x86_amd64"
       ]
     },
-    "msvc-110": {
+    "msvc-11.0": {
       "all": [
         "C:/Program Files (x86)/Microsoft Visual Studio 11.0/Common7/IDE",
         "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/bin"
@@ -173,7 +173,7 @@ pybythecGlobals = '''
         "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin/x86_amd64"
       ]
     },
-    "msvc-140": {
+    "msvc-14.0": {
       "all": [
         "C:/Program Files (x86)/Microsoft Visual Studio 14.0/Common7/IDE",
         "C:/Program Files (x86)/Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.6.1 Tools"
@@ -183,27 +183,27 @@ pybythecGlobals = '''
     }
   },
   "incPaths": {
-    "msvc-090": [
+    "msvc-9.0": [
       "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include",
       "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Include"
     ],
-    "msvc-100": [
+    "msvc-10.0": [
       "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/include",
       "C:/Program Files/Microsoft SDKs/Windows/v7.1/Include"
     ],
-    "msvc-110": [
+    "msvc-11.0": [
       "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/include",
       "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Include"
     ],
-    "msvc-140": [
+    "msvc-14.0": [
       "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/ucrt",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/um",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/shared"
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/um",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/shared"
     ]
   },
   "libPaths": {
-    "msvc-090": {
+    "msvc-9.0": {
       "32bit": [
         "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/lib",
         "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib"
@@ -213,7 +213,7 @@ pybythecGlobals = '''
         "C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib/x64"
       ]
     },
-    "msvc-100": {
+    "msvc-10.0": {
       "32bit": [
         "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/lib",
         "C:/Program Files/Microsoft SDKs/Windows/v7.1/Lib"
@@ -223,7 +223,7 @@ pybythecGlobals = '''
         "C:/Program Files/Microsoft SDKs/Windows/v7.1/Lib/x64"
       ]
     },
-    "msvc-110": {
+    "msvc-11.0": {
       "32bit": [
         "C:/Program Files (x86)/Microsoft Visual Studio 11.0/VC/lib",
         "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib"
@@ -233,16 +233,16 @@ pybythecGlobals = '''
         "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1A/Lib/x64"
       ]
     },
-    "msvc-140": {
+    "msvc-14.0": {
       "32bit": [
         "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/ucrt/x86",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/um/x86"
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x86",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/um/x86"
       ],
       "64bit": [
         "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/lib/amd64",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/ucrt/x64",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/um/x64"
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x64",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/um/x64"
       ]
     }
   }
@@ -263,7 +263,7 @@ description = 'A lightweight cross-platform build system for c/c++, written in p
 
 setup(
     name = 'pybythec',
-    version = '0.9.57',
+    version = '0.9.58',
     author = 'glowtree',
     author_email = 'tom@glowtree.com',
     url = 'https://github.com/glowtree/pybythec',
