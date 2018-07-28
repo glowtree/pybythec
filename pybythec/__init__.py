@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.58'
+__version__ = '0.9.59'
 
 
 def getBuildElements(osType = None,
@@ -240,7 +240,7 @@ def _build(be):
     if os.path.exists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
     else:  # try without the currentBuild leaf dir, ie 3rd party libs likely won't have them
-      revisedLibPath = f('{0}/{1}/{2}/{3}', be.libPaths[i], be.buildType, be.compiler, be.binaryFormat)
+      revisedLibPath = f('{0}/{1}/{2}/{3}/{4}', be.libPaths[i], be.osType, be.buildType, be.compilerVersion, be.binaryFormat)
       if os.path.exists(revisedLibPath):
         be.libPaths[i] = revisedLibPath
 

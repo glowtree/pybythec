@@ -217,11 +217,11 @@ class BuildElements:
       self.compilerRoot = 'clang'
     elif self.compiler.startswith('msvc'):
       self.compilerRoot = 'msvc'
-      if self.compiler == 'msvc': # needs a version ie msvc-110 for pathing
+      if self.compiler == 'msvc': # needs a version ie msvc-11.0 for pathing
         if self.msvcDefault:
           self.compiler = self.msvcDefault
         else:
-          raise PybythecError('msvc has no default set, try setting the compiler to a specific version ie msvc-140')
+          raise PybythecError('msvc has no default set, try setting the compiler to a specific version ie msvc-14.0')
     else:
       raise PybythecError('unrecognized compiler {0}, using the default based on osType', self.compiler)
 
