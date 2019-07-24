@@ -14,7 +14,7 @@ class PybythecError(Exception):
 def f(s, *args):
   try:
     return s.format(*args)
-  except Exception: # so far the only excepcion raside has been because of unicode chars  u'\u2018' and u'\u2019'
+  except Exception: # so far the only exception raised has been because of unicode chars  u'\u2018' and u'\u2019'
     newArgs = []
     for a in args:
       newArgs.append(a.replace(u'\u2018', '\'').replace(u'\u2019', '\''))
