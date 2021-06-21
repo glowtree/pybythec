@@ -61,6 +61,7 @@ pybythec-*/
 *.zip
 *.pkg
 *.msi
+*.bundle
 
 # OS X
 .DS_Store

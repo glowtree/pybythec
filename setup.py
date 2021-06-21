@@ -138,7 +138,7 @@ pybythecGlobals = '''
   "libs": {
     "gcc": "pthread"
   },
-  "msvc-default": "msvc-14.0",
+  "msvc-default": "msvc-14.1",
   "bins": {
     "msvc-9.0": {
       "all": [
@@ -180,6 +180,14 @@ pybythecGlobals = '''
       ],
       "32bit": "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin",
       "64bit": "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/amd64"
+    },
+    "msvc-14.1": {
+      "32bit": "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x86",
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64"
+    },
+    "msvc-14.2": {
+      "32bit": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/bin/Hostx64/x86",
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/bin/Hostx64/x64"
     }
   },
   "incPaths": {
@@ -200,6 +208,18 @@ pybythecGlobals = '''
       "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt",
       "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/um",
       "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/shared"
+    ],
+    "msvc-14.1": [
+      "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/include",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17763.0/ucrt",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17763.0/um",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17763.0/shared"
+    ],
+    "msvc-14.2": [
+      "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/include",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.18362.0/ucrt",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.18362.0/um",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.18362.0/shared"      
     ]
   },
   "libPaths": {
@@ -244,7 +264,31 @@ pybythecGlobals = '''
         "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/ucrt/x64",
         "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.10240.0/um/x64"
       ]
-    }
+    },
+    "msvc-14.1": {
+      "32bit": [
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/lib/x86",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/ucrt/x86",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86"
+      ],
+      "64bit": [
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/lib/x64",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/ucrt/x64",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x64"
+      ]
+    },
+    "msvc-14.2": {
+      "32bit": [
+        "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/lib/x86",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/ucrt/x86",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x86"
+      ],
+      "64bit": [
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Tools/MSVC/14.27.29110/lib/x64",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/ucrt/x64",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x64"
+      ]
+    }     
   }
 }
 '''
@@ -263,7 +307,7 @@ description = 'A lightweight cross-platform build system for c/c++, written in p
 
 setup(
     name = 'pybythec',
-    version = '0.9.60',
+    version = '0.9.61',
     author = 'glowtree',
     author_email = 'tom@glowtree.com',
     url = 'https://github.com/glowtree/pybythec',
