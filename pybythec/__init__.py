@@ -14,7 +14,7 @@ log = utils.Logger('pybythec')
 
 __author__ = 'glowtree'
 __email__ = 'tom@glowtree.com'
-__version__ = '0.9.61'
+__version__ = '0.9.62'
 
 
 def getBuildElements(osType = None,
@@ -235,35 +235,31 @@ def _build(be):
       allUpToDate = False
 
   # revise the library paths
+  extraLibPaths = []
   for i in range(len(be.libPaths)):
-    revisedLibPath = be.libPaths[i] + be.binaryRelPath
+
+    revisedLibPath = f('{0}/{1}/{2}', be.libPaths[i], be.osType, be.compilerVersion)
     if os.path.exists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
-    else:  # try without the currentBuild leaf dir, ie 3rd party libs likely won't have them
-      revisedLibPath = f('{0}/{1}/{2}/{3}/{4}', be.libPaths[i], be.osType, be.buildType, be.compilerVersion, be.binaryFormat)
-      if os.path.exists(revisedLibPath):
-        be.libPaths[i] = revisedLibPath
 
-  # check for multiple instances of a lib: link erros due to linking to the wrong version of a lib can be a nightmare to debug
-  # if you don't suspect it's the wrong version
-  libsFound = {}  # lib name, array of paths where it was found
-  for p in be.libPaths:
-    for lib in be.libs:
-      if be.compiler.startswith('msvc'):
-        staticPath = f('{0}/{1}{2}', p, lib, be.staticExt)
-        dynamicPath = f('{0}/{1}{2}', p, lib, be.dynamicExt)
-      else:
-        staticPath = f('{0}/lib{1}{2}', p, lib, be.staticExt)
-        dynamicPath = f('{0}/lib{1}{2}', p, lib, be.dynamicExt)
-      if os.path.exists(staticPath) or os.path.exists(dynamicPath):
-        if lib in libsFound:
-          libsFound[lib].append(p)
-        else:
-          libsFound[lib] = [p]
-  for l in libsFound:
-    libPaths = libsFound[l]
-    if len(libPaths) > 1:
-      log.w('lib {0} found in more than one place: {1}\n', l, libPaths)
+    # if be.binaryFormatDefault != be.binaryFormat:
+    revisedLibPath_ = revisedLibPath + '/' + be.binaryFormat
+    if os.path.exists(revisedLibPath_):
+      revisedLibPath = revisedLibPath_
+      extraLibPaths.append(revisedLibPath)
+
+    revisedLibPath_ = revisedLibPath + '/' + be.buildType
+    if os.path.exists(revisedLibPath_):
+      revisedLibPath = revisedLibPath_
+      extraLibPaths.append(revisedLibPath)
+
+    if be.currentBuild:
+      revisedLibPath += '/' + be.currentBuild
+      if os.path.exists(revisedLibPath):
+        extraLibPaths.append(revisedLibPath)
+    
+  for xlp in extraLibPaths:
+    be.libPaths.insert(0, xlp)
 
   #
   # linking

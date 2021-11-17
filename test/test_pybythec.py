@@ -51,6 +51,7 @@ class TestPybythec(unittest.TestCase):
       if platform.system() == 'Windows':
         exePath += '.exe'
 
+      log.info('checking that {0} exists...', exePath)
       self.assertTrue(os.path.exists(exePath))
 
       p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)

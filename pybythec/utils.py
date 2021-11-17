@@ -21,7 +21,7 @@ def f(s, *args):
     return s.format(*newArgs)
 
 
-class Logger():
+class Logger:
 
   wf = None  # static
 

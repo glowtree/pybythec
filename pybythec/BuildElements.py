@@ -59,6 +59,7 @@ class BuildElements:
     
     self.version = 0
     self.binaryFormat = None # 32bit, 64bit etc
+    self.binaryFormatDefault = '64bit'
     self.libInstallPathAppend = True
     self.plusplus = True
     self.locked = False
@@ -97,7 +98,12 @@ class BuildElements:
           log.warning('no pybythecGlobals.json found in the home directory (hidden or otherwise)')
       if globalConfigPath and os.path.exists(globalConfigPath):
         self.globalConfig = utils.loadJsonFile(globalConfigPath)
-        self.latestConfigTimestamp = float(os.stat(globalConfigPath).st_mtime)    
+        self.latestConfigTimestamp = float(os.stat(globalConfigPath).st_mtime)
+        
+        # determine default binary format
+        if 'binaryFormat' in self.globalConfig:
+          self.binaryFormatDefault = self.globalConfig['binaryFormat']
+
 
     # project config
     if not self.projConfig:
@@ -387,7 +393,7 @@ class BuildElements:
     self._resolvePaths(self.cwDir, self.libPaths)
     self._resolvePaths(self.cwDir, self.libSrcPaths)
 
-    self.binaryRelPath = f('/{0}/{1}/{2}/{3}', self.osType, self.buildType, self.compilerVersion, self.binaryFormat)
+    self.binaryRelPath = f('/{0}/{1}/{2}/{3}', self.osType, self.compilerVersion, self.binaryFormat, self.buildType)
 
     if self.currentBuild:
       self.binaryRelPath += '/' + self.currentBuild
@@ -399,7 +405,7 @@ class BuildElements:
 
     self.targetInstallPath = os.path.join(self.installPath, self.targetFilename)
 
-    self.infoStr = f('{0} ({1} {2} {3} {4}', self.targetName, self.osType, self.buildType, self.compilerVersion, self.binaryFormat)
+    self.infoStr = f('{0} ({1} {2} {3} {4}', self.targetName, self.osType, self.compilerVersion, self.binaryFormat, self.buildType)
     if self.currentBuild:
       self.infoStr += ' ' + self.currentBuild
     self.infoStr += ')'
@@ -549,4 +555,4 @@ class BuildElements:
         argsList.append(os.path.expandvars(args))
       elif type(args) == list:
         for arg in args:
-          argsList.append(os.path.expandvars(arg))
+          argsList.insert(0, os.path.expandvars(arg))
