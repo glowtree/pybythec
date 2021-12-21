@@ -4,11 +4,11 @@ from pybythec.utils import f
 from pybythec.utils import PybythecError
 from pybythec.BuildStatus import BuildStatus
 from pybythec.BuildElements import BuildElements
-
+from threading import Thread
+import traceback
 import os
 import sys
 import time
-from threading import Thread
 
 log = utils.Logger('pybythec')
 
@@ -46,7 +46,7 @@ def getBuildElements(osType = None,
     log.error(e)
     return None
   except Exception as e:
-    log.error('unknown exception: {0}', e)
+    log.error('unknown exception: {0}\n{1}', e, traceback.format_exc())
     return None
 
 
@@ -75,7 +75,8 @@ def build(be = None, builds = None):
       log.error(e)
       continue
     except Exception as e:
-      log.error('unknown exception: {0}', e)
+      # log.error('unknown exception: {0}', e)
+      log.error('unknown exception: {0}\n{1}', str(e), traceback.format_exc())
       continue
     _build(be)
 
@@ -86,10 +87,10 @@ def _build(be):
   '''
   threading = True  # TODO: perhaps this could be an function argument
 
-  buildStatus = BuildStatus(be.targetFilename, be.buildPath)
+  buildStatus = BuildStatus(be.targetFilename, be.shellBuildPath)
 
   # lock - early return
-  if be.locked and os.path.exists(be.targetInstallPath):
+  if be.locked and os.path.exists(be.shellTargetInstallPath):
     buildStatus.writeInfo('locked', '{0} is locked', be.targetName)
     return True
 
@@ -101,21 +102,21 @@ def _build(be):
   if be.libDir:
     buildingLib = True
 
-  if not os.path.exists(be.installPath):
-    utils.createDirs(be.installPath)
+  if not os.path.exists(be.shellInstallPath):
+    utils.createDirs(be.shellInstallPath)
 
-  if not os.path.exists(be.buildPath):
-    os.makedirs(be.buildPath)
+  if not os.path.exists(be.shellBuildPath):
+    os.makedirs(be.shellBuildPath)
 
   incPathList = []
   for incPath in be.incPaths:
-    if os.path.exists(incPath):
+    if utils.pathExists(incPath):
       incPathList += ['-I', incPath]
     else:
       log.warning('incPath {0} doesn\'t exist', incPath)
 
   for extIncPath in be.extIncPaths:  # external include libs (for cases where 3rd party header includes are using "" instead of <> ie Unreal)
-    if os.path.exists(incPath):
+    if utils.pathExists(extIncPath):
       incPathList += ['-I', extIncPath]
     else:
       log.warning('extIncPath {0} doesn\'t exist', extIncPath)
@@ -135,7 +136,7 @@ def _build(be):
 
     for incPath in be.incPaths:  # find the header file, # TODO: should there be a separate list of headers ie be.mocIncPaths?
       includePath = incPath + '/' + qtClassHeader
-      if not os.path.exists(includePath):
+      if not utils.pathExists(includePath):
         continue
 
       if os.path.exists(mocPath) and float(os.stat(mocPath).st_mtime) < float(os.stat(includePath).st_mtime) or not os.path.exists(mocPath):
@@ -266,20 +267,22 @@ def _build(be):
   #
   linkCmd = []
 
-  if allUpToDate and os.path.exists(be.targetInstallPath):
+  if allUpToDate and os.path.exists(be.shellTargetInstallPath):
     buildStatus.writeInfo('up to date', '{0} is up to date, determined in {1} seconds\n', be.infoStr, str(int(time.time() - startTime)))
     if not buildingLib:
       _runPostScript(be)
     return True
 
   # microsoft's compiler / linker can only handle so many characters on the command line
-  msvcLinkCmdFilePath = be.buildPath + '/linkCmd'
   if be.compiler.startswith('msvc'):
+    # objPathsStr = '" "'.join(objPaths)
+    # libCmdsStr = ' '.join(libCmds)
+    # msvcLinkCmd = f'{be.targetFlag}"{be.targetInstallPath}" "{objPathsStr}" {libCmdsStr}'
     msvcLinkCmd = f('{0}"{1}" "{2}" {3}', be.targetFlag, be.targetInstallPath, '" "'.join(objPaths), ' '.join(libCmds))
-    msvcLinkCmdFp = open(msvcLinkCmdFilePath, 'w')
-    msvcLinkCmdFp.write(msvcLinkCmd)
-    msvcLinkCmdFp.close()
-    linkCmd += [be.linker, '@' + msvcLinkCmdFilePath]
+    with open(be.shellBuildPath + '/linkCmd', 'w') as wf:
+      wf.write(msvcLinkCmd)
+
+    linkCmd += [be.linker, '@' + be.buildPath + '/linkCmd']
     if be.showLinkerCmds:
       log.info('\nmsvcLinkCmd: {0}\n', msvcLinkCmd)
   else:
@@ -291,7 +294,7 @@ def _build(be):
   if be.binaryType == 'exe' or be.binaryType == 'plugin' or (be.compilerRoot == 'msvc' and be.binaryType == 'dynamic'):
 
     for libPath in be.libPaths:
-      if not os.path.exists(libPath):
+      if not utils.pathExists(libPath):
         log.warning('libPath {0} doesn\'t exist', libPath)
         continue
       if be.compiler.startswith('msvc'):
@@ -303,8 +306,8 @@ def _build(be):
   linked = False
   targetExisted = False
   oldTargetTimeStamp = None
-  if os.path.exists(be.targetInstallPath):
-    oldTargetTimeStamp = float(os.stat(be.targetInstallPath).st_mtime)
+  if os.path.exists(be.shellTargetInstallPath):
+    oldTargetTimeStamp = float(os.stat(be.shellTargetInstallPath).st_mtime)
     targetExisted = True
 
   if be.showLinkerCmds:
@@ -312,9 +315,9 @@ def _build(be):
 
   buildStatus.description = utils.runCmd(linkCmd)
 
-  if os.path.exists(be.targetInstallPath):
+  if os.path.exists(be.shellTargetInstallPath):
     if targetExisted:
-      if float(os.stat(be.targetInstallPath).st_mtime) > oldTargetTimeStamp:
+      if float(os.stat(be.shellTargetInstallPath).st_mtime) > oldTargetTimeStamp:
         linked = True
     else:
       linked = True
@@ -335,7 +338,7 @@ def _build(be):
             dynamicPath += 'lib'
           dynamicPath += lib + be.dynamicExt
           if os.path.exists(dynamicPath):
-            utils.copyfile(dynamicPath, be.installPath)
+            utils.copyfile(dynamicPath, be.shellInstallPath)
 
   buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n', be.infoStr, be.targetInstallPath, str(int(time.time() - startTime)))
 
@@ -360,7 +363,8 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
     buildStatus (out): build status for this particular compile, defaults to failed
   '''
 
-  if not os.path.exists(source):
+  if not utils.pathExists(source):
+  # if not os.path.exists(source):
     buildStatus.writeError('{0} is missing, exiting build', source)
     return
 
@@ -370,9 +374,9 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   objPaths.append(objPath)
 
   # check if it's up to date
-  objExisted = os.path.exists(objPath)
+  objExisted = utils.pathExists(objPath)
   if objExisted:
-    objTimestamp = float(os.stat(objPath).st_mtime)
+    objTimestamp = float(os.stat(utils.getShellPath(objPath)).st_mtime)
     if objTimestamp > be.latestConfigTimestamp and not utils.sourceNeedsBuilding(be.incPaths, source, objTimestamp):
       buildStatus.status = 'up to date'
       return
@@ -392,9 +396,9 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
 
   buildStatus.description = utils.runCmd(cmd)
 
-  if os.path.exists(objPath):
+  if utils.pathExists(objPath):
     if objExisted:
-      if float(os.stat(objPath).st_mtime) > objTimestamp:
+      if float(os.stat(utils.getShellPath(objPath)).st_mtime) > objTimestamp:
         buildStatus.status = 'built'
     else:
       buildStatus.status = 'built'
@@ -447,7 +451,7 @@ def clean(be = None, builds = None):
       log.error(e)
       return
     except Exception as e:
-      log.error('unknown exception: {0}', e)
+      log.error('unknown exception: {0}\n{1}', e, traceback.format_exc())
       return
     _clean(be)
 
@@ -459,44 +463,44 @@ def _clean(be = None):
   '''
 
   # remove any dynamic libs that are sitting next to the exe
-  if os.path.exists(be.installPath) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
-    for fl in os.listdir(be.installPath):
+  if os.path.exists(be.shellInstallPath) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
+    for fl in os.listdir(be.shellInstallPath):
       libName, ext = os.path.splitext(fl)
       if ext == be.dynamicExt:
         if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
           libName = libName.lstrip('lib')
         for lib in be.libs:
           if lib == libName:
-            p = be.installPath + '/' + fl
+            p = be.shellInstallPath + '/' + fl
             try:
               os.remove(p)
             except Exception:
               log.warning('failed to remove {0}', p)
       elif ext == '.exp' or ext == '.ilk' or ext == '.lib' or ext == '.pdb':  # msvc files
-        p = be.installPath + '/' + fl
+        p = be.shellInstallPath + '/' + fl
         try:
           os.remove(p)
         except Exception:
           log.warning('failed to remove {0}', p)
 
-  if not os.path.exists(be.buildPath):  # canary in the coal mine
+  if not os.path.exists(be.shellBuildPath):  # canary in the coal mine
     log.info(be.infoStr + ' already clean')
     return True
 
   dirCleared = True
-  for fl in os.listdir(be.buildPath):
-    p = be.buildPath + '/' + fl
+  for fl in os.listdir(be.shellBuildPath):
+    p = be.shellBuildPath + '/' + fl
     try:
       os.remove(p)
     except Exception:
       dirCleared = False
       log.warning('failed to remove {0}', p)
   if dirCleared:
-    os.removedirs(be.buildPath)
+    os.removedirs(be.shellBuildPath)
 
-  if os.path.exists(be.targetInstallPath):
-    os.remove(be.targetInstallPath)
-  target, ext = os.path.splitext(be.targetInstallPath)
+  if os.path.exists(be.shellTargetInstallPath):
+    os.remove(be.shellTargetInstallPath)
+  target, ext = os.path.splitext(be.shellTargetInstallPath)
   if ext == '.dll':
     try:
       os.remove(target + '.exp')
@@ -504,7 +508,7 @@ def _clean(be = None):
     except Exception:
       pass
   try:
-    os.removedirs(be.installPath)
+    os.removedirs(be.shellInstallPath)
   except Exception:
     pass
 
@@ -534,7 +538,8 @@ def cleanAll(be = None, builds = None):
       log.error(e)
       continue
     except Exception as e:
-      log.error('unknown exception: {0}', e)
+      # log.error('unknown exception: {0}', e)
+      log.error('unknown exception: {0}\n{1}', str(e), traceback.format_exc())
       continue
     _clean(be)
     # clean library dependencies

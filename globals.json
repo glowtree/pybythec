@@ -57,7 +57,7 @@
     },
     "msvc": {
       "all": [
-        "/EHsc",
+        "/EHa",
         "/Gy",
         "/nologo",
         "/errorReport:prompt"
@@ -128,7 +128,7 @@
   "libs": {
     "gcc": "pthread"
   },
-  "msvc-default": "msvc-14.1",
+  "msvc-default": "msvc-14.2",
   "bins": {
     "msvc-9.0": {
       "all": [
@@ -176,8 +176,8 @@
       "64bit": "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64"
     },
     "msvc-14.2": {
-      "32bit": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/bin/Hostx64/x86",
-      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/bin/Hostx64/x64"
+      "32bit": "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.28.29910/bin/Hostx64/x86",
+      "64bit": "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.28.29910/bin/Hostx64/x64"
     }
   },
   "incPaths": {
@@ -206,10 +206,10 @@
       "C:/Program Files (x86)/Windows Kits/10/Include/10.0.17763.0/shared"
     ],
     "msvc-14.2": [
-      "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/include",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.18362.0/ucrt",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.18362.0/um",
-      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.18362.0/shared"      
+      "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.28.29910/include",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/ucrt",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um",
+      "C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared"      
     ]
   },
   "libPaths": {
@@ -269,14 +269,14 @@
     },
     "msvc-14.2": {
       "32bit": [
-        "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.27.29110/lib/x86",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/ucrt/x86",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x86"
+        "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.28.29910/lib/x86",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/ucrt/x86",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x86"
       ],
       "64bit": [
-        "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Tools/MSVC/14.27.29110/lib/x64",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/ucrt/x64",
-        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x64"
+        "C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.28.29910/lib/x64",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/ucrt/x64",
+        "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x64"
       ]
     }     
   }

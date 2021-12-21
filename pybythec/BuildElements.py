@@ -1,11 +1,13 @@
+DEBUG = True
+
 import os
-import platform
 import subprocess
 from pybythec import utils
 from pybythec.utils import f
 from pybythec.utils import PybythecError
 
-log = utils.Logger('pybythec')
+log = utils.Logger('pybythec', DEBUG)
+
 
 
 class BuildElements:
@@ -71,9 +73,19 @@ class BuildElements:
 
     self.msvcDefault = None
 
-    self.cwDir = os.getcwd()
-    if self.libDir:
+    self.cwDir = None
+    self.shellCwDir = os.getcwd()
+    if self.libDir: # TODO
       self.cwDir = self.libDir
+
+    self.buildPath = None
+    self.shellBuildPath = None
+
+    self.installPath = None # TODO: call this installDirPath?
+    self.shellInstallPath = None
+
+    self.targetInstallPath = None # TODO: call this installPath?
+    self.shellTargetInstallPath = None
 
     self.latestConfigTimestamp = 0
 
@@ -112,10 +124,10 @@ class BuildElements:
         if not os.path.exists(projConfigPath):
           log.warning('PYBYTHEC_PROJECT points to {0}, which doesn\'t exist', projConfigPath)
       else:
-        if os.path.exists(self.cwDir + '/pybythecProject.json'):
-          projConfigPath = self.cwDir + '/pybythecProject.json'
-        elif os.path.exists(self.cwDir + '/.pybythecProject.json'):
-          projConfigPath = self.cwDir + '/.pybythecProject.json'
+        if os.path.exists(self.shellCwDir + '/pybythecProject.json'):
+          projConfigPath = self.shellCwDir + '/pybythecProject.json'
+        elif os.path.exists(self.shellCwDir + '/.pybythecProject.json'):
+          projConfigPath = self.shellCwDir + '/.pybythecProject.json'
       if projConfigPath and os.path.exists(projConfigPath):
         self.projConfig = utils.loadJsonFile(projConfigPath)
         projConfigTs = float(os.stat(projConfigPath).st_mtime)
@@ -124,9 +136,9 @@ class BuildElements:
 
     # local config, expected to be in the current working directory
     self.localConfig = None
-    localConfigPath = self.cwDir + '/pybythec.json'
+    localConfigPath = self.shellCwDir + '/pybythec.json'
     if not os.path.exists(localConfigPath):
-      localConfigPath = self.cwDir + '/.pybythec.json'
+      localConfigPath = self.shellCwDir + '/.pybythec.json'
     if os.path.exists(localConfigPath):
       localConfigTs = float(os.stat(localConfigPath).st_mtime)
       if localConfigTs > self.latestConfigTimestamp:
@@ -152,19 +164,20 @@ class BuildElements:
     if self.osTypeOverride:
       self.osType = self.osTypeOverride
 
-    if self.osType:
-      if self.osType not in ['linux', 'macOs', 'windows']: # validate
-        log.warning('{0} invalid osType, defaulting to the native os', self.osType)
-        self.osType = None
+    if self.osType and self.osType not in ['linux', 'macOs', 'windows']: # validate
+      log.warning('{0} invalid osType, defaulting to the native os', self.osType)
+      self.osType = None
+
+    shellOsType = utils.getShellOsType()
+
     if not self.osType: # use the native os
-      if platform.system() == 'Linux':
-        self.osType = 'linux'
-      elif platform.system() == 'Darwin':
-        self.osType = 'macOs'
-      elif platform.system() == 'Windows':
-        self.osType = 'windows'
-      else:
-        raise PybythecError('os needs to be linux, macOs or windows')
+      self.osType = shellOsType
+
+    if self.osType == 'windows':
+      if shellOsType == 'linux' or shellOsType == 'macOs':
+        self.cwDir = utils.linuxToWindows(self.shellCwDir)
+    else:
+      self.cwDir = self.shellCwDir
 
 
   def configBuild(self, currentBuild = None):
@@ -247,6 +260,11 @@ class BuildElements:
     if self.localConfig is not None:
       self._getBuildElements3(self.localConfig, keys)
 
+    # log.debug('PATH')
+    # delin = utils.getPathDelineator()
+    # for p in os.environ['PATH'].split(delin):
+    #   log.debug(p)
+
     # deal breakers (that don't appear in the default pybythecGlobals.json)
     if not self.targetName:
       raise PybythecError('no target specified')
@@ -272,6 +290,9 @@ class BuildElements:
     self.dynamicExt = None
     self.pluginExt = None
     self.compilerVersion = None
+
+
+    # log.debug(f'{self.compilerRoot}, {self.compiler}')
 
     #
     # gcc / clang
@@ -341,13 +362,13 @@ class BuildElements:
     elif self.compilerRoot == 'msvc':
 
       # compile
-      self.compilerCmd = 'cl'
+      self.compilerCmd = 'cl.exe'
       self.objFlag = '/c'
       self.objExt = '.obj'
       self.objPathFlag = '/Fo'
 
       # link
-      self.linker = 'link'
+      self.linker = 'link.exe'
       self.targetFlag = '/OUT:'
       self.libFlag = ''
       self.libPathFlag = '/LIBPATH:'
@@ -370,11 +391,12 @@ class BuildElements:
     else:
       raise PybythecError('unrecognized compiler root: {0}', self.compilerRoot)
 
-
     # make sure the compiler is in PATH
     try:
+      # log.debug(f'compilerCmd: {self.compilerCmd}')
       subprocess.call(self.compilerCmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-    except OSError:
+    except OSError as e:
+      # log.debug(str(e))
       raise PybythecError('compiler {0} is not found in PATH', self.compilerCmd)
 
     # make sure the linker is in PATH
@@ -386,24 +408,40 @@ class BuildElements:
     #
     # determine paths
     #
-    self.installPath = utils.makePathAbsolute(self.cwDir, self.installPath)
-    self._resolvePaths(self.cwDir, self.sources)
-    self._resolvePaths(self.cwDir, self.incPaths)
-    self._resolvePaths(self.cwDir, self.extIncPaths)
-    self._resolvePaths(self.cwDir, self.libPaths)
-    self._resolvePaths(self.cwDir, self.libSrcPaths)
+    installPath = self.installPath
+    self.installPath = utils.getAbsPath(self.cwDir, installPath)
+    self.shellInstallPath = utils.getAbsPath(self.shellCwDir, installPath)
+    
+    utils.resolvePaths(self.cwDir, self.sources)
+    utils.resolvePaths(self.cwDir, self.incPaths)
+    utils.resolvePaths(self.cwDir, self.extIncPaths)
+    utils.resolvePaths(self.cwDir, self.libPaths)
+    utils.resolvePaths(self.cwDir, self.libSrcPaths)
 
     self.binaryRelPath = f('/{0}/{1}/{2}/{3}', self.osType, self.compilerVersion, self.binaryFormat, self.buildType)
 
     if self.currentBuild:
       self.binaryRelPath += '/' + self.currentBuild
 
-    self.buildPath = utils.makePathAbsolute(self.cwDir, './' + self.buildDir + self.binaryRelPath)
+    # log.debug(f'binaryRelPath: {self.binaryRelPath}')
+    # log.debug(f'buildDir: {self.buildDir}')
+
+    self.buildPath = utils.getAbsPath(self.cwDir, self.buildDir + self.binaryRelPath)
+    self.shellBuildPath = utils.getAbsPath(self.shellCwDir, self.buildDir + self.binaryRelPath)
 
     if self.libInstallPathAppend and (self.binaryType in ['static', 'dynamic']):
       self.installPath += self.binaryRelPath
 
     self.targetInstallPath = os.path.join(self.installPath, self.targetFilename)
+    self.shellTargetInstallPath = os.path.join(self.shellInstallPath, self.targetFilename)
+  
+    log.debug(f'buildPath: {self.buildPath}')
+    log.debug(f'shellBuildPath: {self.shellBuildPath}')
+    log.debug(f'installPath: {self.installPath}')
+    log.debug(f'shellInstallPath: {self.shellInstallPath}')
+    log.debug(f'targetInstallPath: {self.targetInstallPath}')
+    log.debug(f'shellTargetInstallPath: {self.shellTargetInstallPath}')
+    # raise PybythecError('early return')
 
     self.infoStr = f('{0} ({1} {2} {3} {4}', self.targetName, self.osType, self.compilerVersion, self.binaryFormat, self.buildType)
     if self.currentBuild:
@@ -480,16 +518,16 @@ class BuildElements:
     '''
       elements that are potentially nested in any which way
     '''
-    separartor = ':'
-    if platform.system() == 'Windows':
-      separartor = ';'
+    delin = utils.getPathDelineator()
 
-    # TODO: PATH will grow for any build with dependencies, is there a way to prevent it?
     if 'bins' in configObj:
-      bins = []
-      self._getArgsList(bins, configObj['bins'], keys)
-      for bin in bins:
-        os.environ['PATH'] = bin + separartor + os.environ['PATH']
+      binPaths = []
+      self._getArgsList(binPaths, configObj['bins'], keys)
+      for binPath in binPaths:
+        if not utils.pathExists(binPath):
+          continue
+        binPath = utils.getShellPath(binPath)
+        os.environ['PATH'] = binPath + delin + os.environ['PATH']
 
     if 'sources' in configObj:
       self._getArgsList(self.sources, configObj['sources'], keys)
@@ -533,13 +571,6 @@ class BuildElements:
       if len(installPaths):
         self.installPath = installPaths[0]
 
-  def _resolvePaths(self, absPath, paths):
-    '''
-    '''
-    i = 0
-    for path in paths:
-      paths[i] = utils.makePathAbsolute(absPath, path)
-      i += 1
 
   def _getArgsList(self, argsList, args, keys = []):
     '''

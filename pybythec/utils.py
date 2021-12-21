@@ -1,9 +1,11 @@
 from __future__ import print_function
-import os
-import sys
+
 import json
 import shutil
 import subprocess
+import platform
+import sys
+import os
 
 
 class PybythecError(Exception):
@@ -12,6 +14,9 @@ class PybythecError(Exception):
 
 
 def f(s, *args):
+  '''
+  '''
+  # return s.format(*args)
   try:
     return s.format(*args)
   except Exception: # so far the only exception raised has been because of unicode chars  u'\u2018' and u'\u2019'
@@ -160,14 +165,119 @@ def getLibPath(libName, libPath, compiler, libExt):
   libPath += libName + libExt
   return libPath
 
+def getPathDelineator():
+  '''
+  '''
+  delin = ':'
+  if platform.system() == 'Windows':
+    delin = ';'
+  return delin
 
-def makePathAbsolute(absPath, path):
+
+def isWindowsPath(path):
   '''
-    make a relative file path absolute
+    path: assume it's an absolute path ie C:/hi
   '''
+  if len(path) < 3:
+    return False
+  if path[0].isalpha() and path[1] == ':' and path[2] == '/':
+    return True
+  return False
+
+
+def windowsToLinux(p):
+  '''
+  '''
+  np = p.replace('\\', '/')
+  driveLetter = np[0].lower()
+  return f'/mnt/{driveLetter}{np[2:]}'
+
+  
+def linuxToWindows(p):
+  '''
+  '''
+  np = p.lstrip('/mnt/')
+  return np[0].upper() + ':' + np[1:]
+
+
+def pathExists(path):
+  '''
+  '''
+  if not isWindowsPath(path):
+    return os.path.exists(path)
+  if platform.system() == 'Windows':
+    return os.path.exists(path)
+  return os.path.exists(windowsToLinux(path))
+  
+
+def getShellPath(path):
+  '''
+    path: assume absolute path
+    returns the usable path for the current shell
+  '''
+  if not isWindowsPath(path):
+    return path
+  if platform.system() == 'Linux' or platform.system() == 'Darwin':
+    return windowsToLinux(path)
+  return path
+    
+def getShellOsType():
+  '''
+  '''
+  if platform.system() == 'Linux':
+    return 'linux'
+  elif platform.system() == 'Darwin':
+    return 'macOs'
+  elif platform.system() == 'Windows':
+    return 'windows'
+  else:
+    raise PybythecError('os needs to be linux, macOs or windows')
+
+def _getAbsPath(cwDir, path):
+  '''
+  '''
+  _cwDir = cwDir.replace('\\', '/')
+  if not _cwDir.endswith('/'):
+    _cwDir += '/'
+  _path = path.replace('\\', '/')
+  if len(path) < 2:
+    if path[0] == '.':
+      return _cwDir.rstrip('/')
+  if _path[0] == '.' and path[1].isalpha(): # ie .pybythec
+    return _cwDir + _path
+  # TODO: handle the case when it's ./.pybythec
+  return _cwDir + _path.lstrip('./\\')
+
+
+def getAbsPath(cwDir, path):
+  '''
+    cwDir: current working dir path
+    path: may be relative or absolute
+    returns absolute path
+  '''
+  if isWindowsPath(path):
+    return path
   if os.path.isabs(path):
     return path
-  return os.path.normpath(os.path.join(absPath, './' + path))
+  return _getAbsPath(cwDir, path)
+
+
+def resolvePaths(cwDir, paths):
+  '''
+  '''
+  i = 0
+  for path in paths:
+    paths[i] = getAbsPath(cwDir, path)
+    i += 1
+
+
+# def makePathAbsolute(absPath, path):
+#   '''
+#     make a relative file path absolute
+#   '''
+#   if os.path.isabs(path):
+#     return path
+#   return os.path.normpath(os.path.join(absPath, './' + path))
 
 
 def createDirs(path):
@@ -278,3 +388,8 @@ def runCmd(cmd):
   if len(stdout):
     output += stdout.decode('utf-8')
   return output
+
+
+if __name__ == '__main__':
+
+  print(getAbsPath('C:/Users/tom', '\Intel-HID-Event-Filter-Driver_V2HFM_WIN_2.2.1.384_A16_07.EXE', 'windows'))
