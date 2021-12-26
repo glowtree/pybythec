@@ -78,14 +78,14 @@ class BuildElements:
     if self.libDir:
       self.shellCwDir = utils.getShellPath(self.libDir)
 
-    self.buildPath = None
-    self.shellBuildPath = None
+    self.buildDirPath = None
+    self.buildDirPathShell = None
 
-    self.installPath = None # TODO: call this installDirPath?
-    self.shellInstallPath = None
+    self.installDirPath = None
+    self.installDirPathShell = None
 
-    self.targetInstallPath = None # TODO: call this installPath?
-    self.shellTargetInstallPath = None
+    self.installPath = None
+    self.installPathShell = None
 
     self.latestConfigTimestamp = 0
 
@@ -189,7 +189,7 @@ class BuildElements:
     # set by the config files first
     self.compiler = None  # g++-4.4 g++ clang++ msvc-11.0 etc
     self.filetype = None  # elf, mach-o, pe
-    self.installPath = None
+    self.installDirPath = None
   
     self.sources = []
     self.libs = []
@@ -337,23 +337,27 @@ class BuildElements:
         self.targetFilename = self.targetFilename + self.pluginExt
 
       # get the compiler version
+      log.d(self.compiler)
+
       compInfo = self.compiler.split('-')
       if len(compInfo) > 1:
         self.compilerVersion = self.compiler
       else:
         output = utils.runCmd([self.compiler, '-v'])
-        start = output.find('version') + 8
+        start = output.find('gcc version') + 12
+        numDots = 0
         end = start
         numDots = 0
-        while(True):
+        while True:
           end += 1
-          c = output[end]
-          if c == '.':
+          if output[end] == '.':
             numDots += 1
-            if numDots == 2:
-              break
-        v = output[start:end].rstrip(' ')
+          if numDots >= 2:
+            break
+        v = output[start:end].strip(' ')
         self.compilerVersion = f('{0}-{1}', self.compiler, v)
+      log.d(self.compilerVersion)
+
 
     #
     # msvc / msvc
@@ -407,9 +411,9 @@ class BuildElements:
     #
     # determine paths
     #
-    installPath = self.installPath
-    self.installPath = utils.getAbsPath(self.cwDir, installPath)
-    self.shellInstallPath = utils.getAbsPath(self.shellCwDir, installPath)
+    installDirPath = self.installDirPath
+    self.installDirPath = utils.getAbsPath(self.cwDir, installDirPath)
+    self.installDirPathShell = utils.getAbsPath(self.shellCwDir, installDirPath)
     
     utils.resolvePaths(self.cwDir, self.sources)
     utils.resolvePaths(self.cwDir, self.incPaths)
@@ -425,21 +429,22 @@ class BuildElements:
     # log.debug(f'binaryRelPath: {self.binaryRelPath}')
     # log.debug(f'buildDir: {self.buildDir}')
 
-    self.buildPath = utils.getAbsPath(self.cwDir, self.buildDir + self.binaryRelPath)
-    self.shellBuildPath = utils.getAbsPath(self.shellCwDir, self.buildDir + self.binaryRelPath)
+    self.buildDirPath = utils.getAbsPath(self.cwDir, self.buildDir + self.binaryRelPath)
+    self.buildDirPathShell = utils.getAbsPath(self.shellCwDir, self.buildDir + self.binaryRelPath)
 
     if self.libInstallPathAppend and (self.binaryType in ['static', 'dynamic']):
-      self.installPath += self.binaryRelPath
+      self.installDirPath += self.binaryRelPath
+      self.installDirPathShell += self.binaryRelPath
 
-    self.targetInstallPath = os.path.join(self.installPath, self.targetFilename)
-    self.shellTargetInstallPath = os.path.join(self.shellInstallPath, self.targetFilename)
+    self.installPath = os.path.join(self.installDirPath, self.targetFilename)
+    self.installPathShell = os.path.join(self.installDirPathShell, self.targetFilename)
   
-    log.debug(f'buildPath: {self.buildPath}')
-    log.debug(f'shellBuildPath: {self.shellBuildPath}')
+    log.debug(f'buildDirPath: {self.buildDirPath}')
+    log.debug(f'buildDirPathShell: {self.buildDirPathShell}')
+    log.debug(f'installDirPath: {self.installDirPath}')
+    log.debug(f'installDirPathShell: {self.installDirPathShell}')
     log.debug(f'installPath: {self.installPath}')
-    log.debug(f'shellInstallPath: {self.shellInstallPath}')
-    log.debug(f'targetInstallPath: {self.targetInstallPath}')
-    log.debug(f'shellTargetInstallPath: {self.shellTargetInstallPath}')
+    log.debug(f'installPathShell: {self.installPathShell}')
     # raise PybythecError('early return')
 
     self.infoStr = f('{0} ({1} {2} {3} {4}', self.targetName, self.osType, self.compilerVersion, self.binaryFormat, self.buildType)
@@ -568,7 +573,7 @@ class BuildElements:
       installPaths = []
       self._getArgsList(installPaths, configObj['installPath'], keys)
       if len(installPaths):
-        self.installPath = installPaths[0]
+        self.installDirPath = installPaths[0]
 
 
   def _getArgsList(self, argsList, args, keys = []):

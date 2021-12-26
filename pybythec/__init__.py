@@ -88,10 +88,10 @@ def _build(be):
   '''
   threading = True  # TODO: perhaps this could be an function argument
 
-  buildStatus = BuildStatus(be.targetFilename, be.shellBuildPath)
+  buildStatus = BuildStatus(be.targetFilename, be.buildDirPathShell)
 
   # lock - early return
-  if be.locked and os.path.exists(be.shellTargetInstallPath):
+  if be.locked and os.path.exists(be.installPathShell):
     buildStatus.writeInfo('locked', '{0} is locked', be.targetName)
     return True
 
@@ -103,11 +103,11 @@ def _build(be):
   if be.libDir:
     buildingLib = True
 
-  if not os.path.exists(be.shellInstallPath):
-    utils.createDirs(be.shellInstallPath)
+  if not os.path.exists(be.buildDirPathShell):
+    utils.createDirs(be.buildDirPathShell)
 
-  if not os.path.exists(be.shellBuildPath):
-    os.makedirs(be.shellBuildPath)
+  if not os.path.exists(be.installDirPathShell):
+    utils.createDirs(be.installDirPathShell)
 
   incPathList = []
   for incPath in be.incPaths:
@@ -132,7 +132,7 @@ def _build(be):
   mocPaths = []
   for qtClass in be.qtClasses:
     found = False
-    mocPath = f('{0}/moc_{1}.cpp', be.buildPath, qtClass)
+    mocPath = f('{0}/moc_{1}.cpp', be.buildDirPath, qtClass)
     qtClassHeader = qtClass + '.h'
 
     for incPath in be.incPaths:  # find the header file, # TODO: should there be a separate list of headers ie be.mocIncPaths?
@@ -268,7 +268,7 @@ def _build(be):
   #
   linkCmd = []
 
-  if allUpToDate and os.path.exists(be.shellTargetInstallPath):
+  if allUpToDate and os.path.exists(be.installPathShell):
     buildStatus.writeInfo('up to date', '{0} is up to date, determined in {1} seconds\n', be.infoStr, str(int(time.time() - startTime)))
     if not buildingLib:
       _runPostScript(be)
@@ -278,16 +278,16 @@ def _build(be):
   if be.compiler.startswith('msvc'):
     # objPathsStr = '" "'.join(objPaths)
     # libCmdsStr = ' '.join(libCmds)
-    # msvcLinkCmd = f'{be.targetFlag}"{be.targetInstallPath}" "{objPathsStr}" {libCmdsStr}'
-    msvcLinkCmd = f('{0}"{1}" "{2}" {3}', be.targetFlag, be.targetInstallPath, '" "'.join(objPaths), ' '.join(libCmds))
-    with open(be.shellBuildPath + '/linkCmd', 'w') as wf:
+    # msvcLinkCmd = f'{be.targetFlag}"{be.installPath}" "{objPathsStr}" {libCmdsStr}'
+    msvcLinkCmd = f('{0}"{1}" "{2}" {3}', be.targetFlag, be.installPath, '" "'.join(objPaths), ' '.join(libCmds))
+    with open(be.buildDirPathShell + '/linkCmd', 'w') as wf:
       wf.write(msvcLinkCmd)
 
-    linkCmd += [be.linker, '@' + be.buildPath + '/linkCmd']
+    linkCmd += [be.linker, '@' + be.buildDirPath + '/linkCmd']
     if be.showLinkerCmds:
       log.info('\nmsvcLinkCmd: {0}\n', msvcLinkCmd)
   else:
-    linkCmd += [be.linker, be.targetFlag, be.targetInstallPath] + objPaths + libCmds
+    linkCmd += [be.linker, be.targetFlag, be.installPath] + objPaths + libCmds
 
   if be.binaryType != 'static':  # TODO: is this the case for msvc?
     linkCmd += be.linkFlags
@@ -307,8 +307,8 @@ def _build(be):
   linked = False
   targetExisted = False
   oldTargetTimeStamp = None
-  if os.path.exists(be.shellTargetInstallPath):
-    oldTargetTimeStamp = float(os.stat(be.shellTargetInstallPath).st_mtime)
+  if os.path.exists(be.installPathShell):
+    oldTargetTimeStamp = float(os.stat(be.installPathShell).st_mtime)
     targetExisted = True
 
 
@@ -317,9 +317,9 @@ def _build(be):
 
   buildStatus.description = utils.runCmd(linkCmd)
 
-  if os.path.exists(be.shellTargetInstallPath):
+  if os.path.exists(be.installPathShell):
     if targetExisted:
-      if float(os.stat(be.shellTargetInstallPath).st_mtime) > oldTargetTimeStamp:
+      if float(os.stat(be.installPathShell).st_mtime) > oldTargetTimeStamp:
         linked = True
     else:
       linked = True
@@ -340,9 +340,9 @@ def _build(be):
             dynamicPath += 'lib'
           dynamicPath += lib + be.dynamicExt
           if os.path.exists(dynamicPath):
-            utils.copyfile(dynamicPath, be.shellInstallPath)
+            utils.copyfile(dynamicPath, be.installDirPathShell)
 
-  buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n', be.infoStr, be.targetInstallPath, str(int(time.time() - startTime)))
+  buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n', be.infoStr, be.installPath, str(int(time.time() - startTime)))
 
   sys.stdout.flush()
 
@@ -372,7 +372,7 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
 
   objFile = os.path.basename(source)
   objFile = objFile.replace(os.path.splitext(source)[1], be.objExt)
-  objPath = os.path.join(be.buildPath, objFile)
+  objPath = os.path.join(be.buildDirPath, objFile)
   objPaths.append(objPath)
 
   # check if it's up to date
@@ -465,44 +465,44 @@ def _clean(be = None):
   '''
 
   # remove any dynamic libs that are sitting next to the exe
-  if os.path.exists(be.shellInstallPath) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
-    for fl in os.listdir(be.shellInstallPath):
+  if os.path.exists(be.installDirPathShell) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
+    for fl in os.listdir(be.installDirPathShell):
       libName, ext = os.path.splitext(fl)
       if ext == be.dynamicExt:
         if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
           libName = libName.lstrip('lib')
         for lib in be.libs:
           if lib == libName:
-            p = be.shellInstallPath + '/' + fl
+            p = be.installDirPathShell + '/' + fl
             try:
               os.remove(p)
             except Exception:
               log.warning('failed to remove {0}', p)
       elif ext == '.exp' or ext == '.ilk' or ext == '.lib' or ext == '.pdb':  # msvc files
-        p = be.shellInstallPath + '/' + fl
+        p = be.installDirPathShell + '/' + fl
         try:
           os.remove(p)
         except Exception:
           log.warning('failed to remove {0}', p)
 
-  if not os.path.exists(be.shellBuildPath):  # canary in the coal mine
+  if not os.path.exists(be.buildDirPathShell):  # canary in the coal mine
     log.info(be.infoStr + ' already clean')
     return True
 
   dirCleared = True
-  for fl in os.listdir(be.shellBuildPath):
-    p = be.shellBuildPath + '/' + fl
+  for fl in os.listdir(be.buildDirPathShell):
+    p = be.buildDirPathShell + '/' + fl
     try:
       os.remove(p)
     except Exception:
       dirCleared = False
       log.warning('failed to remove {0}', p)
   if dirCleared:
-    os.removedirs(be.shellBuildPath)
+    os.removedirs(be.buildDirPathShell)
 
-  if os.path.exists(be.shellTargetInstallPath):
-    os.remove(be.shellTargetInstallPath)
-  target, ext = os.path.splitext(be.shellTargetInstallPath)
+  if os.path.exists(be.installPathShell):
+    os.remove(be.installPathShell)
+  target, ext = os.path.splitext(be.installPathShell)
   if ext == '.dll':
     try:
       os.remove(target + '.exp')
@@ -510,7 +510,7 @@ def _clean(be = None):
     except Exception:
       pass
   try:
-    os.removedirs(be.shellInstallPath)
+    os.removedirs(be.installDirPathShell)
   except Exception:
     pass
 
