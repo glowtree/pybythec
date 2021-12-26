@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 import os
 import subprocess
@@ -75,8 +75,8 @@ class BuildElements:
 
     self.cwDir = None
     self.shellCwDir = os.getcwd()
-    if self.libDir: # TODO
-      self.cwDir = self.libDir
+    if self.libDir:
+      self.shellCwDir = utils.getShellPath(self.libDir)
 
     self.buildPath = None
     self.shellBuildPath = None
@@ -173,8 +173,7 @@ class BuildElements:
     if not self.osType: # use the native os
       self.osType = shellOsType
 
-    if self.osType == 'windows':
-      if shellOsType == 'linux' or shellOsType == 'macOs':
+    if self.osType == 'windows' and (shellOsType == 'linux' or shellOsType == 'macOs'):
         self.cwDir = utils.linuxToWindows(self.shellCwDir)
     else:
       self.cwDir = self.shellCwDir

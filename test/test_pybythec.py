@@ -8,7 +8,7 @@ tests for pybythec module
 '''
 
 import os
-import platform
+# import platform
 import unittest
 import subprocess
 import pybythec
@@ -33,7 +33,9 @@ class TestPybythec(unittest.TestCase):
     '''
       build
     '''
-    print('\n')
+    # print('\n')
+    log.raw('\n')
+    log.info(f'cwd: {os.getcwd()}')
 
     # build Plugin
     os.chdir('./example/projects/Plugin')
@@ -47,8 +49,13 @@ class TestPybythec(unittest.TestCase):
     pybythec.build(be)
 
     for b in be.builds:
+
+      # log.debug(b)
+      # continue
+
       exePath = f('./{0}/Main', b)
-      if platform.system() == 'Windows':
+      if be.osType == 'windows':
+      # if platform.system() == 'Windows':
         exePath += '.exe'
 
       log.info('checking that {0} exists...', exePath)

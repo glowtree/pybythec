@@ -26,7 +26,7 @@
       "stopOnEntry": false,
       "python": "${command:python.interpreterPath}",
       "program": "${workspaceRoot}/test/test_pybythec.py",
-      "cwd": "C:/Users/tom/Sync/work/projects/pybythec",
+      // "cwd": "C:/Users/tom/work_offline/repos/pybythec",
       "env": {"PYTHONPATH": "${workspaceRoot}"},
       "debugOptions": [
         "WaitOnAbnormalExit",

@@ -68,9 +68,9 @@ def build(be = None, builds = None):
   if type(buildsRef) is not list:
     buildsRef = [buildsRef]
 
-  for build in buildsRef:
-    try:
-      be.configBuild(currentBuild = build)
+  for br in buildsRef:
+    try: 
+      be.configBuild(currentBuild = br)
     except PybythecError as e:
       log.error(e)
       continue
@@ -78,6 +78,7 @@ def build(be = None, builds = None):
       # log.error('unknown exception: {0}', e)
       log.error('unknown exception: {0}\n{1}', str(e), traceback.format_exc())
       continue
+    log.debug(br)
     _build(be)
 
 
@@ -309,6 +310,7 @@ def _build(be):
   if os.path.exists(be.shellTargetInstallPath):
     oldTargetTimeStamp = float(os.stat(be.shellTargetInstallPath).st_mtime)
     targetExisted = True
+
 
   if be.showLinkerCmds:
     log.info('\n{0}\n', ' '.join(linkCmd))

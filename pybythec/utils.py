@@ -245,8 +245,9 @@ def _getAbsPath(cwDir, path):
       return _cwDir.rstrip('/')
   if _path[0] == '.' and path[1].isalpha(): # ie .pybythec
     return _cwDir + _path
+  return os.path.normpath(os.path.join(cwDir, './' + path)).replace('\\', '/')
   # TODO: handle the case when it's ./.pybythec
-  return _cwDir + _path.lstrip('./\\')
+  # return _cwDir + _path.lstrip('./\\')
 
 
 def getAbsPath(cwDir, path):
@@ -392,4 +393,4 @@ def runCmd(cmd):
 
 if __name__ == '__main__':
 
-  print(getAbsPath('C:/Users/tom', '\Intel-HID-Event-Filter-Driver_V2HFM_WIN_2.2.1.384_A16_07.EXE', 'windows'))
+  print(getAbsPath('C:\\Users\\tom\\work_offline\\repos\\pybythec/example/shared/src\\DynamicLib', '../../include'))
