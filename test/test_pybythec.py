@@ -75,11 +75,10 @@ class TestPybythec(unittest.TestCase):
     '''
       clean the builds
     '''
-    pass
-    # pybythec.cleanAll()
+    pybythec.cleanAll()
 
-    # os.chdir('../Plugin')
-    # pybythec.cleanAll()
+    os.chdir('../Plugin')
+    pybythec.cleanAll()
 
 
 if __name__ == '__main__':
