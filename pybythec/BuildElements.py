@@ -259,10 +259,10 @@ class BuildElements:
     if self.localConfig is not None:
       self._getBuildElements3(self.localConfig, keys)
 
-    # log.debug('PATH')
-    # delin = utils.getPathDelineator()
-    # for p in os.environ['PATH'].split(delin):
-    #   log.debug(p)
+    log.debug('PATH')
+    delin = utils.getPathDelineator()
+    for p in os.environ['PATH'].split(delin):
+      log.debug(p)
 
     # deal breakers (that don't appear in the default pybythecGlobals.json)
     if not self.targetName:
@@ -384,7 +384,7 @@ class BuildElements:
         self.targetFilename = self.targetName + '.exe'
       elif self.binaryType == 'static':
         self.targetFilename = self.targetName + self.staticExt
-        self.linker = 'lib'
+        self.linker = 'lib.exe'
       elif self.binaryType == 'dynamic' or self.binaryType == 'plugin':
         self.targetFilename = self.targetName + self.dynamicExt
         self.linkFlags.append('/DLL')
@@ -396,16 +396,17 @@ class BuildElements:
 
     # make sure the compiler is in PATH
     try:
-      # log.debug(f'compilerCmd: {self.compilerCmd}')
+      log.debug(f'compilerCmd: {self.compilerCmd}')
       subprocess.call(self.compilerCmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     except OSError as e:
-      # log.debug(str(e))
+      log.debug(str(e))
       raise PybythecError('compiler {0} is not found in PATH', self.compilerCmd)
 
     # make sure the linker is in PATH
     try:
       subprocess.call(self.linker, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-    except OSError:
+    except OSError as e:
+      log.debug(str(e))
       raise PybythecError('linker {0} is not found in PATH', self.linker)
 
     #
@@ -415,11 +416,11 @@ class BuildElements:
     self.installDirPath = utils.getAbsPath(self.cwDir, installDirPath)
     self.installDirPathShell = utils.getAbsPath(self.shellCwDir, installDirPath)
     
-    utils.resolvePaths(self.cwDir, self.sources)
-    utils.resolvePaths(self.cwDir, self.incPaths)
-    utils.resolvePaths(self.cwDir, self.extIncPaths)
-    utils.resolvePaths(self.cwDir, self.libPaths)
-    utils.resolvePaths(self.cwDir, self.libSrcPaths)
+    utils.resolvePaths(self.cwDir, self.sources, self.osType)
+    utils.resolvePaths(self.cwDir, self.incPaths, self.osType)
+    utils.resolvePaths(self.cwDir, self.extIncPaths, self.osType)
+    utils.resolvePaths(self.cwDir, self.libPaths, self.osType)
+    utils.resolvePaths(self.cwDir, self.libSrcPaths, self.osType)
 
     self.binaryRelPath = f('/{0}/{1}/{2}/{3}', self.osType, self.compilerVersion, self.binaryFormat, self.buildType)
 

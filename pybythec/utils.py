@@ -7,6 +7,7 @@ import platform
 import sys
 import os
 
+LINUX_ROOT = '/mnt' # windows subsystem for linux
 
 class PybythecError(Exception):
   def __init__(self, msg, *args):
@@ -116,16 +117,17 @@ def checkTimestamps(incPaths, src, timestamp):
   '''
     finds the newest timestamp of everything upstream of the src file, including the src file
   '''
-  if not os.path.exists(src):
-    log.warning('checkTimestamps: {0} doesn\'t exist', src)
+  srcPath = getShellPath(src)
+  if not os.path.exists(srcPath):
+    log.warning('checkTimestamps: {0} doesn\'t exist', srcPath)
     return
 
-  srcTimeStamp = float(os.stat(src).st_mtime)
+  srcTimeStamp = float(os.stat(srcPath).st_mtime)
   if srcTimeStamp > timestamp[0]:
     timestamp[0] = srcTimeStamp
 
   fileCopy = str()
-  srcFile = open(src, 'r')
+  srcFile = open(srcPath, 'r')
   for line in srcFile:
     fileCopy += line
   srcFile.close()
@@ -190,24 +192,24 @@ def windowsToLinux(p):
   '''
   np = p.replace('\\', '/')
   driveLetter = np[0].lower()
-  return f'/mnt/{driveLetter}{np[2:]}'
+  return f'{LINUX_ROOT}/{driveLetter}{np[2:]}'
 
   
 def linuxToWindows(p):
   '''
   '''
-  np = p.lstrip('/mnt/')
+  np = p[len(LINUX_ROOT) + 1 :]
   return np[0].upper() + ':' + np[1:]
 
 
-def pathExists(path):
-  '''
-  '''
-  if not isWindowsPath(path):
-    return os.path.exists(path)
-  if platform.system() == 'Windows':
-    return os.path.exists(path)
-  return os.path.exists(windowsToLinux(path))
+# def pathExists(path):
+#   '''
+#   '''
+#   if not isWindowsPath(path):
+#     return os.path.exists(path)
+#   if platform.system() == 'Windows':
+#     return os.path.exists(path)
+#   return os.path.exists(windowsToLinux(path))
   
 
 def getShellPath(path):
@@ -221,6 +223,26 @@ def getShellPath(path):
     return windowsToLinux(path)
   return path
     
+def pathExists(path):
+  '''
+  '''
+  return os.path.exists(getShellPath(path))
+
+def getPath(path, osType):
+  '''
+    gets the path based on the requested os type ie windows, linux
+  '''
+  isWin = isWindowsPath(path)
+  if osType == 'windows':
+    if isWin:
+      return path
+    return linuxToWindows(path)
+  # otherwise linux
+  if isWin:
+    return windowsToLinux(path)
+  return path
+
+
 def getShellOsType():
   '''
   '''
@@ -232,6 +254,7 @@ def getShellOsType():
     return 'windows'
   else:
     raise PybythecError('os needs to be linux, macOs or windows')
+
 
 def _getAbsPath(cwDir, path):
   '''
@@ -263,22 +286,14 @@ def getAbsPath(cwDir, path):
   return _getAbsPath(cwDir, path)
 
 
-def resolvePaths(cwDir, paths):
+def resolvePaths(cwDir, paths, osType):
   '''
   '''
   i = 0
   for path in paths:
-    paths[i] = getAbsPath(cwDir, path)
+    p = getAbsPath(cwDir, path)
+    paths[i] = getPath(p, osType)
     i += 1
-
-
-# def makePathAbsolute(absPath, path):
-#   '''
-#     make a relative file path absolute
-#   '''
-#   if os.path.isabs(path):
-#     return path
-#   return os.path.normpath(os.path.join(absPath, './' + path))
 
 
 def createDirs(path):

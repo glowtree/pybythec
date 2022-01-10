@@ -91,7 +91,7 @@ def _build(be):
   buildStatus = BuildStatus(be.targetFilename, be.buildDirPathShell)
 
   # lock - early return
-  if be.locked and os.path.exists(be.installPathShell):
+  if be.locked and utils.pathExists(be.installPathShell):
     buildStatus.writeInfo('locked', '{0} is locked', be.targetName)
     return True
 
@@ -103,10 +103,10 @@ def _build(be):
   if be.libDir:
     buildingLib = True
 
-  if not os.path.exists(be.buildDirPathShell):
+  if not utils.pathExists(be.buildDirPathShell):
     utils.createDirs(be.buildDirPathShell)
 
-  if not os.path.exists(be.installDirPathShell):
+  if not utils.pathExists(be.installDirPathShell):
     utils.createDirs(be.installDirPathShell)
 
   incPathList = []
@@ -140,10 +140,10 @@ def _build(be):
       if not utils.pathExists(includePath):
         continue
 
-      if os.path.exists(mocPath) and float(os.stat(mocPath).st_mtime) < float(os.stat(includePath).st_mtime) or not os.path.exists(mocPath):
+      if utils.pathExists(mocPath) and float(os.stat(mocPath).st_mtime) < float(os.stat(includePath).st_mtime) or not utils.pathExists(mocPath):
         buildStatus.description = 'qt moc: ' + utils.runCmd(['moc'] + definesList + [includePath, '-o', mocPath])
 
-      if not os.path.exists(mocPath):
+      if not utils.pathExists(mocPath):
         buildStatus.writeError(buildStatus.description)
         return False
 
@@ -199,7 +199,7 @@ def _build(be):
       if threading:
         for libSrcDir in be.libSrcPaths:
           libSrcDir = os.path.join(libSrcDir, lib)
-          if os.path.exists(libSrcDir):
+          if utils.pathExists(libSrcDir):
             libsBuilding.append(lib)
             buildStatusDep = BuildStatus(lib)
             buildStatusDeps.append(buildStatusDep)
@@ -210,11 +210,11 @@ def _build(be):
             break
       else:
         for libSrcPath in be.libSrcPaths:
-          if not os.path.exists('libSrcPath'):
+          if not utils.pathExists(libSrcPath):
             log.warning('libSrcPath {0} doesn\'t exist', libSrcPath)
             continue
           libSrcPath = os.path.join(libSrcPath, lib)
-          if os.path.exists(libSrcPath):
+          if utils.pathExists(libSrcPath):
             libsBuilding.append(lib)
             buildStatusDep = BuildStatus(lib)
             buildStatusDeps.append(buildStatusDep)
@@ -241,23 +241,23 @@ def _build(be):
   for i in range(len(be.libPaths)):
 
     revisedLibPath = f('{0}/{1}/{2}', be.libPaths[i], be.osType, be.compilerVersion)
-    if os.path.exists(revisedLibPath):
+    if utils.pathExists(revisedLibPath):
       be.libPaths[i] = revisedLibPath
 
     # if be.binaryFormatDefault != be.binaryFormat:
     revisedLibPath_ = revisedLibPath + '/' + be.binaryFormat
-    if os.path.exists(revisedLibPath_):
+    if utils.pathExists(revisedLibPath_):
       revisedLibPath = revisedLibPath_
       extraLibPaths.append(revisedLibPath)
 
     revisedLibPath_ = revisedLibPath + '/' + be.buildType
-    if os.path.exists(revisedLibPath_):
+    if utils.pathExists(revisedLibPath_):
       revisedLibPath = revisedLibPath_
       extraLibPaths.append(revisedLibPath)
 
     if be.currentBuild:
       revisedLibPath += '/' + be.currentBuild
-      if os.path.exists(revisedLibPath):
+      if utils.pathExists(revisedLibPath):
         extraLibPaths.append(revisedLibPath)
     
   for xlp in extraLibPaths:
@@ -268,7 +268,7 @@ def _build(be):
   #
   linkCmd = []
 
-  if allUpToDate and os.path.exists(be.installPathShell):
+  if allUpToDate and utils.pathExists(be.installPathShell):
     buildStatus.writeInfo('up to date', '{0} is up to date, determined in {1} seconds\n', be.infoStr, str(int(time.time() - startTime)))
     if not buildingLib:
       _runPostScript(be)
@@ -307,7 +307,7 @@ def _build(be):
   linked = False
   targetExisted = False
   oldTargetTimeStamp = None
-  if os.path.exists(be.installPathShell):
+  if utils.pathExists(be.installPathShell):
     oldTargetTimeStamp = float(os.stat(be.installPathShell).st_mtime)
     targetExisted = True
 
@@ -317,7 +317,7 @@ def _build(be):
 
   buildStatus.description = utils.runCmd(linkCmd)
 
-  if os.path.exists(be.installPathShell):
+  if utils.pathExists(be.installPathShell):
     if targetExisted:
       if float(os.stat(be.installPathShell).st_mtime) > oldTargetTimeStamp:
         linked = True
@@ -339,7 +339,8 @@ def _build(be):
           if be.compilerRoot == 'gcc' or be.compilerRoot == 'clang':
             dynamicPath += 'lib'
           dynamicPath += lib + be.dynamicExt
-          if os.path.exists(dynamicPath):
+          dynamicPath = utils.getShellPath(dynamicPath)
+          if utils.pathExists(dynamicPath):
             utils.copyfile(dynamicPath, be.installDirPathShell)
 
   buildStatus.writeInfo('built', '{0} built {1}\ncompleted in {2} seconds\n', be.infoStr, be.installPath, str(int(time.time() - startTime)))
@@ -366,7 +367,7 @@ def _compileSrc(be, compileCmd, source, objPaths, buildStatus):
   '''
 
   if not utils.pathExists(source):
-  # if not os.path.exists(source):
+  # if not utils.pathExists(source):
     buildStatus.writeError('{0} is missing, exiting build', source)
     return
 
@@ -465,7 +466,7 @@ def _clean(be = None):
   '''
 
   # remove any dynamic libs that are sitting next to the exe
-  if os.path.exists(be.installDirPathShell) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
+  if utils.pathExists(be.installDirPathShell) and (be.binaryType == 'exe' or be.binaryType == 'plugin'):
     for fl in os.listdir(be.installDirPathShell):
       libName, ext = os.path.splitext(fl)
       if ext == be.dynamicExt:
@@ -485,7 +486,7 @@ def _clean(be = None):
         except Exception:
           log.warning('failed to remove {0}', p)
 
-  if not os.path.exists(be.buildDirPathShell):  # canary in the coal mine
+  if not utils.pathExists(be.buildDirPathShell):  # canary in the coal mine
     log.info(be.infoStr + ' already clean')
     return True
 
@@ -500,7 +501,7 @@ def _clean(be = None):
   if dirCleared:
     os.removedirs(be.buildDirPathShell)
 
-  if os.path.exists(be.installPathShell):
+  if utils.pathExists(be.installPathShell):
     os.remove(be.installPathShell)
   target, ext = os.path.splitext(be.installPathShell)
   if ext == '.dll':
@@ -548,7 +549,7 @@ def cleanAll(be = None, builds = None):
     for lib in be.libs:
       for libSrcPath in be.libSrcPaths:
         libPath = os.path.join(libSrcPath, lib)
-        if os.path.exists(libPath):
+        if utils.pathExists(libPath):
           libBe = getBuildElements(
               osType = be.osType,
               compiler = be.compiler,
@@ -570,10 +571,10 @@ def _runPreScript(be):
   pathRoot = '.'
   if be.libDir:
     pathRoot = be.libDir
-  preScriptPath = pathRoot + '/pybythecPre.py'
-  if not os.path.exists(preScriptPath):
+  preScriptPath = utils.getShellPath(pathRoot + '/pybythecPre.py')
+  if not utils.pathExists(preScriptPath):
     preScriptPath = pathRoot + '/.pybythecPre.py'
-  if os.path.exists(preScriptPath):
+  if utils.pathExists(preScriptPath):
     import imp
     m = imp.load_source('', preScriptPath)
     m.run(be)
@@ -586,10 +587,10 @@ def _runPostScript(be):
   pathRoot = '.'
   if be.libDir:
     pathRoot = be.libDir
-  postScriptPath = pathRoot + '/pybythecPost.py'
-  if not os.path.exists(postScriptPath):
+  postScriptPath = utils.getShellPath(pathRoot + '/pybythecPost.py')
+  if not utils.pathExists(postScriptPath):
     postScriptPath = pathRoot + '/.pybythecPost.py'
-  if os.path.exists(postScriptPath):
+  if utils.pathExists(postScriptPath):
     import imp
     m = imp.load_source('', postScriptPath)
     m.run(be)
