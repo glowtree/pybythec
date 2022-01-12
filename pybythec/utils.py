@@ -7,7 +7,11 @@ import platform
 import sys
 import os
 
-LINUX_ROOT = '/mnt' # windows subsystem for linux
+LINUX_ROOT = ''
+
+# check if it's windows subsystem for linux
+if 'microsoft-standard' in platform.uname().release:
+  LINUX_ROOT = '/mnt'
 
 class PybythecError(Exception):
   def __init__(self, msg, *args):
@@ -202,16 +206,6 @@ def linuxToWindows(p):
   return np[0].upper() + ':' + np[1:]
 
 
-# def pathExists(path):
-#   '''
-#   '''
-#   if not isWindowsPath(path):
-#     return os.path.exists(path)
-#   if platform.system() == 'Windows':
-#     return os.path.exists(path)
-#   return os.path.exists(windowsToLinux(path))
-  
-
 def getShellPath(path):
   '''
     path: assume absolute path
@@ -223,10 +217,12 @@ def getShellPath(path):
     return windowsToLinux(path)
   return path
     
+
 def pathExists(path):
   '''
   '''
   return os.path.exists(getShellPath(path))
+
 
 def getPath(path, osType):
   '''
