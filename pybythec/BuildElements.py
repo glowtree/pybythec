@@ -89,6 +89,8 @@ class BuildElements:
 
     self.latestConfigTimestamp = 0
 
+    self.defines = []
+
     # global config
     if not self.globalConfig:
       if 'PYBYTHEC_GLOBALS' in os.environ:
@@ -193,7 +195,7 @@ class BuildElements:
   
     self.sources = []
     self.libs = []
-    self.defines = []
+    # self.defines = []
     self.flags = []
     self.linkFlags = []
 
