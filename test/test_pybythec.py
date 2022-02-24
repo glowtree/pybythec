@@ -8,13 +8,11 @@ tests for pybythec module
 '''
 
 import os
-# import platform
 import unittest
 import subprocess
 import pybythec
-from pybythec.utils import f
 
-log = pybythec.utils.Logger()
+log = pybythec.utils.log
 
 
 class TestPybythec(unittest.TestCase):
@@ -26,8 +24,10 @@ class TestPybythec(unittest.TestCase):
 
     # setup the environment variables...
     # normally you would probably set these in your .bashrc (linux / macOs), profile.ps1 (windows) file etc
-    os.environ['PYBYTHEC_EXAMPLE_SHARED'] = os.getcwd() + '/example/shared'
-    os.environ['PYBYTHEC_GLOBALS'] = os.getcwd() + '/globals.json'  # this overrides ~/.pybythecGlobals
+    cwd = os.getcwd()
+    cwd = cwd.replace('\\', '/')
+    os.environ['PYBYTHEC_EXAMPLE_SHARED'] = cwd + '/example/shared'
+    os.environ['PYBYTHEC_GLOBALS'] = cwd + '/globals.json'  # this overrides ~/.pybythecGlobals
 
   def test_000_something(self):
     '''
@@ -53,12 +53,11 @@ class TestPybythec(unittest.TestCase):
       # log.debug(b)
       # continue
 
-      exePath = f('./{0}/Main', b)
+      exePath = f'./{b}/Main'
       if be.osType == 'windows':
-      # if platform.system() == 'Windows':
         exePath += '.exe'
 
-      log.info('checking that {0} exists...', exePath)
+      log.info(f'checking that {exePath} exists...')
       self.assertTrue(os.path.exists(exePath))
 
       p = subprocess.Popen([exePath], stdout = subprocess.PIPE, stderr = subprocess.PIPE)

@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import json
 import shutil
@@ -7,108 +6,79 @@ import platform
 import sys
 import os
 
-LINUX_ROOT = ''
 
-# check if it's windows subsystem for linux
-if 'microsoft-standard' in platform.uname().release:
+LINUX_ROOT = ''
+if 'microsoft-standard' in platform.uname().release: # check if it's windows subsystem for linux
   LINUX_ROOT = '/mnt'
 
+
 class PybythecError(Exception):
-  def __init__(self, msg, *args):
-    super(PybythecError, self).__init__(msg.format(*args))
-
-
-def f(s, *args):
-  '''
-  '''
-  # return s.format(*args)
-  try:
-    return s.format(*args)
-  except Exception: # so far the only exception raised has been because of unicode chars  u'\u2018' and u'\u2019'
-    newArgs = []
-    for a in args:
-      newArgs.append(a.replace(u'\u2018', '\'').replace(u'\u2019', '\''))
-    return s.format(*newArgs)
+  def __init__(self, msg):
+    super(PybythecError, self).__init__(msg)
 
 
 class Logger:
 
-  wf = None  # static
-
-  def __init__(self, name = None, debug = False):
+  def __init__(self, name = None, debug = False, filepath = None):
     self.name = name
     if self.name:
       self.name += ': '
     else:
       self.name = ''
     self._debug = debug
-
-  def setDebug(self, v):
-    self._debug = v
-
-  @classmethod
-  def setFilepath(cls, filepath):
+    self.wf = sys.stdout
     if filepath:
-      cls.wf = open(filepath, 'w')
-
-  def _getStr(self, s, *args):
-    if type(s) is not str:
-      s = f('{0}', s)
-    if len(args):
-      return self.name + f(s, *args)
+      self.toFile = True
+      self.wf = open(filepath, 'w')
     else:
-      return self.name + s
+      self.toFile = False
 
-  def debug(self, s, *args):
+  def __del__(self):
+    if self.toFile:
+      self.wf.close()
+
+  def debug(self, s):
     if self._debug:
-      print('debug: ' + self._getStr(s, *args), file = Logger.wf)
-      if Logger.wf:
-        Logger.wf.flush()  # necessary for running as a systemd service for some reason
+      self.wf.write(f'debug: {self.name}{s}\n')
+      self.wf.flush()
 
-  def info(self, s, *args):
-    print(self._getStr(s, *args), file = Logger.wf)
-    if Logger.wf:
-      Logger.wf.flush()
+  def info(self, s):
+    self.wf.write(f'{self.name}{s}\n')
+    self.wf.flush()
 
-  def warning(self, s, *args):
-    print('warning: ' + self._getStr(s, *args), file = Logger.wf)
-    if Logger.wf:
-      Logger.wf.flush()
+  def warning(self, s):
+    self.wf.write(f'warning: {self.name}{s}\n')
+    self.wf.flush()
 
-  def error(self, s, *args):
-    lwf = Logger.wf
-    if not lwf:
-      lwf = sys.stderr
-    print('error: ' + self._getStr(s, *args), file = lwf)
-    if Logger.wf:
-      Logger.wf.flush()
-
-  def raw(self, s, *args):  # no adding the name
-    if type(s) is not str:
-      s = f('{0}', s)
-    if len(args):
-      print(f(s, *args))
+  def error(self, s):
+    if self.toFile:
+      self.wf.write(f'error: {self.name}{s}\n')
+      self.wf.flush()
     else:
-      print(s)
+      sys.stderr.write(f'error: {self.name}{s}\n')
+      sys.stderr.flush()
+
+  def raw(self, s):
+    sys.stdout.write(s)
 
   # shorthands
-  def d(self, s, *args):
-    self.debug(s, *args)
+  def d(self, s):
+    self.debug(s)
 
-  def i(self, s, *args):
-    self.info(s, *args)
+  def i(self, s):
+    self.info(s)
 
-  def w(self, s, *args):
-    self.warning(s, *args)
+  def w(self, s):
+    self.warning(s)
 
-  def e(self, s, *args):
-    self.error(s, *args)
+  def e(self, s):
+    self.error(s)
 
-  def r(self, s, *args):
-    self.raw(s, *args)
+  def r(self, s):
+    self.raw(s)
 
 
-log = Logger('pybythec')
+log = Logger() # singleton
 
 
 def srcNewer(srcPath, dstPath):
@@ -123,7 +93,7 @@ def checkTimestamps(incPaths, src, timestamp):
   '''
   srcPath = getShellPath(src)
   if not os.path.exists(srcPath):
-    log.warning('checkTimestamps: {0} doesn\'t exist', srcPath)
+    log.warning(f'checkTimestamps: {srcPath} doesn\'t exist')
     return
 
   srcTimeStamp = float(os.stat(srcPath).st_mtime)
@@ -143,7 +113,7 @@ def checkTimestamps(incPaths, src, timestamp):
       if (filename[0] == '"'):
         filename = filename.strip('"')
         for dir in incPaths:
-          filepath = os.path.join(dir, filename)
+          filepath = f'{dir}/{filename}'
           if os.path.exists(filepath):
             checkTimestamps(incPaths, filepath, timestamp)
 
@@ -260,7 +230,7 @@ def _getAbsPath(cwDir, path):
     _cwDir += '/'
   _path = path.replace('\\', '/')
   if len(path) < 2:
-    if path[0] == '.':
+    if path[0] == '.': 
       return _cwDir.rstrip('/')
   if _path[0] == '.' and path[1].isalpha(): # ie .pybythec
     return _cwDir + _path
@@ -330,7 +300,7 @@ def copyfile(srcPath, dstDir):
   if not os.path.exists(srcPath):
     return False
 
-  dstPath = os.path.join(dstDir, os.path.basename(srcPath))
+  dstPath = f'{dstDir}/{os.path.basename(srcPath)}'
 
   if os.path.exists(dstPath):
     if not srcNewer(srcPath, dstPath):
@@ -341,7 +311,7 @@ def copyfile(srcPath, dstDir):
 
   shutil.copy2(srcPath, dstDir)
 
-  log.debug('{0} copied to {1}', srcPath, dstPath)
+  log.debug(f'{srcPath} copied to {dstPath}')
 
   return True
 
@@ -390,9 +360,9 @@ def runCmd(cmd):
   try:
     p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
   except subprocess.CalledProcessError as e:
-    return f('cmd failed: {0} because: {1}', ' '.join(cmd), e.output)
+    return f'cmd failed: {" ".join(cmd)} because: {e.output}'
   except Exception:
-    return f('cmd failed: {0}', ' '.join(cmd))
+    return f'cmd failed: {" ".join(cmd)}'
   stdout, stderr = p.communicate()
   output = ''
   if len(stderr):
@@ -402,6 +372,7 @@ def runCmd(cmd):
   return output
 
 
+# testing
 if __name__ == '__main__':
 
   print(getAbsPath('C:\\Users\\tom\\work_offline\\repos\\pybythec/example/shared/src\\DynamicLib', '../../include'))

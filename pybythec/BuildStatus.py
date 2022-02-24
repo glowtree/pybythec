@@ -2,9 +2,8 @@
 import os
 import json
 from pybythec import utils
-from pybythec.utils import f
 
-log = utils.Logger('pybythec')
+log = utils.log
 
 class BuildStatus:
   '''
@@ -27,42 +26,40 @@ class BuildStatus:
       buildPath (in): where to read the status.json file from
     '''
 
-    buildPath = f('{0}/{1}/{2}', libSrcDir, buildDir, binaryRelfPath)
+    buildPath = f'{libSrcDir}/{buildDir}/{binaryRelfPath}'
 
     if not os.path.exists(buildPath):
       # try the other hidden / non-hidden version
       if buildDir[0] == '.':
-        buildPath = f('{0}/{1}/{2}', libSrcDir, buildDir.lstrip('.'), binaryRelfPath)
+        buildPath = f'{libSrcDir}/{buildDir.lstrip(".")}/{binaryRelfPath}'
       else:
-        buildPath = f('{0}/.{1}/{2}', libSrcDir, buildDir, binaryRelfPath)
+        buildPath = f'{libSrcDir}/.{buildDir}/{binaryRelfPath}'
 
     contents = utils.loadJsonFile(buildPath + '/status.json')
     if not contents:
-      self.description = 'couldn\'t find contents in ' + buildPath
-      log.error('couldn\'t find contents in ' + buildPath)
+      self.description = f'couldn\'t find contents in {buildPath}'
+      log.error(f'couldn\'t find contents in {buildPath}')
       return
     if 'status' in contents:
       self.status = contents['status']
     else:
-      self.description = 'couldn\'t find the build status in ' + buildPath
+      self.description = f'couldn\'t find the build status in {buildPath}'
       log.error(self.description)
     if 'description' in contents:
       self.description = contents['description']
     else:
-      self.description = buildPath + ' doesn\'t contain a description'
+      self.description = f'{buildPath} doesn\'t contain a description'
       log.warning(self.description)
 
 
-  def writeInfo(self, status, msg, *args):
-    msg = f(msg, *args)
+  def writeInfo(self, status, msg):
     log.info(msg)
     self.status = status
     self.description = msg
     self._writeToFile()
 
 
-  def writeError(self, msg, *args):
-    msg = f(msg, *args)
+  def writeError(self, msg):
     log.error(msg)
     self.description = msg
     self._writeToFile()

@@ -1,8 +1,9 @@
 
 import os
-from pybythec.utils import Logger
+from pybythec import utils
+# from pybythec.utils import Logger
 
-log = Logger()
+log = utils.log
 
 def main():
   '''
@@ -47,7 +48,7 @@ description = 'A lightweight cross-platform build system for c/c++, written in p
 
 setup(
     name = 'pybythec',
-    version = '0.9.62',
+    version = '0.9.63',
     author = 'glowtree',
     author_email = 'tom@glowtree.com',
     url = 'https://github.com/glowtree/pybythec',
@@ -68,12 +69,12 @@ setup(
     #
     globalsPath = os.path.expanduser('~') + '/.pybythecGlobals.json'
     try:
-      log.info('writing to {0}', globalsPath)
+      log.info(f'writing to {globalsPath}')
       with open(globalsPath, 'w') as wf:
         with open('./globals.json') as rf:
           wf.write(rf.read())
     except Exception:
-      log.error('failed to write to {0}', globalsPath)
+      log.error(f'failed to write to {globalsPath}')
 
 
 if __name__ == '__main__':

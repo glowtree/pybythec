@@ -3,7 +3,8 @@ import pybythec
 import argparse
 
 
-log = pybythec.utils.Logger('pybythec')
+log = pybythec.utils.log
+
 
 def main():
 
@@ -42,3 +43,7 @@ def main():
     return pybythec.clean(be, builds)
   else:
     return pybythec.build(be, builds)
+
+
+if  __name__ == '__main__':
+  main()

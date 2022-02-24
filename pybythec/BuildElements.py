@@ -3,11 +3,9 @@ DEBUG = False
 import os
 import subprocess
 from pybythec import utils
-from pybythec.utils import f
 from pybythec.utils import PybythecError
 
-log = utils.Logger('pybythec', DEBUG)
-
+log = utils.log
 
 
 class BuildElements:
@@ -97,7 +95,7 @@ class BuildElements:
         globalConfigPath = os.environ['PYBYTHEC_GLOBALS']
         if not os.path.exists(globalConfigPath):
           globalConfigPath = None
-          log.warning('PYBYTHEC_GLOBALS points to {0}, which doesn\'t exist', globalConfigPath)
+          log.warning(f'PYBYTHEC_GLOBALS points to {globalConfigPath}, which doesn\'t exist')
       elif os.path.exists('.pybythecGlobals.json'):
         globalConfigPath = '.pybythecGlobals.json'
       elif os.path.exists('pybythecGlobals.json'):
@@ -124,7 +122,7 @@ class BuildElements:
       if 'PYBYTHEC_PROJECT' in os.environ:
         projConfigPath = os.environ['PYBYTHEC_PROJECT']
         if not os.path.exists(projConfigPath):
-          log.warning('PYBYTHEC_PROJECT points to {0}, which doesn\'t exist', projConfigPath)
+          log.warning(f'PYBYTHEC_PROJECT points to {projConfigPath}, which doesn\'t exist')
       else:
         if os.path.exists(self.shellCwDir + '/pybythecProject.json'):
           projConfigPath = self.shellCwDir + '/pybythecProject.json'
@@ -167,7 +165,7 @@ class BuildElements:
       self.osType = self.osTypeOverride
 
     if self.osType and self.osType not in ['linux', 'macOs', 'windows']: # validate
-      log.warning('{0} invalid osType, defaulting to the native os', self.osType)
+      log.warning(f'{self.osType} invalid osType, defaulting to the native os')
       self.osType = None
 
     shellOsType = utils.getShellOsType()
@@ -309,7 +307,7 @@ class BuildElements:
       self.objFlag = '-c'
       self.objExt = '.o'
       self.objPathFlag = '-o'
-      self.defines.append('_' + self.binaryFormat.upper())  # TODO: you sure this is universal?
+      self.defines.append('_' + self.binaryFormat.upper())
 
       # link
       self.linker = self.compilerCmd  # 'ld'
@@ -357,7 +355,7 @@ class BuildElements:
           if numDots >= 2:
             break
         v = output[start:end].strip(' ')
-        self.compilerVersion = f('{0}-{1}', self.compiler, v)
+        self.compilerVersion = f'{self.compiler}-{v}'
       log.d(self.compilerVersion)
 
 
@@ -424,7 +422,7 @@ class BuildElements:
     utils.resolvePaths(self.cwDir, self.libPaths, self.osType)
     utils.resolvePaths(self.cwDir, self.libSrcPaths, self.osType)
 
-    self.binaryRelPath = f('/{0}/{1}/{2}/{3}', self.osType, self.compilerVersion, self.binaryFormat, self.buildType)
+    self.binaryRelPath = f'/{self.osType}/{self.compilerVersion}/{self.binaryFormat}/{self.buildType}'
 
     if self.currentBuild:
       self.binaryRelPath += '/' + self.currentBuild
@@ -439,8 +437,8 @@ class BuildElements:
       self.installDirPath += self.binaryRelPath
       self.installDirPathShell += self.binaryRelPath
 
-    self.installPath = os.path.join(self.installDirPath, self.targetFilename)
-    self.installPathShell = os.path.join(self.installDirPathShell, self.targetFilename)
+    self.installPath = f'{self.installDirPath}/{self.targetFilename}'
+    self.installPathShell = f'{self.installDirPathShell}/{self.targetFilename}'
   
     log.debug(f'buildDirPath: {self.buildDirPath}')
     log.debug(f'buildDirPathShell: {self.buildDirPathShell}')
@@ -450,9 +448,9 @@ class BuildElements:
     log.debug(f'installPathShell: {self.installPathShell}')
     # raise PybythecError('early return')
 
-    self.infoStr = f('{0} ({1} {2} {3} {4}', self.targetName, self.osType, self.compilerVersion, self.binaryFormat, self.buildType)
+    self.infoStr = f'{self.targetName} ({self.osType} {self.compilerVersion} {self.binaryFormat} {self.buildType}'
     if self.currentBuild:
-      self.infoStr += ' ' + self.currentBuild
+      self.infoStr += f' {self.currentBuild}'
     self.infoStr += ')'
 
 
@@ -518,7 +516,7 @@ class BuildElements:
       if len(compilerList):
         self.compiler = compilerList[0]
         if len(compilerList) > 1:
-          log.warning('couldn\'t resolve to single compiler, compiler options: {0}, selecting {1}', compilerList, self.compiler)
+          log.warning(f'couldn\'t resolve to single compiler, compiler options: {compilerList}, selecting {self.compiler}')
 
 
   def _getBuildElements3(self, configObj, keys = []):

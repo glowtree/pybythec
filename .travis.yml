@@ -4,13 +4,7 @@ language: python
 matrix:
   include:
     - os: linux
-      python: '2.7'
-      env: pyver=python
-    - os: linux
-      python: '3.6'
-      env: pyver=python
-    - os: osx
-      language: generic
+      python: '3.8'
       env: pyver=python
     - os: osx
       language: generic
