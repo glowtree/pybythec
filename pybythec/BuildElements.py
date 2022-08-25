@@ -414,7 +414,7 @@ class BuildElements:
     #
     installDirPath = self.installDirPath
     self.installDirPath = utils.getAbsPath(self.cwDir, installDirPath)
-    self.installDirPathShell = utils.getAbsPath(self.shellCwDir, installDirPath)
+    self.installDirPathShell = utils.getShellPath(installDirPath)
     
     utils.resolvePaths(self.cwDir, self.sources, self.osType)
     utils.resolvePaths(self.cwDir, self.incPaths, self.osType)
