@@ -1,5 +1,5 @@
 {
-  "editor.tabSize": 2,
+  "editor.tabSize": 4,
   "python.linting.flake8Enabled": true,
   "python.formatting.provider": "yapf",
   "python.autoComplete.extraPaths": [

@@ -17,21 +17,6 @@
       ]
     },
     {
-      "name": "simple test",
-      "type": "python",
-      "request": "launch",
-      "stopOnEntry": false,
-      "python": "${command:python.interpreterPath}",
-      "program": "../../../pybythec/command_line.py",
-      "cwd": "C:/Users/tom/work_offline/repos/pybythec/example/projects/Simple",
-      "env": {"PYTHONPATH": "${workspaceRoot}", "PYBYTHEC_GLOBALS": "../../../globals.json"},
-      "debugOptions": [
-        "WaitOnAbnormalExit",
-        "WaitOnNormalExit",
-        "RedirectOutput"
-      ]
-    },
-    {
       "name": "setup",
       "type": "python",
       "request": "launch",
@@ -48,6 +33,6 @@
         "WaitOnNormalExit",
         "RedirectOutput"
       ]
-    },
+    }
   ]
 }
