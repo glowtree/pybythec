@@ -170,7 +170,6 @@ def _build(be):
     # build library dependencies
     #
     libCmds = []
-    libsBuilding = []
     if be.binaryType == 'exe' or be.binaryType == 'plugin':
         for lib in be.libs:
             libName = lib
@@ -179,15 +178,12 @@ def _build(be):
             else:
                 libCmds += [be.libFlag, libName]
 
-            # check if the lib has a directory for building
-            for libSrcDir in be.libSrcPaths:
-                libSrcDir = f'{libSrcDir}/{lib}'
-                if utils.pathExists(libSrcDir):
-                    libsBuilding.append(lib)
-                    thread = Process(target = _buildLib, args = (be, libSrcDir, buildStatusQueue))
-                    thread.start()
-                    threads.append(thread)
-                    break
+    # check if the lib has a directory for building
+    for libSrcPath in be.libSrcPaths:
+        if utils.pathExists(libSrcPath):
+            thread = Process(target = _buildLib, args = (be, libSrcPath, buildStatusQueue))
+            thread.start()
+            threads.append(thread)
 
     # wait for all the threads before checking the results
     for thread in threads:
@@ -521,22 +517,21 @@ def cleanAll(be = None, builds = None):
             log.error(f'unknown exception: {str(e)}\n{traceback.format_exc()}')
             continue
         _clean(be)
+
         # clean library dependencies
-        for lib in be.libs:
-            for libSrcPath in be.libSrcPaths:
-                libPath = f'{libSrcPath}/{lib}'
-                if utils.pathExists(libPath):
-                    libBe = getBuildElements(osType = be.osType,
-                                             compiler = be.compiler,
-                                             buildType = be.buildType,
-                                             binaryFormat = be.binaryFormat,
-                                             projConfig = be.projConfig,
-                                             globalConfig = be.globalConfig,
-                                             currentBuild = be.currentBuild,
-                                             libDir = libPath)
-                    if not libBe:
-                        return
-                    clean(libBe)  # builds = build)
+        for libSrcPath in be.libSrcPaths:
+            if utils.pathExists(libSrcPath):
+                libBe = getBuildElements(osType = be.osType,
+                                            compiler = be.compiler,
+                                            buildType = be.buildType,
+                                            binaryFormat = be.binaryFormat,
+                                            projConfig = be.projConfig,
+                                            globalConfig = be.globalConfig,
+                                            currentBuild = be.currentBuild,
+                                            libDir = libSrcPath)
+                if not libBe:
+                    return
+                clean(libBe)  # builds = build)
 
 
 def _runPreScript(be):

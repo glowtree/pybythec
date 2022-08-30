@@ -14,9 +14,18 @@
   ],
 
   // paths
-  "incPaths": "${PYBYTHEC_EXAMPLE_SHARED}/include",
-  "libPaths": "${PYBYTHEC_EXAMPLE_SHARED}/lib",
-  "libSrcPaths": "${PYBYTHEC_EXAMPLE_SHARED}/src",
+  "incPaths": [
+    "${PYBYTHEC_EXAMPLE_SHARED}/StaticLib",
+    "${PYBYTHEC_EXAMPLE_SHARED}/DynamicLib"
+  ],
+  "libPaths": [
+    "${PYBYTHEC_EXAMPLE_SHARED}/StaticLib",
+    "${PYBYTHEC_EXAMPLE_SHARED}/DynamicLib"
+  ],
+  "libSrcPaths": [
+    "${PYBYTHEC_EXAMPLE_SHARED}/StaticLib",
+    "${PYBYTHEC_EXAMPLE_SHARED}/DynamicLib"
+  ],
   "installPath": {
     "buildVar1": "./buildVar1",
     "buildVar2": "./buildVar2",

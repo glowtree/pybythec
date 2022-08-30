@@ -7,6 +7,6 @@
     "msvc": "WIN_EXPORT"
   },
   
-  "incPaths":    "../../include",
-  "installPath": "../../lib"
+  "incPaths":    ".",
+  "installPath": "."
 }
