@@ -24,14 +24,16 @@ class BuildStatus:
             buildPath (in): where to read the status.json file from
         '''
 
-        buildPath = f'{libSrcDir}/{buildDir}/{binaryRelfPath}'
+        libSrcDirShellPath = utils.getShellPath(libSrcDir)
+
+        buildPath = f'{libSrcDirShellPath}/{buildDir}/{binaryRelfPath}'
 
         if not os.path.exists(buildPath):
             # try the other hidden / non-hidden version
             if buildDir[0] == '.':
-                buildPath = f'{libSrcDir}/{buildDir.lstrip(".")}/{binaryRelfPath}'
+                buildPath = f'{libSrcDirShellPath}/{buildDir.lstrip(".")}/{binaryRelfPath}'
             else:
-                buildPath = f'{libSrcDir}/.{buildDir}/{binaryRelfPath}'
+                buildPath = f'{libSrcDirShellPath}/.{buildDir}/{binaryRelfPath}'
 
         contents = utils.loadJsonFile(buildPath + '/status.json')
         if not contents:
