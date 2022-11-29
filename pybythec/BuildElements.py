@@ -236,7 +236,7 @@ class BuildElements:
                 else:
                     raise PybythecError('msvc has no default set, try setting the compiler to a specific version ie msvc-14.0')
         else:
-            raise PybythecError('unrecognized compiler {0}, using the default based on osType', self.compiler)
+            raise PybythecError(f'unrecognized compiler {self.compiler}, using the default based on osType')
 
         if self.buildTypeOverride:
             self.buildType = self.buildTypeOverride
@@ -383,7 +383,7 @@ class BuildElements:
             self.compilerVersion = self.compiler
 
         else:
-            raise PybythecError('unrecognized compiler root: {0}', self.compilerRoot)
+            raise PybythecError(f'unrecognized compiler root: {self.compilerRoot}')
 
         # make sure the compiler is in PATH
         try:
@@ -391,14 +391,14 @@ class BuildElements:
             subprocess.call(self.compilerCmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         except OSError as e:
             log.debug(str(e))
-            raise PybythecError('compiler {0} is not found in PATH', self.compilerCmd)
+            raise PybythecError(f'compiler {self.compilerCmd} is not found in PATH')
 
         # make sure the linker is in PATH
         try:
             subprocess.call(self.linker, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         except OSError as e:
             log.debug(str(e))
-            raise PybythecError('linker {0} is not found in PATH', self.linker)
+            raise PybythecError(f'linker {self.linker} is not found in PATH')
 
         #
         # determine paths

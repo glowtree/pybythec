@@ -154,7 +154,7 @@ def isWindowsPath(path):
   '''
     if len(path) < 3:
         return False
-    if path[0].isalpha() and path[1] == ':' and path[2] == '/':
+    if path[0].isalpha() and path[1] == ':' and (path[2] == '/' or path[2] == '\\'):
         return True
     return False
 
@@ -244,7 +244,7 @@ def getAbsPath(cwDir, path):
     returns absolute path
   '''
     if isWindowsPath(path):
-        return path
+        return path.replace('\\', '/')
     if os.path.isabs(path):
         return path
     return _getAbsPath(cwDir, path)
