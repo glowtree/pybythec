@@ -1,6 +1,7 @@
 import os
 import json
 from pybythec import utils
+import commentjson as json
 
 log = utils.log
 
@@ -35,7 +36,10 @@ class BuildStatus:
             else:
                 buildPath = f'{libSrcDirShellPath}/.{buildDir}/{binaryRelfPath}'
 
-        contents = utils.loadJsonFile(buildPath + '/status.json')
+        with open(buildPath + '/status.json', 'r') as rf:
+            contents = json.load(rf)
+        # contents = utils.loadJsonFile(buildPath + '/status.json')
+        
         if not contents:
             self.description = f'couldn\'t find contents in {buildPath}'
             log.error(f'couldn\'t find contents in {buildPath}')

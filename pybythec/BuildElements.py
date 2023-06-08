@@ -4,6 +4,7 @@ import os
 import subprocess
 from pybythec import utils
 from pybythec.utils import PybythecError
+import commentjson as json
 
 log = utils.log
 
@@ -107,7 +108,10 @@ class BuildElements:
                 else:  # end of the line
                     log.warning('no pybythecGlobals.json found in the home directory (hidden or otherwise)')
             if globalConfigPath and os.path.exists(globalConfigPath):
-                self.globalConfig = utils.loadJsonFile(globalConfigPath)
+
+                with open(globalConfigPath, 'r') as rf:
+                    self.globalConfig = json.load(rf)
+                # self.globalConfig = utils.loadJsonFile(globalConfigPath)
                 self.latestConfigTimestamp = float(os.stat(globalConfigPath).st_mtime)
 
                 # determine default binary format
@@ -126,7 +130,9 @@ class BuildElements:
                 elif os.path.exists(self.shellCwDir + '/.pybythecProject.json'):
                     projConfigPath = self.shellCwDir + '/.pybythecProject.json'
             if projConfigPath and os.path.exists(projConfigPath):
-                self.projConfig = utils.loadJsonFile(projConfigPath)
+                with open(projConfigPath, 'r') as rf:
+                    self.projConfig = json.load(rf)
+                # self.projConfig = utils.loadJsonFile(projConfigPath)
                 projConfigTs = float(os.stat(projConfigPath).st_mtime)
                 if projConfigTs > self.latestConfigTimestamp:
                     self.latestConfigTimestamp = projConfigTs
@@ -140,7 +146,9 @@ class BuildElements:
             localConfigTs = float(os.stat(localConfigPath).st_mtime)
             if localConfigTs > self.latestConfigTimestamp:
                 self.latestConfigTimestamp = localConfigTs
-            self.localConfig = utils.loadJsonFile(localConfigPath)
+            with open(localConfigPath, 'r') as rf:
+                self.localConfig = json.load(rf)
+            # self.localConfig = utils.loadJsonFile(localConfigPath)
 
         #
         # first iteration to get osType and custom keys (right now just for the compiler)
@@ -254,8 +262,7 @@ class BuildElements:
             self._getBuildElements3(self.localConfig, keys)
 
         log.debug('PATH')
-        delin = utils.getPathDelineator()
-        for p in os.environ['PATH'].split(delin):
+        for p in os.environ['PATH'].split(os.pathsep):
             log.debug(p)
 
         # deal breakers (that don't appear in the default pybythecGlobals.json)
@@ -387,11 +394,13 @@ class BuildElements:
 
         # make sure the compiler is in PATH
         try:
-            log.debug(f'compilerCmd: {self.compilerCmd}')
             subprocess.call(self.compilerCmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         except OSError as e:
-            log.debug(str(e))
+            log.error(str(e))
+            for p in os.environ['PATH'].split(os.pathsep):
+                log.i(p)
             raise PybythecError(f'compiler {self.compilerCmd} is not found in PATH')
+            
 
         # make sure the linker is in PATH
         try:
@@ -495,8 +504,8 @@ class BuildElements:
 
     def _getBuildElements2(self, configObj, keys = []):
         '''
-      elements that are nested in a finite / special case way, currently just the compiler
-    '''
+        elements that are nested in a finite / special case way, currently just the compiler
+        '''
         # compiler can be nested in a dict with 2 valid key types: osType and a build name
         if 'compiler' in configObj:
             compilerList = []
@@ -508,10 +517,8 @@ class BuildElements:
 
     def _getBuildElements3(self, configObj, keys = []):
         '''
-      elements that are potentially nested in any which way
-    '''
-        delin = utils.getPathDelineator()
-
+            elements that are potentially nested in any which way
+        '''
         if 'bins' in configObj:
             binPaths = []
             self._getArgsList(binPaths, configObj['bins'], keys)
@@ -519,7 +526,7 @@ class BuildElements:
                 if not utils.pathExists(binPath):
                     continue
                 binPath = utils.getShellPath(binPath)
-                os.environ['PATH'] = binPath + delin + os.environ['PATH']
+                os.environ['PATH'] = binPath + os.pathsep + os.environ['PATH']
 
         if 'sources' in configObj:
             self._getArgsList(self.sources, configObj['sources'], keys)

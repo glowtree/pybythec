@@ -1,4 +1,4 @@
-import json
+# import json
 import shutil
 import subprocess
 import platform
@@ -6,7 +6,8 @@ import sys
 import os
 
 LINUX_ROOT = ''
-if 'microsoft-standard' in platform.uname().release:  # check if it's windows subsystem for linux
+if 'microsoft-standard' in platform.uname(
+).release:  # check if it's windows subsystem for linux
     LINUX_ROOT = '/mnt'
 
 
@@ -139,22 +140,14 @@ def getLibPath(libName, libPath, compiler, libExt):
     return libPath
 
 
-def getPathDelineator():
-    '''
-  '''
-    delin = ':'
-    if platform.system() == 'Windows':
-        delin = ';'
-    return delin
-
-
 def isWindowsPath(path):
     '''
     path: assume it's an absolute path ie C:/hi
   '''
     if len(path) < 3:
         return False
-    if path[0].isalpha() and path[1] == ':' and (path[2] == '/' or path[2] == '\\'):
+    if path[0].isalpha() and path[1] == ':' and (path[2] == '/'
+                                                 or path[2] == '\\'):
         return True
     return False
 
@@ -252,7 +245,7 @@ def getAbsPath(cwDir, path):
 
 def resolvePaths(cwDir, paths, osType):
     '''
-  '''
+    '''
     i = 0
     for path in paths:
         p = getAbsPath(cwDir, path)
@@ -262,10 +255,10 @@ def resolvePaths(cwDir, paths, osType):
 
 def createDirs(path):
     '''
-   recursively goes up the path heiarchy creating the necessary directories along the way
-   similar to os.makedirs except doesn't throw an exception if a directory's already exists
-   also os.makedirs throws the same exception whether the directory already exists or it couldn't create it, not ideal
-  '''
+        recursively goes up the path heiarchy creating the necessary directories along the way
+        similar to os.makedirs except doesn't throw an exception if a directory's already exists
+        also os.makedirs throws the same exception whether the directory already exists or it couldn't create it, not ideal
+    '''
     if path is None or not len(path):
         log.warning('createDirs: empty path')
         return
@@ -290,10 +283,10 @@ def createDirs(path):
 
 def copyfile(srcPath, dstDir):
     '''
-    copies srcPath to dstPath, creating the directory structure if necessary for the destination
-    srcPath: absolute file path
-    dstDir:  absolute directory path
-  '''
+        copies srcPath to dstPath, creating the directory structure if necessary for the destination
+        srcPath: absolute file path
+        dstDir:  absolute directory path
+    '''
 
     if not os.path.exists(srcPath):
         return False
@@ -314,40 +307,39 @@ def copyfile(srcPath, dstDir):
     return True
 
 
-def loadJsonFile(jsonPath):
-    '''
-    load a json config file
-    NOTE: no check for existence of the path so that logging warnings can be controlled elsewhere
-  '''
-    if os.path.splitext(jsonPath)[1] != '.json':
-        # raise PybythecError(f'{jsonPath} is not a json file')
-        return None
-    if not os.path.exists(jsonPath):
-        raise PybythecError(f'{jsonPath} doesn\'t exist')
-    try:
-        with open(jsonPath) as f:
-            return json.loads(removeComments(f))
-    except Exception as e:
-        raise PybythecError(f'failed to parse {jsonPath}: {e}')
+# def loadJsonFile(jsonPath):
+#     '''
+#     load a json config file
+#     NOTE: no check for existence of the path so that logging warnings can be controlled elsewhere
+#   '''
+#     if os.path.splitext(jsonPath)[1] != '.json':
+#         # raise PybythecError(f'{jsonPath} is not a json file')
+#         return None
+#     if not os.path.exists(jsonPath):
+#         raise PybythecError(f'{jsonPath} doesn\'t exist')
+#     try:
+#         with open(jsonPath) as f:
+#             return json.loads(removeComments(f))
+#     except Exception as e:
+#         raise PybythecError(f'failed to parse {jsonPath}: {e}')
 
-
-def removeComments(f):
-    '''
-    removes // style comments from a file, num of lines stays the same
-  '''
-    sansComments = ''
-    inQuotes = False
-    for l in f:
-        i = 0
-        for c in l:
-            if c == '"':
-                inQuotes = not inQuotes
-            elif c == '/' and l[i + 1] == '/' and not inQuotes:
-                sansComments += '\n'
-                break
-            i += 1
-            sansComments += c
-    return sansComments
+# def removeComments(f):
+#     '''
+#     removes // style comments from a file, num of lines stays the same
+#   '''
+#     sansComments = ''
+#     inQuotes = False
+#     for l in f:
+#         i = 0
+#         for c in l:
+#             if c == '"':
+#                 inQuotes = not inQuotes
+#             elif c == '/' and l[i + 1] == '/' and not inQuotes:
+#                 sansComments += '\n'
+#                 break
+#             i += 1
+#             sansComments += c
+# return sansComments
 
 
 def runCmd(cmd):
@@ -355,7 +347,9 @@ def runCmd(cmd):
     runs a command and blocks until it's done, returns the output
   '''
     try:
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        p = subprocess.Popen(cmd,
+                             stdout = subprocess.PIPE,
+                             stderr = subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         return f'cmd failed: {" ".join(cmd)} because: {e.output}'
     except Exception:
@@ -372,4 +366,7 @@ def runCmd(cmd):
 # testing
 if __name__ == '__main__':
 
-    print(getAbsPath('C:\\Users\\tom\\work_offline\\repos\\pybythec/example/shared/src\\DynamicLib', '../../include'))
+    print(
+        getAbsPath(
+            'C:\\Users\\tom\\work_offline\\repos\\pybythec/example/shared/src\\DynamicLib',
+            '../../include'))
