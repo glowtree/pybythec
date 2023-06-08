@@ -66,7 +66,7 @@ class BuildElements:
         self.showCompilerCmds = False
         self.showLinkerCmds = False
 
-        self.copyDynamicLibs = True
+        self.copyDynamicLibs = False
 
         self.msvcDefault = None
 
@@ -139,15 +139,20 @@ class BuildElements:
 
         # local config, expected to be in the current working directory
         self.localConfig = None
-        localConfigPath = self.shellCwDir + '/pybythec.json'
-        if not os.path.exists(localConfigPath):
-            localConfigPath = self.shellCwDir + '/.pybythec.json'
-        if os.path.exists(localConfigPath):
-            localConfigTs = float(os.stat(localConfigPath).st_mtime)
-            if localConfigTs > self.latestConfigTimestamp:
-                self.latestConfigTimestamp = localConfigTs
+        if 'PYBYTHEC_LOCAL' in os.environ:
+            localConfigPath = os.environ['PYBYTHEC_LOCAL']
+            if not os.path.exists(localConfigPath):
+                log.warning(f'PYBYTHEC_LOCAL points to {localConfigPath}, which doesn\'t exist')
+        else:
+            localConfigPath = self.shellCwDir + '/pybythec.json'
+            if not os.path.exists(localConfigPath):
+                localConfigPath = self.shellCwDir + '/.pybythec.json'
+            if os.path.exists(localConfigPath):
+                localConfigTs = float(os.stat(localConfigPath).st_mtime)
+                if localConfigTs > self.latestConfigTimestamp:
+                    self.latestConfigTimestamp = localConfigTs
             with open(localConfigPath, 'r') as rf:
-                self.localConfig = json.load(rf)
+                    self.localConfig = json.load(rf)
             # self.localConfig = utils.loadJsonFile(localConfigPath)
 
         #
