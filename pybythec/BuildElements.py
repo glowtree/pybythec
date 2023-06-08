@@ -65,7 +65,7 @@ class BuildElements:
         self.showCompilerCmds = False
         self.showLinkerCmds = False
 
-        self.copyDynamicLibs = True
+        self.copyDynamicLibs = False
 
         self.msvcDefault = None
 
