@@ -111,7 +111,6 @@ class BuildElements:
 
                 with open(globalConfigPath, 'r') as rf:
                     self.globalConfig = json.load(rf)
-                # self.globalConfig = utils.loadJsonFile(globalConfigPath)
                 self.latestConfigTimestamp = float(os.stat(globalConfigPath).st_mtime)
 
                 # determine default binary format
@@ -120,40 +119,40 @@ class BuildElements:
 
         # project config
         if not self.projConfig:
+            projConfigPath = ''
             if 'PYBYTHEC_PROJECT' in os.environ:
                 projConfigPath = os.environ['PYBYTHEC_PROJECT']
                 if not os.path.exists(projConfigPath):
                     log.warning(f'PYBYTHEC_PROJECT points to {projConfigPath}, which doesn\'t exist')
-            else:
-                if os.path.exists(self.shellCwDir + '/pybythecProject.json'):
-                    projConfigPath = self.shellCwDir + '/pybythecProject.json'
-                elif os.path.exists(self.shellCwDir + '/.pybythecProject.json'):
-                    projConfigPath = self.shellCwDir + '/.pybythecProject.json'
-            if projConfigPath and os.path.exists(projConfigPath):
+            if not os.path.exists(projConfigPath):
+                projConfigPath = self.shellCwDir + '/pybythecProject.json'
+                if not os.path.exists(projConfigPath):
+                    projConfigPath = self.shellCwDir + '/.pybythecProject.json'   
+            if os.path.exists(projConfigPath):
                 with open(projConfigPath, 'r') as rf:
                     self.projConfig = json.load(rf)
-                # self.projConfig = utils.loadJsonFile(projConfigPath)
                 projConfigTs = float(os.stat(projConfigPath).st_mtime)
                 if projConfigTs > self.latestConfigTimestamp:
                     self.latestConfigTimestamp = projConfigTs
 
         # local config, expected to be in the current working directory
         self.localConfig = None
+        localConfigPath = ''
         if 'PYBYTHEC_LOCAL' in os.environ:
             localConfigPath = os.environ['PYBYTHEC_LOCAL']
-            if not os.path.exists(localConfigPath):
-                log.warning(f'PYBYTHEC_LOCAL points to {localConfigPath}, which doesn\'t exist')
-        else:
+            log.warning(f'PYBYTHEC_LOCAL points to {localConfigPath}, which doesn\'t exist')
+        if not os.path.exists(localConfigPath):
             localConfigPath = self.shellCwDir + '/pybythec.json'
             if not os.path.exists(localConfigPath):
                 localConfigPath = self.shellCwDir + '/.pybythec.json'
-            if os.path.exists(localConfigPath):
-                localConfigTs = float(os.stat(localConfigPath).st_mtime)
-                if localConfigTs > self.latestConfigTimestamp:
-                    self.latestConfigTimestamp = localConfigTs
+        if os.path.exists(localConfigPath):
+            localConfigTs = float(os.stat(localConfigPath).st_mtime)
+            if localConfigTs > self.latestConfigTimestamp:
+                self.latestConfigTimestamp = localConfigTs
             with open(localConfigPath, 'r') as rf:
                     self.localConfig = json.load(rf)
-            # self.localConfig = utils.loadJsonFile(localConfigPath)
+        else:
+            log.warning('faild to find a local pybythec.json')
 
         #
         # first iteration to get osType and custom keys (right now just for the compiler)
