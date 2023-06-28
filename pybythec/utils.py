@@ -10,6 +10,10 @@ if 'microsoft-standard' in platform.uname(
 ).release:  # check if it's windows subsystem for linux
     LINUX_ROOT = '/mnt'
 
+LINEAR_PROCESS = 0
+MULTI_THREAD = 1
+MULTI_PROCESS = 2
+
 
 class PybythecError(Exception):
     def __init__(self, msg):

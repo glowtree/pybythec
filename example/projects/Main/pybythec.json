@@ -13,6 +13,8 @@
     "DynamicLib"
   ],
 
+  "copyDynamicLibs": true,
+
   // paths
   "incPaths": [
     "${PYBYTHEC_EXAMPLE_SHARED}/StaticLib",

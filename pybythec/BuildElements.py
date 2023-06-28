@@ -88,6 +88,8 @@ class BuildElements:
 
         self.defines = []
 
+        self.processType = utils.MULTI_THREAD #  LINEAR_PROCESS MULTI_THREAD MULTI_PROCESS 
+
         # global config
         if not self.globalConfig:
             if 'PYBYTHEC_GLOBALS' in os.environ:
@@ -573,6 +575,19 @@ class BuildElements:
             self._getArgsList(installPaths, configObj['installPath'], keys)
             if len(installPaths):
                 self.installDirPath = installPaths[0]
+        
+        if 'processType' in configObj:
+            processTypes = []
+            self._getArgsList(processTypes, configObj['processType'], keys)
+            if len(processTypes):
+                processType = processTypes[0]
+                if processType == 'multi-process':
+                    self.processType = utils.MULTI_PROCESS
+                elif processType == 'multi-thread':
+                    self.processType = utils.MULTI_THREAD
+                elif processType == 'linear-process':
+                    self.processType = utils.LINEAR_PROCESS
+
 
     def _getArgsList(self, argsList, args, keys = []):
         '''

@@ -37,15 +37,17 @@ class TestPybythec(unittest.TestCase):
         log.info(f'cwd: {os.getcwd()}')
 
         # build Plugin
+        log.raw('\n')
         os.chdir('./example/projects/Plugin')
         pybythec.build()
+        log.raw('\n')
 
         # build Main (along with it's library dependencies)
+        log.raw('\n')
         os.chdir('../Main')
-
         be = pybythec.getBuildElements()
-
         pybythec.build(be)
+        log.raw('\n')
 
         for b in be.builds:
 
@@ -69,6 +71,8 @@ class TestPybythec(unittest.TestCase):
 
             self.assertTrue(
                 stdout.startswith('running an executable and a statically linked library and a dynamically linked library'))  # and a plugin'))
+            
+            log.raw('\n')
 
     def tearDown(self):
         '''

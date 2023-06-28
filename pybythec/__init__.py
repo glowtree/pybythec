@@ -4,6 +4,7 @@ from pybythec.utils import PybythecError
 from pybythec.BuildStatus import BuildStatus
 from pybythec.BuildElements import BuildElements
 from multiprocessing import Process, Queue
+from threading import Thread
 import traceback
 import os
 import time
@@ -156,15 +157,29 @@ def _build(be):
     buildStatusQueue = Queue()  # the build status for each dependency: objs and libs
     objPathQueue = Queue()
 
+    if be.processType is utils.MULTI_PROCESS:
+        log.debug(f'using multiprocessing')
+    elif be.processType is utils.MULTI_THREAD:
+        log.debug(f'using multithreading')
+    else:
+        log.debug(f'using single process')
+    
     #
     # compile
     #
+    objPaths = []
     cmd = [be.compilerCmd, be.objFlag] + incPathList + definesList + be.flags
 
     for source in be.sources:
-        thread = Process(target = _compileSrc, args = (be, cmd, source, objPathQueue, buildStatusQueue))
-        thread.start()
-        threads.append(thread)
+        if be.processType is utils.MULTI_PROCESS:
+            thread = Process(target = _compileSrc, args = (be, cmd, source, objPathQueue, buildStatusQueue))
+        elif be.processType is utils.MULTI_THREAD:
+            thread = Thread(target = _compileSrc, args = (be, cmd, source, objPathQueue, buildStatusQueue))
+        else:
+            _compileSrc(be, cmd, source, objPathQueue, buildStatusQueue)
+        if be.processType > 0:
+            thread.start()
+            threads.append(thread)
 
     #
     # build library dependencies
@@ -181,9 +196,15 @@ def _build(be):
     # check if the lib has a directory for building
     for libSrcPath in be.libSrcPaths:
         if utils.pathExists(libSrcPath):
-            thread = Process(target = _buildLib, args = (be, libSrcPath, buildStatusQueue))
-            thread.start()
-            threads.append(thread)
+            if be.processType is utils.MULTI_PROCESS:
+                thread = Process(target = _buildLib, args = (be, libSrcPath, buildStatusQueue))
+            elif be.processType is utils.MULTI_THREAD:
+                thread = Thread(target = _buildLib, args = (be, libSrcPath, buildStatusQueue))
+            else:
+                _buildLib(be, libSrcPath, buildStatusQueue)
+            if be.processType > 0:
+                thread.start()
+                threads.append(thread)
 
     # wait for all the threads before checking the results
     for thread in threads:
@@ -201,7 +222,7 @@ def _build(be):
         elif bs.status == 'built':
             allUpToDate = False
 
-    objPaths = []
+    # objPaths = []
     while not objPathQueue.empty():
         objPaths.append(objPathQueue.get())
 
